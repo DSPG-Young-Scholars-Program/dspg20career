@@ -55,5 +55,45 @@ list_table_columns(con, "bgt_res", "job")
 # Get Some Data
 con <- get_db_conn()
 DBI::dbGetQuery(con, 'SELECT * FROM bgt_res.job LIMIT 20')
+
+# Get subsetted data
+cert <- DBI::dbGetQuery(con, "
+                        SELECT * FROM bgt_res.cert
+                        WHERE cert.id in (
+                        SELECT ID FROM bgt_res.pers
+                        WHERE pers.msa like '%47900%'
+                        )"
+)
+
+ed <- DBI::dbGetQuery(con, "
+                      SELECT * FROM bgt_res.ed
+                      WHERE ed.id in (
+                      SELECT ID FROM bgt_res.pers
+                      WHERE pers.msa like '%47900%'
+                      )"
+)
+
+job <- DBI::dbGetQuery(con, "
+                       SELECT * FROM bgt_res.job
+                       WHERE job.id in (
+                       SELECT ID FROM bgt_res.pers
+                       WHERE pers.msa like '%47900%'
+                       )"
+)
+
+pers <- DBI::dbGetQuery(con, "
+                        SELECT * FROM bgt_res.pers
+                        WHERE pers.msa like '%47900%'"
+)
+
+skill <- DBI::dbGetQuery(con, "
+                         SELECT * FROM bgt_res.skill
+                         WHERE skill.id in (
+                         SELECT ID FROM bgt_res.pers
+                         WHERE pers.msa like '%47900%'
+                         )"
+)
+
+
 DBI::dbDisconnect(con)
 
