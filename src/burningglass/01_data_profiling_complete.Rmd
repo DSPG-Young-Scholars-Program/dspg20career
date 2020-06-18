@@ -1,0 +1,63 @@
+---
+title: "01_data_profiling_complete"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, include=FALSE, paged.print=FALSE}
+# load packages 
+for (pkg in c("tidyverse", "data.table", "stringr", "stringi", "mosaic", "dplyr")) {
+  library(pkg, character.only = TRUE)
+}
+
+get_db_conn <-
+  function(db_name = "sdad",
+           db_host = "postgis1",
+           db_port = "5432",
+           db_user = Sys.getenv("db_usr"),
+           db_pass = Sys.getenv("db_pwd")) {
+    RPostgreSQL::dbConnect(
+      drv = RPostgreSQL::PostgreSQL(),
+      dbname = db_name,
+      host = db_host,
+      port = db_port,
+      user = db_user,
+      password = db_pass
+    )
+  }
+
+con <- get_db_conn()
+
+
+pers <- DBI::dbGetQuery(con, "
+                        SELECT * FROM bgt_res.pers
+    "
+)
+
+DBI::dbDisconnect(con)
+```
+
+# Objective
+Provide data profiling on the complete burning glass dataset. 
+
+# Summary
+In pers table, `r sum(is.na(pers$msa))/nrow(pers)`% (N= `r sum(is.na(pers$msa))`) missing in the msa variable, which is an identifier for geographic location. `r length(grep("47900", pers$msa, fixed = T))`users came from Washington-Arlington-Alexandria, DC-VA-MD-WV Metropolitan Statistical Area, identified by code: 47900. 
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+# function for data profiling
+data_profiling <- function(df){
+  num_unique <- apply(df, 2,  function (x) length(unique(x)))
+  num_missing <- apply(df, 2, function(x) sum(is.na(x)))
+  perc_missing <- apply(df, 2, function(x) round((sum(is.na(x)))/length(x)* 100, digits = 2))  
+  summary_table <- cbind( num_unique, num_missing, perc_missing)
+  return(summary_table)
+}
+```
+
+```{r}
+data_profiling(pers)
+```
+
