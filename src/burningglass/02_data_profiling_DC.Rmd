@@ -1,0 +1,77 @@
+---
+title: "01_data_profiling"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# load packages 
+for (pkg in c("tidyverse", "igraph", "visNetwork", "data.table", "R.utils", "RPostgreSQL", "cowplot", "maditr", "stringr", "stringi", "mosaic", "dplyr", "ggplot2")) {
+  library(pkg, character.only = TRUE)
+}
+
+get_db_conn <-
+  function(db_name = "sdad",
+           db_host = "postgis1",
+           db_port = "5432",
+           db_user = Sys.getenv("db_usr"),
+           db_pass = Sys.getenv("db_pwd")) {
+    RPostgreSQL::dbConnect(
+      drv = RPostgreSQL::PostgreSQL(),
+      dbname = db_name,
+      host = db_host,
+      port = db_port,
+      user = db_user,
+      password = db_pass
+    )
+  }
+
+con <- get_db_conn()
+
+cert <- DBI::dbGetQuery(con, "
+                        SELECT * FROM bgt_res.cert
+                        WHERE cert.id in (
+                        SELECT ID FROM bgt_res.pers
+                        WHERE pers.msa like '%47900%'
+                        )"
+)
+
+ed <- DBI::dbGetQuery(con, "
+                      SELECT * FROM bgt_res.ed
+                      WHERE ed.id in (
+                      SELECT ID FROM bgt_res.pers
+                      WHERE pers.msa like '%47900%'
+                      )"
+)
+
+DBI::dbDisconnect(con)
+```
+
+
+```{r}
+# function for data profiling
+data_profiling <- function(df){
+  num_unique <- apply(df, 2,  function (x) length(unique(x)))
+  num_missing <- apply(df, 2, function(x) sum(is.na(x)))
+  perc_missing <- apply(df, 2, function(x) round((sum(is.na(x)))/length(x)* 100, digits = 2))  
+  summary_table <- cbind( num_unique, num_missing, perc_missing)
+  return(summary_table)
+}
+```
+
+
+# Table: Cert
+```{r}
+data_profiling(cert)
+```
+
+
+
+# Table: Ed
+```{r message=FALSE, warning=FALSE}
+#plot_missing(ed)
+data_profiling(ed)
+```
