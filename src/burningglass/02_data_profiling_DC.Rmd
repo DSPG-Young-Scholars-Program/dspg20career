@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # load packages 
-for (pkg in c("tidyverse", "igraph", "visNetwork", "data.table", "R.utils", "RPostgreSQL", "cowplot", "maditr", "stringr", "stringi", "mosaic", "dplyr", "ggplot2")) {
+for (pkg in c("tidyverse", "igraph", "visNetwork", "data.table", "R.utils", "RPostgreSQL", "cowplot", "maditr", "stringr", "stringi", "mosaic", "dplyr", "ggplot2", "lubridate")) {
   library(pkg, character.only = TRUE)
 }
 
@@ -47,7 +47,21 @@ ed <- DBI::dbGetQuery(con, "
                       )"
 )
 
+job <- DBI::dbGetQuery(con, "
+                       SELECT * FROM bgt_res.job
+                       WHERE job.id in (
+                       SELECT ID FROM bgt_res.pers
+                       WHERE pers.msa like '%47900%'
+                       )"
+)
+
+pers <- DBI::dbGetQuery(con, "
+                        SELECT * FROM bgt_res.pers
+                        WHERE pers.msa like '%47900%'"
+)
+
 DBI::dbDisconnect(con)
+
 ```
 
 
@@ -75,3 +89,67 @@ data_profiling(cert)
 #plot_missing(ed)
 data_profiling(ed)
 ```
+
+
+# Table: Pers
+```{r message = FALSE, warning = FALSE}
+data_profiling(pers)
+
+# Preliminary profiling for pers table. 
+
+pers %>% group_by(msa) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
+
+# Checking on MSA. This column is messy and it looks like multiple values are being captured. 
+
+pers %>% group_by(gender) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
+
+# Checking on gender. There are slightly more male than female resumes, but overall pretty even distribution.
+
+pers %>% group_by(zipcode) %>% summarise(n = n()) %>% mutate(freq = n / sum(n)) %>% arrange(-freq) %>% head(15)
+
+# Checking on zip code. The distribution is pretty even. The top 15 are all in the DC metropolitan area. 
+
+pers %>% group_by(noofjobs) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
+ggplot(pers, aes(x = noofjobs)) +
+  geom_histogram(bins = 19)
+
+# Checking on the number of jobs. The distribution looks normal. 
+```
+
+
+
+# Table: Job
+```{r message = FALSE, warning = FALSE}
+data_profiling(job)
+
+# Preliminary profiling for job table. 
+
+job %>% count(onet) %>% arrange(-n) %>% head(15)
+
+# Checking on onet. The top 15 jobs seem normal. Though, there may be some issues with this variable since the number of unique values (1046) is more than the number of unique onet codes online (1016)
+
+year_start <- job %>% mutate(year = year(startdate)) %>% filter(!is.na(year)) %>% group_by(year) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
+
+# Checking on startdate. Some a few observations seem impossible (1900) and some might be unlikely. 
+
+ggplot(year_start, aes(x = year, y = n)) +
+  geom_smooth() +
+  xlim(2000, 2020)
+
+# The distribution of startdates from 2000-2020 looks normal. 
+       
+year_end <- job %>% mutate(year = year(enddate)) %>% filter(!is.na(year)) %>% group_by(year) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
+
+ggplot(year_end, aes(x = year, y = n)) +
+         geom_smooth() +
+         xlim(2000, 2020)
+
+# The distribution of enddates is concentrated after 2015. We might expect this since the data is resumes collected from jobseekers around this time.
+
+job %>% mutate(month = month(startdate)) %>% filter(!is.na(month)) %>% group_by(month) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
+
+job %>% mutate(day = day(startdate)) %>% filter(!is.na(day)) %>% group_by(day) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
+
+# For month there is a greater frequency of startdates in January. For day the frequency is greatest for the first of the month. 
+```
+
