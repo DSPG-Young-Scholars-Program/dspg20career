@@ -113,7 +113,7 @@ pers %>% group_by(noofjobs) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
 ggplot(pers, aes(x = noofjobs)) +
   geom_histogram(bins = 19)
 
-# Checking on the number of jobs. The distribution looks normal. 
+# Checking on the number of jobs. 
 ```
 
 
@@ -126,7 +126,7 @@ data_profiling(job)
 
 job %>% count(onet) %>% arrange(-n) %>% head(15)
 
-# Checking on onet. The top 15 jobs seem normal. Though, there may be some issues with this variable since the number of unique values (1046) is more than the number of unique onet codes online (1016)
+# Checking on onet. There may be some issues with this variable since the number of unique values (1046) is more than the number of unique onet codes online (1016)
 
 year_start <- job %>% mutate(year = year(startdate)) %>% filter(!is.na(year)) %>% group_by(year) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
 
@@ -136,7 +136,7 @@ ggplot(year_start, aes(x = year, y = n)) +
   geom_smooth() +
   xlim(2000, 2020)
 
-# The distribution of startdates from 2000-2020 looks normal. 
+# The distribution of startdates from 2000-2020 looks as expected. 
        
 year_end <- job %>% mutate(year = year(enddate)) %>% filter(!is.na(year)) %>% group_by(year) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
 
