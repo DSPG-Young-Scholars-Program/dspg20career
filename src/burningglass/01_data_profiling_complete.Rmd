@@ -70,7 +70,7 @@ To summarize, "msa" is a reliable geographic variable for us to identify people 
 # function for data profiling
 data_profiling <- function(df){
 summary_table <- tibble(var = names(df),
-       variable_type = map(.x = df, .f = function(col) class(x = col)),                 
+       variable_type = map_chr(.x = df, .f = function(col) class(x = col)),                 
        num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
        num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
   mutate(perc_missing = round(x = 100 * num_missing / nrow(x = .), digits = 2L))
