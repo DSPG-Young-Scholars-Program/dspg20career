@@ -33,7 +33,7 @@ brfss2018 <- read_csv("~/git/dspg20career/src/brfss/brfss2018.csv")%>%
   select(-X1)
 data_profiling <- function(df){
 summary_table <- tibble(var = names(df),
-       variable_type = map(.x = df, .f = function(col) class(x = col)),                 
+       variable_type = map_chr(.x = df, .f = function(col) class(x = col)),                 
        num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
        num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
   mutate(perc_missing = round(x = 100 * num_missing / nrow(x = .), digits = 2L))
