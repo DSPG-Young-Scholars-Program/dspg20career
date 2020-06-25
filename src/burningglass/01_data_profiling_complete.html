@@ -313,88 +313,27 @@ div.tocify {
 </div>
 <div id="summary" class="section level1">
 <h1>Summary</h1>
-<p>In pers table, 0.1564185% (N= 3547697) missing in the msa variable, which is an identifier for geographic location. 687129users came from Washington-Arlington-Alexandria, DC-VA-MD-WV Metropolitan Statistical Area, identified by code: 47900.</p>
+<p>In pers table, 0.1564185% (N= 3547697) missing in the msa variable, which is an identifier for geographic location. 687129 users came from Washington-Arlington-Alexandria, DC-VA-MD-WV Metropolitan Statistical Area, identified by code: 47900.</p>
+<p>Among 687129 people, only 0.30 % (N=2093) of people had duplicated entries in msa. Nearly 100% (N=687127) have zipcode. We have 96.65% (N=664116) matched the zipcodes we approximated that match 47900 msa code.</p>
+<p>To summarize, &quot;msa&quot; is a reliable geographic variable for us to identify people from the DC metropolitan area. We identify anyone who entered 47900 in the msa code as the population who live in the DC metropolitan area.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># function for data profiling</span>
 data_profiling &lt;-<span class="st"> </span><span class="cf">function</span>(df){
-  num_unique &lt;-<span class="st"> </span><span class="kw">apply</span>(df, <span class="dv">2</span>,  <span class="cf">function</span> (x) <span class="kw">length</span>(<span class="kw">unique</span>(x)))
-  num_missing &lt;-<span class="st"> </span><span class="kw">apply</span>(df, <span class="dv">2</span>, <span class="cf">function</span>(x) <span class="kw">sum</span>(<span class="kw">is.na</span>(x)))
-  perc_missing &lt;-<span class="st"> </span><span class="kw">apply</span>(df, <span class="dv">2</span>, <span class="cf">function</span>(x) <span class="kw">round</span>((<span class="kw">sum</span>(<span class="kw">is.na</span>(x)))<span class="op">/</span><span class="kw">length</span>(x)<span class="op">*</span><span class="st"> </span><span class="dv">100</span>, <span class="dt">digits =</span> <span class="dv">2</span>))  
-  summary_table &lt;-<span class="st"> </span><span class="kw">cbind</span>( num_unique, num_missing, perc_missing)
-  <span class="kw">return</span>(summary_table)
+summary_table &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">var =</span> <span class="kw">names</span>(df),
+       <span class="dt">variable_type =</span> <span class="kw">map</span>(<span class="dt">.x =</span> df, <span class="dt">.f =</span> <span class="cf">function</span>(col) <span class="kw">class</span>(<span class="dt">x =</span> col)),                 
+       <span class="dt">num_unique =</span> <span class="kw">map_int</span>(<span class="dt">.x =</span> df, <span class="dt">.f =</span> <span class="cf">function</span>(col) <span class="kw">length</span>(<span class="dt">x =</span> <span class="kw">unique</span>(<span class="dt">x =</span> col))),
+       <span class="dt">num_missing =</span> <span class="kw">map_int</span>(<span class="dt">.x =</span> df, <span class="dt">.f =</span> <span class="cf">function</span>(col) <span class="kw">sum</span>(<span class="dt">x =</span> <span class="kw">is.na</span>(<span class="dt">x =</span> col)))) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">perc_missing =</span> <span class="kw">round</span>(<span class="dt">x =</span> <span class="dv">100</span> <span class="op">*</span><span class="st"> </span>num_missing <span class="op">/</span><span class="st"> </span><span class="kw">nrow</span>(<span class="dt">x =</span> .), <span class="dt">digits =</span> 2L))
+
+<span class="kw">return</span>(summary_table)
 }</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data_profiling</span>(pers)</code></pre></div>
-<pre><code>##                    num_unique num_missing perc_missing
-## id                   22672217           0         0.00
-## statename                  58     8422419        37.13
-## cityname               819795      396299         1.75
-## msa                    141195     3547697        15.64
-## zipcode                280093     3186603        14.05
-## gender                      3     3379834        14.90
-## noofschooldegrees          98       14854         0.07
-## noofcertifications         41    16998528        74.95
-## noofjobs                   20     1576381         6.95</code></pre>
-</div>
-<div id="identify-dc-metropolitan-area" class="section level1">
-<h1>Identify DC Metropolitan Area</h1>
-<div id="msa" class="section level2">
-<h2>MSA</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#library(zipcode)</span>
-
-DC_pers &lt;-<span class="st"> </span>pers<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(<span class="kw">grepl</span>(<span class="st">&quot;47900&quot;</span>, msa) <span class="op">==</span><span class="st"> </span>T)
-
-matches &lt;-<span class="st"> </span><span class="kw">regmatches</span>(DC_pers<span class="op">$</span>msa, <span class="kw">gregexpr</span>(<span class="st">&quot;[[:digit:]]+&quot;</span>, DC_pers<span class="op">$</span>msa))
-msa_list &lt;-<span class="st"> </span><span class="kw">unique</span>(<span class="kw">unlist</span>(matches))
-msa_DC &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;47900&quot;</span>, <span class="st">&quot;548&quot;</span>)
-msa_not_DC &lt;-<span class="st"> </span><span class="kw">setdiff</span>(msa_list, msa_DC)
-
-dup_detect &lt;-<span class="st"> </span><span class="kw">c</span>()
-<span class="cf">for</span> (i <span class="cf">in</span> (<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(matches))){
-  item &lt;-<span class="st"> </span>matches[[i]]
-  <span class="cf">if</span>(<span class="kw">sum</span>(item <span class="op">%in%</span><span class="st"> </span>msa_not_DC <span class="op">==</span><span class="st"> </span>T) <span class="op">&gt;</span><span class="st"> </span><span class="dv">2</span>){
-    dup_detect[i] =<span class="st"> </span>T
-  }<span class="cf">else</span>{
-    dup_detect[i] =<span class="st"> </span>F
-  }
-}</code></pre></div>
-<p>We identified 687129 people who haved listed &quot;47900&quot; in their msa, 0.30 % (N=2093) of people had duplicated entries in msa. Among people who only reported &quot;47900&quot; in their msa, there are 5033 unique self-reported zipcodes. Then, I matched the zipcode with zipcodes on US Zip Codes Database (using authoritative sources including the U.S. Postal Service™, U.S. Census Bureau, National Weather Service, American Community Survey, and the IRS). 28.00% of these 5033 zipcodes (N=1409) don't match with the zipcode database.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">nrow</span>(DC_pers)</code></pre></div>
-<pre><code>## [1] 687129</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(dup_detect) <span class="co">#2093 ppl had msa duplicates</span></code></pre></div>
-<pre><code>## dup_detect
-##  FALSE   TRUE 
-## 685036   2093</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">DC_pers &lt;-<span class="st"> </span><span class="kw">cbind</span>(DC_pers, dup_detect)
-
-DC_pers &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(dup_detect <span class="op">==</span><span class="st"> </span>F)<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">zipcode_clean =</span> <span class="kw">substr</span>(zipcode,<span class="dv">1</span>,<span class="dv">5</span>))
-
-DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">group_by</span>(zipcode_clean)<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">N=</span><span class="kw">n</span>())<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">left_join</span>(uszips, <span class="dt">by =</span> <span class="kw">c</span>(<span class="st">&quot;zipcode_clean&quot;</span> =<span class="st"> &quot;zip&quot;</span>))<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(N))
-
-<span class="kw">table</span>(<span class="kw">is.na</span>(DCzipcode<span class="op">$</span>state_id))</code></pre></div>
-<pre><code>## 
-## FALSE  TRUE 
-##  3624  1409</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">nrow</span>(DCzipcode)</code></pre></div>
-<pre><code>## [1] 5033</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">DCzipcode<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">group_by</span>(state_id)<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">number_zips=</span><span class="kw">n</span>())<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(number_zips))<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">gt</span>()<span class="op">%&gt;%</span>
-<span class="st">   </span><span class="kw">tab_header</span>(
-    <span class="dt">title =</span> <span class="st">&quot;states zipcode in 47900 msa code&quot;</span>
-  )</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pers<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">data_profiling</span>()<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">gt</span>()</code></pre></div>
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#vinxxiooqd .gt_table {
+#whgefuzgir .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -417,7 +356,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-left-color: #D3D3D3;
 }
 
-#vinxxiooqd .gt_heading {
+#whgefuzgir .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -429,7 +368,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-right-color: #D3D3D3;
 }
 
-#vinxxiooqd .gt_title {
+#whgefuzgir .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -439,7 +378,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-bottom-width: 0;
 }
 
-#vinxxiooqd .gt_subtitle {
+#whgefuzgir .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -449,13 +388,13 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-top-width: 0;
 }
 
-#vinxxiooqd .gt_bottom_border {
+#whgefuzgir .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#vinxxiooqd .gt_col_headings {
+#whgefuzgir .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -470,7 +409,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-right-color: #D3D3D3;
 }
 
-#vinxxiooqd .gt_col_heading {
+#whgefuzgir .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -490,7 +429,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   overflow-x: hidden;
 }
 
-#vinxxiooqd .gt_column_spanner_outer {
+#whgefuzgir .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -502,15 +441,15 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   padding-right: 4px;
 }
 
-#vinxxiooqd .gt_column_spanner_outer:first-child {
+#whgefuzgir .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#vinxxiooqd .gt_column_spanner_outer:last-child {
+#whgefuzgir .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#vinxxiooqd .gt_column_spanner {
+#whgefuzgir .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -522,7 +461,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   width: 100%;
 }
 
-#vinxxiooqd .gt_group_heading {
+#whgefuzgir .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -544,7 +483,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   vertical-align: middle;
 }
 
-#vinxxiooqd .gt_empty_group_heading {
+#whgefuzgir .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -559,19 +498,19 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   vertical-align: middle;
 }
 
-#vinxxiooqd .gt_striped {
+#whgefuzgir .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#vinxxiooqd .gt_from_md > :first-child {
+#whgefuzgir .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#vinxxiooqd .gt_from_md > :last-child {
+#whgefuzgir .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#vinxxiooqd .gt_row {
+#whgefuzgir .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -590,7 +529,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   overflow-x: hidden;
 }
 
-#vinxxiooqd .gt_stub {
+#whgefuzgir .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -602,7 +541,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   padding-left: 12px;
 }
 
-#vinxxiooqd .gt_summary_row {
+#whgefuzgir .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -612,7 +551,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   padding-right: 5px;
 }
 
-#vinxxiooqd .gt_first_summary_row {
+#whgefuzgir .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -622,7 +561,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-top-color: #D3D3D3;
 }
 
-#vinxxiooqd .gt_grand_summary_row {
+#whgefuzgir .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -632,7 +571,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   padding-right: 5px;
 }
 
-#vinxxiooqd .gt_first_grand_summary_row {
+#whgefuzgir .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -642,7 +581,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-top-color: #D3D3D3;
 }
 
-#vinxxiooqd .gt_table_body {
+#whgefuzgir .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -651,7 +590,7 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-bottom-color: #D3D3D3;
 }
 
-#vinxxiooqd .gt_footnotes {
+#whgefuzgir .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -665,13 +604,13 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-right-color: #D3D3D3;
 }
 
-#vinxxiooqd .gt_footnote {
+#whgefuzgir .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#vinxxiooqd .gt_sourcenotes {
+#whgefuzgir .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -685,268 +624,517 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
   border-right-color: #D3D3D3;
 }
 
-#vinxxiooqd .gt_sourcenote {
+#whgefuzgir .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#vinxxiooqd .gt_left {
+#whgefuzgir .gt_left {
   text-align: left;
 }
 
-#vinxxiooqd .gt_center {
+#whgefuzgir .gt_center {
   text-align: center;
 }
 
-#vinxxiooqd .gt_right {
+#whgefuzgir .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#vinxxiooqd .gt_font_normal {
+#whgefuzgir .gt_font_normal {
   font-weight: normal;
 }
 
-#vinxxiooqd .gt_font_bold {
+#whgefuzgir .gt_font_bold {
   font-weight: bold;
 }
 
-#vinxxiooqd .gt_font_italic {
+#whgefuzgir .gt_font_italic {
   font-style: italic;
 }
 
-#vinxxiooqd .gt_super {
+#whgefuzgir .gt_super {
   font-size: 65%;
 }
 
-#vinxxiooqd .gt_footnote_marks {
+#whgefuzgir .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
-<div id="vinxxiooqd" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
-  <thead class="gt_header">
-    <tr>
-      <th colspan="2" class="gt_heading gt_title gt_font_normal" style>states zipcode in 47900 msa code</th>
-    </tr>
-    <tr>
-      <th colspan="2" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style></th>
-    </tr>
-  </thead>
+<div id="whgefuzgir" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+  
   <thead class="gt_col_headings">
     <tr>
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">state_id</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">number_zips</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">var</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">variable_type</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">num_unique</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">num_missing</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">perc_missing</th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
     <tr>
-      <td class="gt_row gt_left">NA</td>
-      <td class="gt_row gt_center">1409</td>
+      <td class="gt_row gt_left">id</td>
+      <td class="gt_row gt_center">integer</td>
+      <td class="gt_row gt_center">22672217</td>
+      <td class="gt_row gt_center">0</td>
+      <td class="gt_row gt_right">0.0</td>
     </tr>
     <tr>
-      <td class="gt_row gt_left">NY</td>
-      <td class="gt_row gt_center">361</td>
+      <td class="gt_row gt_left">statename</td>
+      <td class="gt_row gt_center">character</td>
+      <td class="gt_row gt_center">58</td>
+      <td class="gt_row gt_center">8422419</td>
+      <td class="gt_row gt_right">93582433.3</td>
     </tr>
     <tr>
-      <td class="gt_row gt_left">VA</td>
-      <td class="gt_row gt_center">350</td>
+      <td class="gt_row gt_left">cityname</td>
+      <td class="gt_row gt_center">character</td>
+      <td class="gt_row gt_center">819795</td>
+      <td class="gt_row gt_center">396299</td>
+      <td class="gt_row gt_right">4403322.2</td>
     </tr>
     <tr>
-      <td class="gt_row gt_left">MD</td>
-      <td class="gt_row gt_center">298</td>
+      <td class="gt_row gt_left">msa</td>
+      <td class="gt_row gt_center">character</td>
+      <td class="gt_row gt_center">141195</td>
+      <td class="gt_row gt_center">3547697</td>
+      <td class="gt_row gt_right">39418855.6</td>
     </tr>
     <tr>
-      <td class="gt_row gt_left">PA</td>
-      <td class="gt_row gt_center">242</td>
+      <td class="gt_row gt_left">zipcode</td>
+      <td class="gt_row gt_center">character</td>
+      <td class="gt_row gt_center">280093</td>
+      <td class="gt_row gt_center">3186603</td>
+      <td class="gt_row gt_right">35406700.0</td>
     </tr>
     <tr>
-      <td class="gt_row gt_left">FL</td>
-      <td class="gt_row gt_center">232</td>
+      <td class="gt_row gt_left">gender</td>
+      <td class="gt_row gt_center">character</td>
+      <td class="gt_row gt_center">3</td>
+      <td class="gt_row gt_center">3379834</td>
+      <td class="gt_row gt_right">37553711.1</td>
     </tr>
     <tr>
-      <td class="gt_row gt_left">CA</td>
-      <td class="gt_row gt_center">230</td>
+      <td class="gt_row gt_left">noofschooldegrees</td>
+      <td class="gt_row gt_center">integer</td>
+      <td class="gt_row gt_center">98</td>
+      <td class="gt_row gt_center">14854</td>
+      <td class="gt_row gt_right">165044.4</td>
     </tr>
     <tr>
-      <td class="gt_row gt_left">TX</td>
-      <td class="gt_row gt_center">163</td>
+      <td class="gt_row gt_left">noofcertifications</td>
+      <td class="gt_row gt_center">integer</td>
+      <td class="gt_row gt_center">41</td>
+      <td class="gt_row gt_center">16998528</td>
+      <td class="gt_row gt_right">188872533.3</td>
     </tr>
     <tr>
-      <td class="gt_row gt_left">NC</td>
-      <td class="gt_row gt_center">132</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">NJ</td>
-      <td class="gt_row gt_center">129</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">OH</td>
-      <td class="gt_row gt_center">128</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">GA</td>
-      <td class="gt_row gt_center">127</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">IL</td>
-      <td class="gt_row gt_center">89</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">MA</td>
-      <td class="gt_row gt_center">88</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">MI</td>
-      <td class="gt_row gt_center">72</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">WA</td>
-      <td class="gt_row gt_center">67</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">TN</td>
-      <td class="gt_row gt_center">60</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">SC</td>
-      <td class="gt_row gt_center">57</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">CO</td>
-      <td class="gt_row gt_center">55</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">IN</td>
-      <td class="gt_row gt_center">54</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">WV</td>
-      <td class="gt_row gt_center">53</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">DC</td>
-      <td class="gt_row gt_center">52</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">MO</td>
-      <td class="gt_row gt_center">46</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">AL</td>
-      <td class="gt_row gt_center">40</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">LA</td>
-      <td class="gt_row gt_center">40</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">AZ</td>
-      <td class="gt_row gt_center">39</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">KY</td>
-      <td class="gt_row gt_center">36</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">MN</td>
-      <td class="gt_row gt_center">35</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">CT</td>
-      <td class="gt_row gt_center">32</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">OK</td>
-      <td class="gt_row gt_center">27</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">DE</td>
-      <td class="gt_row gt_center">25</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">WI</td>
-      <td class="gt_row gt_center">24</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">MS</td>
-      <td class="gt_row gt_center">23</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">NV</td>
-      <td class="gt_row gt_center">23</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">OR</td>
-      <td class="gt_row gt_center">23</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">IA</td>
+      <td class="gt_row gt_left">noofjobs</td>
+      <td class="gt_row gt_center">integer</td>
       <td class="gt_row gt_center">20</td>
+      <td class="gt_row gt_center">1576381</td>
+      <td class="gt_row gt_right">17515344.4</td>
+    </tr>
+  </tbody>
+  
+  
+</table></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">DC_pers &lt;-<span class="st"> </span>pers<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="kw">grepl</span>(<span class="st">&quot;47900&quot;</span>, msa) <span class="op">==</span><span class="st"> </span>T)</code></pre></div>
+</div>
+<div id="identify-dc-metropolitan-area" class="section level1">
+<h1>Identify DC Metropolitan Area</h1>
+<div id="identify-duplicated-msa-code" class="section level2">
+<h2>Identify duplicated MSA code</h2>
+<p>Among people who only reported &quot;47900&quot; in their msa, there are 5033 unique self-reported zipcodes. Then, I matched the zipcode with zipcodes on US Zip Codes Database (using authoritative sources including the U.S. Postal Service™, U.S. Census Bureau, National Weather Service, American Community Survey, and the IRS). 28.00% of these 5033 zipcodes (N=1409) don't match with the zipcode database.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">DC_pers &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">zipcode_clean =</span> <span class="kw">substr</span>(zipcode,<span class="dv">1</span>,<span class="dv">5</span>))
+<span class="kw">table</span>(<span class="kw">is.na</span>(DC_pers<span class="op">$</span>zipcode_clean))</code></pre></div>
+<pre><code>## 
+##  FALSE   TRUE 
+## 687127      2</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">DC_pers &lt;-<span class="st"> </span><span class="kw">filter</span>(DC_pers, <span class="op">!</span><span class="kw">is.na</span>(DC_pers<span class="op">$</span>zipcode_clean))
+
+<span class="co"># DCzipcode &lt;- DC_pers%&gt;%</span>
+<span class="co">#   group_by(zipcode_clean)%&gt;%</span>
+<span class="co">#   summarize(N=n())%&gt;%</span>
+<span class="co">#   left_join(uszips, by = c(&quot;zipcode_clean&quot; = &quot;zip&quot;))%&gt;%</span>
+<span class="co">#   arrange(desc(N))</span>
+
+<span class="co"># DCzipcode%&gt;%</span>
+<span class="co">#   group_by(state_id)%&gt;%</span>
+<span class="co">#   summarize(number_zips=n())%&gt;%</span>
+<span class="co">#   arrange(desc(number_zips))%&gt;%</span>
+<span class="co">#   gt()%&gt;%</span>
+<span class="co">#    tab_header(</span>
+<span class="co">#     title = &quot;states zipcode in 47900 msa code&quot;</span>
+<span class="co">#   )</span>
+zips47900 &lt;-<span class="st"> </span><span class="kw">as.character</span>(zips47900)
+
+ttl_pers &lt;-<span class="st">  </span><span class="kw">sum</span>(DC_pers<span class="op">$</span>N)
+
+DC_pers<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">match_47900zip =</span> <span class="kw">if_else</span>(DC_pers<span class="op">$</span>zipcode_clean <span class="op">%in%</span><span class="st"> </span>zips47900, T, F))<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(match_47900zip)<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">sum_match =</span> <span class="kw">n</span>())<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">percent_match =</span> sum_match<span class="op">/</span><span class="kw">nrow</span>(DC_pers)<span class="op">*</span><span class="dv">100</span>)<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">gt</span>()</code></pre></div>
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#lxyiqyaukc .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#lxyiqyaukc .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#lxyiqyaukc .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#lxyiqyaukc .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#lxyiqyaukc .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#lxyiqyaukc .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#lxyiqyaukc .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#lxyiqyaukc .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#lxyiqyaukc .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#lxyiqyaukc .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#lxyiqyaukc .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#lxyiqyaukc .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#lxyiqyaukc .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#lxyiqyaukc .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#lxyiqyaukc .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#lxyiqyaukc .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#lxyiqyaukc .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#lxyiqyaukc .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#lxyiqyaukc .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#lxyiqyaukc .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#lxyiqyaukc .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#lxyiqyaukc .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#lxyiqyaukc .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#lxyiqyaukc .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#lxyiqyaukc .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#lxyiqyaukc .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#lxyiqyaukc .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#lxyiqyaukc .gt_left {
+  text-align: left;
+}
+
+#lxyiqyaukc .gt_center {
+  text-align: center;
+}
+
+#lxyiqyaukc .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#lxyiqyaukc .gt_font_normal {
+  font-weight: normal;
+}
+
+#lxyiqyaukc .gt_font_bold {
+  font-weight: bold;
+}
+
+#lxyiqyaukc .gt_font_italic {
+  font-style: italic;
+}
+
+#lxyiqyaukc .gt_super {
+  font-size: 65%;
+}
+
+#lxyiqyaukc .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+</style>
+<div id="lxyiqyaukc" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">match_47900zip</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">sum_match</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">percent_match</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr>
+      <td class="gt_row gt_center">FALSE</td>
+      <td class="gt_row gt_center">23011</td>
+      <td class="gt_row gt_right">3.348871</td>
     </tr>
     <tr>
-      <td class="gt_row gt_left">HI</td>
-      <td class="gt_row gt_center">17</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">UT</td>
-      <td class="gt_row gt_center">17</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">NH</td>
-      <td class="gt_row gt_center">16</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">AR</td>
-      <td class="gt_row gt_center">14</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">NM</td>
-      <td class="gt_row gt_center">14</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">RI</td>
-      <td class="gt_row gt_center">14</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">KS</td>
-      <td class="gt_row gt_center">13</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">VT</td>
-      <td class="gt_row gt_center">10</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">ME</td>
-      <td class="gt_row gt_center">9</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">AK</td>
-      <td class="gt_row gt_center">7</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">ID</td>
-      <td class="gt_row gt_center">5</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">MT</td>
-      <td class="gt_row gt_center">5</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">PR</td>
-      <td class="gt_row gt_center">5</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">ND</td>
-      <td class="gt_row gt_center">2</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">NE</td>
-      <td class="gt_row gt_center">2</td>
-    </tr>
-    <tr>
-      <td class="gt_row gt_left">SD</td>
-      <td class="gt_row gt_center">2</td>
+      <td class="gt_row gt_center">TRUE</td>
+      <td class="gt_row gt_center">664116</td>
+      <td class="gt_row gt_right">96.651129</td>
     </tr>
   </tbody>
   
@@ -957,36 +1145,6 @@ DCzipcode &lt;-<span class="st"> </span>DC_pers<span class="op">%&gt;%</span>
 <div id="subset-burning-glass-data-using-dcvamd-zipcodes" class="section level1">
 <h1>Subset Burning Glass data using DC/VA/MD zipcodes</h1>
 <p>Alternatively, we could us zipcodes identified in the zipcode database. There are 52 zipcodes identified in the District of Columbia. We could add more states if we want. For example 893 zipcodes from VA, 468 zipcodes from Maryland. In total, there are 1416 zipcodes in DC/VA/MD. In Burning Glass data, 1,307,546 people are located in DC/VA/MD, 84,337 people located in DC using zipcode identifier.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(uszips<span class="op">$</span>state_id)</code></pre></div>
-<pre><code>## 
-##   AK   AL   AR   AZ   CA   CO   CT   DC   DE   FL   GA   HI   IA   ID   IL   IN 
-##  238  642  591  405 1761  525  282   52   67  983  735   94  934  277 1383  775 
-##   KS   KY   LA   MA   MD   ME   MI   MN   MO   MS   MT   NC   ND   NE   NH   NJ 
-##  697  767  515  537  468  432  986  884 1022  423  361  808  383  581  248  595 
-##   NM   NV   NY   OH   OK   OR   PA   PR   RI   SC   SD   TN   TX   UT   VA   VT 
-##  368  175 1794 1195  648  417 1795  131   77  424  371  628 1935  287  896  255 
-##   WA   WI   WV   WY 
-##  596  772  706  178</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># only DC</span>
-dc_zips &lt;-<span class="st"> </span>uszips<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(state_id <span class="op">==</span><span class="st"> &quot;DC&quot;</span>)
-dc_zips &lt;-<span class="st"> </span><span class="kw">as.vector</span>(dc_zips<span class="op">$</span>zip)
-
-pers_dc &lt;-<span class="st"> </span>pers<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(zipcode <span class="op">%in%</span><span class="st"> </span>dc_zips)
-<span class="kw">nrow</span>(pers_dc)</code></pre></div>
-<pre><code>## [1] 84337</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># DC, VA, MD</span>
-dc_va_md_zips &lt;-<span class="st"> </span>uszips<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(state_id <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;DC&quot;</span>, <span class="st">&quot;VA&quot;</span>, <span class="st">&quot;MD&quot;</span>))
-
-dc_va_md_zips &lt;-<span class="st"> </span><span class="kw">as.vector</span>(dc_va_md_zips<span class="op">$</span>zip)
-<span class="kw">length</span>(dc_va_md_zips)</code></pre></div>
-<pre><code>## [1] 1416</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pers_dc_va_md &lt;-<span class="st"> </span>pers<span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">filter</span>(zipcode <span class="op">%in%</span><span class="st"> </span>dc_va_md_zips)
-<span class="kw">nrow</span>(pers_dc_va_md)</code></pre></div>
-<pre><code>## [1] 1307546</code></pre>
 </div>
 
 

@@ -31,9 +31,25 @@ Reference codebook: https://www.cdc.gov/brfss/annual_data/2018/pdf/codebook18_ll
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 brfss2018 <- read_csv("~/git/dspg20career/src/brfss/brfss2018.csv")%>%
   select(-X1)
+data_profiling <- function(df){
+summary_table <- tibble(var = names(df),
+       variable_type = map(.x = df, .f = function(col) class(x = col)),                 
+       num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
+       num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
+  mutate(perc_missing = round(x = 100 * num_missing / nrow(x = .), digits = 2L))
+
+return(summary_table)
+}
+
+brfss2018%>%
+  data_profiling()%>%
+  gt()
 ```
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+#I think you can use recode for mapping those values (https://dplyr.tidyverse.org/reference/recode.html)
+
 brfss2018_subset <- brfss2018 %>%
   select(
     X_STATE,
@@ -127,20 +143,6 @@ brfss2018_subset$X_STATE <- as.character(brfss2018_subset$X_STATE)
 The sample size of BRFSS 2018 is `r nrow(brfss2018)`. Calculated variables are: state, age, BMI, income. Self reported variables are: sex, marital status, education level, home rental status, veteran status, employment status, self reported income.   
 
 ```{r fig.width=15, fig.height=10, message=FALSE, warning=FALSE, paged.print=FALSE}
-data_profiling <- function(df){
-summary_table <- tibble(var = names(df),
-       variable_type = map(.x = df, .f = function(col) class(x = col)),                 
-       num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
-       num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
-  mutate(perc_missing = round(x = 100 * num_missing / nrow(x = .), digits = 2L))
-
-return(summary_table)
-}
-
-brfss2018%>%
-  data_profiling()%>%
-  gt()
-
 plot_bar(brfss2018)
 ```
 
