@@ -61,11 +61,13 @@ In pers table, `r sum(is.na(pers$msa))/nrow(pers)`% (N= `r sum(is.na(pers$msa))`
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 # function for data profiling
 data_profiling <- function(df){
-  num_unique <- apply(df, 2,  function (x) length(unique(x)))
-  num_missing <- apply(df, 2, function(x) sum(is.na(x)))
-  perc_missing <- apply(df, 2, function(x) round((sum(is.na(x)))/length(x)* 100, digits = 2))  
-  summary_table <- cbind( num_unique, num_missing, perc_missing)
-  return(summary_table)
+summary_table <- tibble(var = names(df),
+       variable_type = map(.x = df, .f = function(col) class(x = col)),                 
+       num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
+       num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
+  mutate(perc_missing = round(x = 100 * num_missing / nrow(x = .), digits = 2L))
+
+return(summary_table)
 }
 ```
 
@@ -97,6 +99,12 @@ for (i in (1:length(matches))){
   }
 }
 
+```
+
+```{r}
+library(maditr)
+msa <- fread(input = "https://www2.census.gov/programs-surveys/cbp/technical-documentation/reference/metro-area-geography-reference/msa_county_reference17.txt")
+# https://www2.census.gov/programs-surveys/cbp/technical-documentation/reference/state-county-geography-reference/georef17.txt for States + Counties (FIPS)
 ```
 
 We identified 687129 people who haved listed "47900" in their msa, 0.30 % (N=2093) of people had duplicated entries in msa. Among people who only reported "47900" in their msa, there are 5033 unique self-reported zipcodes. Then, I matched the zipcode with zipcodes on US Zip Codes Database (using authoritative sources including the U.S. Postal Service™, U.S. Census Bureau, National Weather Service, American Community Survey, and the IRS). 28.00% of these 5033 zipcodes (N=1409) don't match with the zipcode database. 

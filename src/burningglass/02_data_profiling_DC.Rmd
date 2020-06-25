@@ -1,5 +1,5 @@
 ---
-title: "01_data_profiling"
+title: "02 Data Profiling DC Metropolitan Area"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -111,9 +111,29 @@ cert_name <- cert%>%
 
 
 # Table: Ed
-In total, there are `r nrow(ed)` entries in ed table. After a preliminary clean up of degree, we identified `r round((nrow(degree_clean)-267101)/(nrow(degree_clean))* 100, digits = 2) `% of self reported degree type into 5 categories: some high school, high school, bachelor, master, and doctor's degree. 
+In total, there are `r nrow(ed)` entries in ed table. After a preliminary clean up of self reported degree, we grouped `r round((nrow(degree_clean)-267101)/(nrow(degree_clean))* 100, digits = 2) `% of degree types into 5 categories: some high school, high school, bachelor, master, and doctor's degree. 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 data_profiling(ed)
+
+degree_clean <- ed%>%
+  filter(!is.na(degreetype))%>%
+  mutate(degree_somehs = if_else(str_detect(string = degreetype, 
+                              pattern = "\\b(?i)(10|11|9)\\b"), T,F))%>%
+  mutate(degree_hs = if_else(str_detect(string = degreetype, 
+                              pattern = "\\b(?i)(12|High School|ged)\\b"), T,F))%>%
+  mutate(degree_bachelor = if_else(str_detect(string = degreetype, 
+                              pattern = "\\b(?i)(Bachelor|bachelor|Bachelors|BS|bs|AA|A.A|Undergraduate|undergraduate|postgraduate|Associate|associate)\\b"), T,F))%>%
+  mutate(degree_master = if_else(str_detect(string = degreetype, 
+                              pattern = "\\b(?i)(master|Master|MBA|M.S|MS|MD)\\b"), T,F))%>%
+  mutate(degree_doctor = if_else(str_detect(string = degreetype, 
+                              pattern = "\\b(?i)(phd|Ph.D|postdoc)\\b"), T,F))%>%
+  mutate(degree_highest = if_else(degree_doctor == T, "doctor", 
+                                  if_else(degree_master == T, "master",
+                                          if_else(degree_bachelor == T, "bachelor", if_else(degree_hs == T, "hs", 
+                                                                                            if_else(degree_somehs == T, "somehs", "others"))))))
+
+
+table(degree_clean$degree_highest)
 ```
 
 
@@ -177,28 +197,15 @@ job %>% mutate(month = month(startdate)) %>% filter(!is.na(month)) %>% group_by(
 job %>% mutate(day = day(startdate)) %>% filter(!is.na(day)) %>% group_by(day) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
 
 # For month there is a greater frequency of startdates in January. For day the frequency is greatest for the first of the month. 
+```
 
-table(ed$degreetype)
+# Joining all tables
+```{r}
+bgt_res_all <- pers%>%
+  left_join(job, by = "id")%>%
+  left_join(ed, by = "id")%>%
+  left_join(cert, by = "id")
 
-degree_clean <- ed%>%
-  filter(!is.na(degreetype))%>%
-  mutate(degree_somehs = if_else(str_detect(string = degreetype, 
-                              pattern = "\\b(?i)(10|11|9)\\b"), T,F))%>%
-  mutate(degree_hs = if_else(str_detect(string = degreetype, 
-                              pattern = "\\b(?i)(12|High School|ged)\\b"), T,F))%>%
-  mutate(degree_bachelor = if_else(str_detect(string = degreetype, 
-                              pattern = "\\b(?i)(Bachelor|bachelor|Bachelors|BS|bs|AA|A.A|Undergraduate|undergraduate|postgraduate|Associate|associate)\\b"), T,F))%>%
-  mutate(degree_master = if_else(str_detect(string = degreetype, 
-                              pattern = "\\b(?i)(master|Master|MBA|M.S|MS|MD)\\b"), T,F))%>%
-  mutate(degree_doctor = if_else(str_detect(string = degreetype, 
-                              pattern = "\\b(?i)(phd|Ph.D|postdoc)\\b"), T,F))%>%
-  mutate(degree_highest = if_else(degree_doctor == T, "doctor", 
-                                  if_else(degree_master == T, "master",
-                                          if_else(degree_bachelor == T, "bachelor", if_else(degree_hs == T, "hs", 
-                                                                                            if_else(degree_somehs == T, "somehs", "others"))))))
-
-
-
-table(degree_clean$degree_highest)
+data_profiling(bgt_res_all)
 ```
 
