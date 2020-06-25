@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # load packages 
-for (pkg in c("tidyverse", "igraph", "visNetwork", "data.table", "R.utils", "RPostgreSQL", "cowplot", "maditr", "stringr", "stringi", "mosaic", "dplyr", "ggplot2", "lubridate")) {
+for (pkg in c("tidyverse", "igraph", "visNetwork", "data.table", "R.utils", "RPostgreSQL", "cowplot", "maditr", "stringr", "stringi", "mosaic", "dplyr", "ggplot2", "lubridate", "readxl")) {
   library(pkg, character.only = TRUE)
 }
 
@@ -108,15 +108,6 @@ cert_name <- cert%>%
   rename("number of people who received the certificate" = "n_cert_name")
 ```
 
-
-
-# Table: Ed
-In total, there are `r nrow(ed)` entries in ed table. After a preliminary clean up of degree, we identified `r round((nrow(degree_clean)-267101)/(nrow(degree_clean))* 100, digits = 2) `% of self reported degree type into 5 categories: some high school, high school, bachelor, master, and doctor's degree. 
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
-data_profiling(ed)
-```
-
-
 # Table: Pers
 ```{r message = FALSE, warning = FALSE}
 data_profiling(pers)
@@ -137,7 +128,8 @@ pers %>% group_by(zipcode) %>% summarise(n = n()) %>% mutate(freq = n / sum(n)) 
 
 pers %>% group_by(noofjobs) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
 ggplot(pers, aes(x = noofjobs)) +
-  geom_histogram(bins = 19)
+  geom_histogram(bins = 19) +
+  labs(title = "number of jobs")
 
 # Checking on the number of jobs. 
 ```
@@ -160,7 +152,8 @@ year_start <- job %>% mutate(year = year(startdate)) %>% filter(!is.na(year)) %>
 
 ggplot(year_start, aes(x = year, y = n)) +
   geom_smooth() +
-  xlim(2000, 2020)
+  xlim(2000, 2020) +
+  labs(title = "all startdates from 2000 to 2020")
 
 # The distribution of startdates from 2000-2020 looks as expected. 
        
@@ -168,17 +161,35 @@ year_end <- job %>% mutate(year = year(enddate)) %>% filter(!is.na(year)) %>% gr
 
 ggplot(year_end, aes(x = year, y = n)) +
          geom_smooth() +
-         xlim(2000, 2020)
+         xlim(2000, 2020) +
+        labs(title = "all enddates from 2000 to 2020")
 
 # The distribution of enddates is concentrated after 2015. We might expect this since the data is resumes collected from jobseekers around this time.
+
+last_end <- job %>% group_by(id) %>% summarise(last_end = max(enddate)) %>% mutate(year = year(last_end)) %>% filter(!is.na(year)) %>% group_by(year) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
+
+ggplot(last_end, aes(x = year, y = n)) +
+          geom_smooth() +
+          xlim(2000, 2020) +
+          labs(title = "last enddate from 2000 to 2020")
+  
+
+# Looking at only the latest enddate for each resume, the observations pick up around 2015, which makes sense with the timing of the collection of the data
 
 job %>% mutate(month = month(startdate)) %>% filter(!is.na(month)) %>% group_by(month) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
 
 job %>% mutate(day = day(startdate)) %>% filter(!is.na(day)) %>% group_by(day) %>% summarise(n = n()) %>% mutate(freq = n / sum(n))
 
 # For month there is a greater frequency of startdates in January. For day the frequency is greatest for the first of the month. 
+```
 
-table(ed$degreetype)
+
+# Table: Ed
+In total, there are `r nrow(ed)` entries in ed table.
+``` {r message = FALSE, warning = FALSE, paged.print = FALSE}
+data_profiling(ed)
+
+#table(ed$degreetype)
 
 degree_clean <- ed%>%
   filter(!is.na(degreetype))%>%
@@ -200,5 +211,49 @@ degree_clean <- ed%>%
 
 
 table(degree_clean$degree_highest)
+```
+After a preliminary clean up of degree, we identified `r round((nrow(degree_clean)-267101)/(nrow(degree_clean))* 100, digits = 2) `% of self reported degree type into 5 categories: some high school, high school, bachelor, master, and doctor's degree. 
+
+
+# Methods for subsetting veterans
+```{r message = FALSE, warning = FALSE}
+# Reading in KSA crosswalk data
+army_ksa_crosswalk <- read_excel("~/git/DSPG2020/career/src/burningglass/army_ksa_crosswalk.xlsx")
+
+# Counting how many resumes are in the DC MSA
+
+job %>% distinct(id) %>% count()
+
+# Counting how many resumes in the DC MSA have a military-specific onet code
+
+military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
+
+job %>% filter(str_detect(job$onet, military)) %>% distinct(id) %>% count()
+
+military_ids <- job %>% filter(str_detect(job$onet, military)) %>% distinct(id)
+
+# Counting how many resumes in the DC MSA have a onet code in the army crosswalk
+
+job %>% filter(onet %in% army_ksa_crosswalk$`O*NET-SOC Code`) %>% distinct(id) %>% count()
+
+job_ids <- job %>% filter(onet %in% army_ksa_crosswalk$`O*NET-SOC Code`) %>% distinct(id)
+
+# Counting resumes with military education and crosswalk onet
+
+# Just filtering "military" includes some police academies, military high schools
+ed %>% filter(grepl("Military", instituition)) %>% count()
+ed %>% filter(grepl("Military", instituition)) %>% distinct(instituition) %>% head(10)
+
+# Using a specific school name
+institution_ids <- ed %>% filter(grepl("Virginia Military Institute", instituition)) %>% distinct(id)
+
+# Are any veterans captured this way missing from the military-specific method?
+
+instution_job_ids <- inner_join(institution_ids, job_ids)
+
+different_ids <- setdiff(instution_job_ids$id, military_ids$id)
+
+length(different_ids)
+
 ```
 
