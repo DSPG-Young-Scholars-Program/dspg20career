@@ -62,6 +62,14 @@ pers <- DBI::dbGetQuery(con, "
                         WHERE pers.msa like '%47900%'"
 )
 
+skill <- DBI::dbGetQuery(con, "
+                       SELECT * FROM bgt_res.skill
+                       WHERE skill.id in (
+                       SELECT ID FROM bgt_res.pers
+                       WHERE pers.msa like '%47900%'
+                       )"
+)
+
 DBI::dbDisconnect(con)
 
 ```
@@ -111,7 +119,7 @@ cert_name <- cert%>%
 
 
 # Table: Ed
-In total, there are `r nrow(ed)` entries in ed table. After a preliminary clean up of degree, we identified `r round((nrow(degree_clean)-267101)/(nrow(degree_clean))* 100, digits = 2) `% of self reported degree type into 5 categories: some high school, high school, bachelor, master, and doctor's degree. 
+
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 data_profiling(ed)
 ```
@@ -200,5 +208,68 @@ degree_clean <- ed%>%
 
 
 table(degree_clean$degree_highest)
+```
+
+In total, there are `r nrow(ed)` entries in ed table. After a preliminary clean up of degree, we identified `r round((nrow(degree_clean)-267101)/(nrow(degree_clean))* 100, digits = 2) `% of self reported degree type into 5 categories: some high school, high school, bachelor, master, and doctor's degree. 
+
+# Table: Skill
+
+```{r}
+data_profiling(skill)
+```
+
+In total, there are `r nrow(skill)` entries in cert table, representing `r length(unique(skill$id))` unique IDs and `r length(unique(skill$skillid))` skills. The number of unique enumerated skills (written out) is `r length(unique(skill$skill))` which means that the number of skillids does not match the number of skills. It is possible that they were coded to have some overlap, though it's strange that the numbers are so close and yet not equal.
+
+Below is a list of the top 10 skills:
+
+```{r}
+top_10 <- skill %>%
+  group_by(skill) %>%
+  summarize(n = n()) %>%
+  arrange(desc(n)) %>%
+  head(10)
+top_10
+```
+
+Below is a list of the bottom 15 skills. These are much messier and there are many more skills with only one entry.
+
+```{r}
+bottom_15 <- skill %>%
+  group_by(skill) %>%
+  summarize(n = n()) %>%
+  arrange((n)) %>%
+  head(15)
+bottom_15
+```
+
+Below is a plot of the `isbaseline` variable:
+
+```{r}
+skill %>%
+  group_by(isbaseline) %>%
+  summarize(n=n()) %>%
+  ggplot() +
+  geom_bar(aes(x = isbaseline, y = n), stat = 'identity') +
+  geom_text(aes(x = isbaseline, y = n, label = n), vjust = -0.5)
+```
+
+Below is a plot of the `issoftware` variable:
+```{r}
+skill %>%
+  group_by(issoftware) %>%
+  summarize(n=n()) %>%
+  ggplot() +
+  geom_bar(aes(x = issoftware, y = n), stat = 'identity') +
+  geom_text(aes(x = issoftware, y = n, label = n), vjust = -0.5)
+```
+
+Below is a plot of the `isspecialized` variable:
+```{r}
+skill %>%
+  group_by(isspecialized) %>%
+  summarize(n=n()) %>%
+  ggplot() +
+  geom_bar(aes(x = isspecialized, y = n), stat = 'identity') +
+  geom_text(aes(x = isspecialized, y = n, label = n), vjust = -0.5)
 ```
 
