@@ -1,5 +1,5 @@
 ---
-title: "01_data_profiling"
+title: "Data Profiling DC"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # load packages 
-for (pkg in c("tidyverse", "igraph", "visNetwork", "data.table", "R.utils", "RPostgreSQL", "cowplot", "maditr", "stringr", "stringi", "mosaic", "dplyr", "ggplot2", "lubridate")) {
+for (pkg in c("tidyverse", "data.table", "stringr", "stringi", "mosaic", "dplyr", "readr","gt", 'lubridate')) {
   library(pkg, character.only = TRUE)
 }
 
@@ -33,41 +33,34 @@ get_db_conn <-
 
 con <- get_db_conn()
 
-cert <- DBI::dbGetQuery(con, "
-                        SELECT * FROM bgt_res.cert
-                        WHERE cert.id in (
-                        SELECT ID FROM bgt_res.pers
-                        WHERE pers.msa like '%47900%'
-                        )"
+cert <- DBI::dbGetQuery(con, "SELECT *
+FROM bgt_res.cert A
+JOIN bgt_res.id_msa_dc B
+ON A.id = B.id"
 )
 
-ed <- DBI::dbGetQuery(con, "
-                      SELECT * FROM bgt_res.ed
-                      WHERE ed.id in (
-                      SELECT ID FROM bgt_res.pers
-                      WHERE pers.msa like '%47900%'
-                      )"
+ed <- DBI::dbGetQuery(con, "SELECT *
+FROM bgt_res.ed A
+JOIN bgt_res.id_msa_dc B
+ON A.id = B.id"
 )
 
-job <- DBI::dbGetQuery(con, "
-                       SELECT * FROM bgt_res.job
-                       WHERE job.id in (
-                       SELECT ID FROM bgt_res.pers
-                       WHERE pers.msa like '%47900%'
-                       )"
+job <- DBI::dbGetQuery(con, "SELECT *
+FROM bgt_res.job A
+JOIN bgt_res.id_msa_dc B
+ON A.id = B.id"
+)
+  
+pers <- DBI::dbGetQuery(con, "SELECT *
+FROM bgt_res.pers A
+JOIN bgt_res.id_msa_dc B
+ON A.id = B.id"
 )
 
-pers <- DBI::dbGetQuery(con, "
-                        SELECT * FROM bgt_res.pers
-                        WHERE pers.msa like '%47900%'"
-)
-
-skill <- DBI::dbGetQuery(con, "
-                       SELECT * FROM bgt_res.skill
-                       WHERE skill.id in (
-                       SELECT ID FROM bgt_res.pers
-                       WHERE pers.msa like '%47900%'
-                       )"
+skill <- DBI::dbGetQuery(con, "SELECT *
+FROM bgt_res.skill A
+JOIN bgt_res.id_msa_dc B
+ON A.id = B.id"
 )
 
 DBI::dbDisconnect(con)
@@ -78,12 +71,12 @@ DBI::dbDisconnect(con)
 ```{r}
 # function for data profiling
 data_profiling <- function(df){
-  variable_type <- apply(df, 2, function(x) class(x))
-  num_unique <- apply(df, 2,  function (x) length(unique(x)))
-  num_missing <- apply(df, 2, function(x) sum(is.na(x)))
-  perc_missing <- apply(df, 2, function(x) round((sum(is.na(x)))/length(x)* 100, digits = 2))  
-  summary_table <- cbind(variable_type, num_unique, num_missing, perc_missing)
-  return(summary_table)
+summary_table <- tibble(var = names(df),
+       variable_type = map_chr(.x = df, .f = function(col) class(x = col)),                 
+       num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
+       num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
+  mutate(perc_missing = round(x = 100 * num_missing / nrow(x = .), digits = 2L))
+return(summary_table)
 }
 ```
 
@@ -91,6 +84,11 @@ data_profiling <- function(df){
 # Table: Cert
 In total, there are `r nrow(cert)` entries in cert table. There are two types of certificates: certification and license. On average, each person received 2 certificates (sd = 1.68). 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#check that id columns are identical and drop the final one
+ncol(cert)
+identical(cert[[1]],cert[[5]])
+cert <- cert[-5]
+
 data_profiling(cert)
 
 cert <- cert%>%
@@ -102,9 +100,9 @@ cert_n <- cert%>%
   group_by(id)%>%
   summarize(n_cert = n())
 
-ggplot(cert_n, aes(x = n_cert)) + 
-  geom_histogram(binwidth = 1.3) + 
-  labs(title = "Distribution of the number of certificates people received", x = "number of certificates") 
+ggplot(cert_n, aes(x = n_cert)) +
+  geom_histogram(binwidth = 1.3) +
+  labs(title = "Distribution of the number of certificates people received", x = "number of certificates")
 favstats(cert_n$n_cert)
 
 # top 10 certificates
@@ -121,12 +119,22 @@ cert_name <- cert%>%
 # Table: Ed
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#check that id columns are identical and drop one
+ncol(ed)
+identical(ed[[1]],ed[[13]])
+ed <- ed[-13]
+
 data_profiling(ed)
 ```
 
 
 # Table: Pers
 ```{r message = FALSE, warning = FALSE}
+#check that id columns are identical and drop one
+ncol(pers)
+identical(pers[[1]],pers[[10]])
+pers <- pers[-10]
+
 data_profiling(pers)
 
 # Preliminary profiling for pers table. 
@@ -154,6 +162,11 @@ ggplot(pers, aes(x = noofjobs)) +
 
 # Table: Job
 ```{r message = FALSE, warning = FALSE}
+#check that id columns are identical and drop one
+ncol(job)
+identical(job[[1]],job[[10]])
+job <- job[-10]
+
 data_profiling(job)
 
 # Preliminary profiling for job table. 
@@ -215,6 +228,11 @@ In total, there are `r nrow(ed)` entries in ed table. After a preliminary clean 
 # Table: Skill
 
 ```{r}
+#check that id columns are identical and drop one
+ncol(skill)
+identical(skill[[1]],skill[[9]])
+skill <- skill[-9]
+
 data_profiling(skill)
 ```
 
