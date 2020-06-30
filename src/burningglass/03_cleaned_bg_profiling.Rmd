@@ -1,6 +1,5 @@
 ---
-title: "03_bg"
-author: "Crystal"
+title: "03-Cleaned Burning Glass Data Profiling"
 output: 
   rmarkdown::html_document:
     toc: true
@@ -17,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # load packages 
-for (pkg in c("tidyverse",  "data.table", "R.utils",  "cowplot", "maditr", "stringr", "stringi", "mosaic", "dplyr", "ggplot2", "lubridate", "readxl")) {
+for (pkg in c("tidyverse",  "data.table", "R.utils",  "cowplot", "maditr", "stringr", "stringi", "mosaic", "dplyr", "ggplot2", "lubridate", "readxl", "gt")) {
   library(pkg, character.only = TRUE)
 }
 get_db_conn <-
@@ -52,7 +51,7 @@ ed <- DBI::dbGetQuery(con, "
 )
 
 job <- DBI::dbGetQuery(con, "
-                       SELECT * FROM bgt_res.job
+                       SELECT id, onet, jobposition, sector, startdate, enddate FROM bgt_res.job
                        WHERE job.id in (
                        SELECT ID FROM bgt_res.pers
                        WHERE pers.msa like '%47900%'
@@ -64,7 +63,16 @@ pers <- DBI::dbGetQuery(con, "
                         WHERE pers.msa like '%47900%'"
 )
 
+# skill <- DBI::dbGetQuery(con, "
+#                          SELECT * FROM bgt_res.skill
+#                          WHERE skill.id in (
+#                          SELECT ID FROM bgt_res.pers
+#                          WHERE pers.msa like '%47900%'
+#                          )"
+# )
+
 DBI::dbDisconnect(con)
+
 #convert all dataframes to data table
 cert <- as.data.table(cert)
 ed <- as.data.table(ed)
@@ -72,11 +80,10 @@ job <- as.data.table(job)
 pers <- as.data.table(pers)
 ```
 
-#data preprocessing
-#1.cleaning ed data table
+# Data Preprocessing
+## Clean each data table before joining
+### 1. cleaning ed data table
 ```{r}
-#data preprocessing
-#1.cleaning ed data table
 ed_rename <- ed%>%
   filter(!is.na(degreetype))%>%
   mutate(degree_certificate = if_else(str_detect(string = degreetype, 
@@ -94,11 +101,7 @@ ed_rename <- ed%>%
   mutate(degree_doctor = if_else(str_detect(string = degreetype, 
                               pattern = "\\b(?i)(phd|Ph.D|postdoc|J.D|JD)\\b"), T,F))
 
-# table(ed_rename$degree_associate)
-# ed_rename%>%
-#   group_by(degree_bachelor, degree_associate)%>%
-#   summarize(N=n())
-
+#duplicated degree
 ed_rename_dup <- ed_rename%>%
   group_by(id)%>%
   mutate(number_degree = n())%>%
@@ -113,109 +116,25 @@ ed_rename_dup <- ed_rename%>%
                                                                                                                     if_else(degree_certificate ==T, "certificate", 
                                                                                                                     "others"))))))))
 
-ed_rename_dup_unique <- ed_rename_dup%>%
+ed_rename_dup <- ed_rename_dup%>%
   select(id, degree_highest)%>%
   tibble::rowid_to_column()%>%
   mutate(dup =T)%>%
 pivot_wider(names_from = degree_highest, values_from = dup)%>%
   select(-rowid)
 
+ed_rename_dup <- replace(ed_rename_dup, is.na(ed_rename_dup), FALSE)
 
-ed_rename_dup_unique <- replace(ed_rename_dup_unique, is.na(ed_rename_dup_unique), FALSE)
-
-
-ed_rename_dup_sub <- ed_rename_dup_unique%>%
+ed_rename_dup <- ed_rename_dup %>%
+  arrange(id, -doctor, -master, -bachelor, -associate, -highschool, -somehs, -certificate, -others) %>%
   group_by(id)%>%
-  summarize(certificates = sum(certificate), somehss = sum(somehs), highschools= sum(highschool), associates = sum(associate), bachelors = sum(bachelor),masters= sum(master), doctors = sum(doctor))%>%
-  group_by(id)%>%
-  mutate(max = max(certificates, somehss, highschools, associates, bachelors, masters, doctors))
+  filter(row_number()==1)%>%
+  mutate(degree_highest = c("certificate", "somehs", "highschool", "associate", "bachelor","master", "doctor")[which.max(x = c(certificate, somehs, highschool, associate, bachelor, master, doctor))]) %>%
+  select(id, degree_highest)%>%
+  as.data.table()
 
-find_highest_degree <- function(vector){
-  max = vector$max
-  vector<- vector%>%
-      mutate(degree_highest = if_else(vector[8] == max, "doctor", 
-                                  if_else(vector[7] == max, "master",
-                                          if_else(vector[6] == max, "bachelor", 
-                                                                                            if_else(vector[5] == max, "associate", 
-                                                                                                    if_else(vector[4] == max, "highschool",
-                                                                                                            if_else(vector[3] == max, "somehs", 
-                                                                                                                    if_else(vector[2] ==max, "certificate", 
-                                                                                                                    "others"))))))))
-  degree_highest <- vector$degree_highest
-  return(degree_highest)
-}
-
-
-#this gives error
-data <- apply(data, 1, function(x) find_highest_degree(x))
-
-
-
-  # 
-  # df <- group_by(id)%>%
-  #     mutate(degree_highest = if_else(ed_rename_dup_sub[8] == max, "doctor", 
-  #                                 if_else(ed_i_sum[7] == max, "master",
-  #                                         if_else(ed_i_sum[6] == max, "bachelor", 
-  #                                                                                           if_else(ed_i_sum[5] == max, "associate", 
-  #                                                                                                   if_else(ed_i_sum[4] == max, "highschool",
-  #                                                                                                           if_else(ed_i_sum[3] == max, "somehs", 
-  #                                                                                                                   if_else(ed_i_sum[2] ==max, "certificate", 
-  #                                                                                                                   "others"))))))))
-
-
-
-# ed_final <- c()
-# for(i in 1:length(ed_dup_id)){
-#   message(paste("process #", ed_dup_id[i], i/length(ed_dup_id), "% done", sep = " "))
-#   id_i <- ed_dup_id[i]
-#   ed_i <- ed_rename_dup %>%
-#     filter(id == id_i)
-#   ed_i_sum <-  apply(ed_i[,3:9],2, sum)
-#   max <- max(ed_i_sum)
-#   ed_i_final <- ed_i%>%
-#       mutate(degree_highest = if_else(ed_i_sum[7] == max, "doctor", 
-#                                   if_else(ed_i_sum[6] == max, "master",
-#                                           if_else(ed_i_sum[5] == max, "bachelor", 
-#                                                                                             if_else(ed_i_sum[4] == max, "associate", 
-#                                                                                                     if_else(ed_i_sum[3] == max, "highschool",
-#                                                                                                             if_else(ed_i_sum[2] == max, "somehs", 
-#                                                                                                                     if_else(ed_i_sum[1] ==max, "certificate", 
-#                                                                                                                     "others"))))))))%>%
-#     select(id, degree_highest)
-#   ed_i_final <- ed_i_final[!duplicated(ed_i_final$id), ]
-#   
-#   ed_final <- rbind(ed_final, ed_i_final)
-# }
-
-#vector <- ed_rename_no_dup[100,]
-# find_highest_degree <- function(df){
-#   degree_highest <-c()
-#   if(df$degree_doctor ==T){
-#     degree_highest = "doctor"
-#   } else if(df$degree_master ==T){
-#       degree_highest = "master"
-#   }else if(df$degree_bachelor ==T){
-#       degree_highest = "bachelor"
-#   }else if(df$degree_associate ==T){
-#       degree_highest = "associate"
-#   }else if(df$degree_hs ==T){
-#       degree_highest = "highschool"
-#   }else if(df$degree_somehs ==T){
-#       degree_highest = "somehs"
-#   }else if(df$degree_certificate==T){
-#        degree_highest = "certificate"
-#   }else{
-#       degree_highest = "other"
-#   }
-#   return(degree_highest)
-# }
-#degree <- apply(ed_rename_no_dup, 1, function(x) find_highest_degree(x))
-
-```
-
-## no duplicates
-```{r}
-ed_rename_no_dup <- ed_clean%>%
+## users with no duplicated degree
+ed_rename_no_dup <- ed_rename%>%
   group_by(id)%>%
   mutate(number_degree = n())%>%
   filter(number_degree == 1)%>%
@@ -231,17 +150,14 @@ ed_rename_no_dup <- ed_clean%>%
                                                                                                                     "others"))))))))%>%
   select(id, degree_highest)
 
-
-
-
-##########
-
+##join the two table: ed_rename_no_dup, ed_rename_dup
+list = list(ed_rename_no_dup, ed_rename_dup)
+ed_cleaned <- rbindlist(list)
 
 ```
 
-#2.cleaning ed data table
-```{r}
-#2.cleaning ed data table
+### 2. cleaning ed data table
+```{r message=FALSE, warning=FALSE}
 #create identifier for veterans
 military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
 #extract unique military id
@@ -249,32 +165,79 @@ military_ids <- job %>%
   filter(str_detect(job$onet, military))%>%
   distinct(id)%>%
   pull(id)
-pers <- pers%>%
+pers_cleaned <- pers%>%
   mutate(veteran =if_else(id %in% military_ids, "veteran", "not veteran"))%>%
   select(id, gender, noofschooldegrees, noofcertifications, noofjobs, veteran)
 ```
 
+### 3. clean cert data table
+```{r message=FALSE, warning=FALSE}
+cert_cleaned <- cert%>%
+  rename("cert_name" = "name", "cert_type"="type", "cert_position" = "position")
+```
 
+### 4. clean job data table
+```{r message=FALSE, warning=FALSE}
+# extracted from Joanna's code in 02_data_profiling_DC.Rmd
+job_cleaned <- job %>%
+  filter(!is.na(onet)) %>%
+  mutate(start_year = year(startdate), end_year = year(enddate), start_month = month(startdate), end_month = month(enddate), start_day = day(startdate), end_day = day(enddate)) 
+```
+
+## Join All Cleaned Data Tables
 ```{r}
-bg_full <- pers%>%
-  left_join(ed, by="id")%>%
-  left_join()
+bg_full <- pers_cleaned%>%
+  left_join(ed_cleaned, by="id")%>%  #one person would only have one highest degree
+  left_join(cert_cleaned, by="id")%>%  #one person might have multiple certificates
+  left_join(job_cleaned, by = "id") #one person might have multiple job listed
+```
 
+# Data Profiling on Joined Burning Galss Data
+```{r}
+data_profiling <- function(df){
+  nrow = nrow(df)
+summary_table <- tibble(var = names(df),
+       variable_type = map_chr(.x = df, .f = function(col) class(x = col)),                 
+       num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
+       num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
+  mutate(perc_missing = round(x = 100 * num_missing / nrow, digits = 2L))
+
+return(summary_table)
+}
+
+bg_full%>%
+  data_profiling()%>%
+  gt()
+```
+
+# Demographic
+## Veteran v.s. Non-veteran's Gender
+```{r fig.width=6, fig.height=4, message=FALSE, warning=FALSE, paged.print=FALSE}
+vet_sex <- table(bg_full$veteran, bg_full$gender)%>%
+  as.data.frame()%>%
+  rename("veteran" = "Var1", "gender" = "Var2")%>%
+  group_by(veteran)%>%
+  summarize(gender=gender,percent = Freq / sum(Freq) * 100)
+
+ggplot(vet_sex, aes(x = gender, y = percent, fill=veteran))+
+  geom_bar( stat = "identity", position = "dodge")+ 
+  scale_fill_brewer(palette = "Set2")
 ```
 
 
-```{r}
-vet_edu <- table(pers_military$veteran, pers_military$degree_highest)%>%
+# Career
+## Veteran v.s. Non-veteran's Degree Level
+```{r fig.height=5, fig.width=8, message=FALSE, warning=FALSE}
+vet_edu <- table(bg_full$veteran, bg_full$degree_highest)%>%
   as.data.frame()%>%
   rename("veteran" = "Var1", "education" = "Var2")%>%
   group_by(veteran)%>%
   summarize(education=education,percent = Freq / sum(Freq) * 100)%>%
   filter(!is.na(education))
 
-
 unique(vet_edu$education)
 
-vet_edu$education <- factor(vet_edu$education , levels = c("somehs", "hs", "bachelor and higher",  "others"))
+vet_edu$education <- factor(vet_edu$education , levels = c("others","certificate","somehs", "highschool", "associate", "bachelor",  "master","doctor"))
 
 ggplot(vet_edu, aes(x = education, y = percent, fill = veteran))+
   geom_bar(stat = "identity",position = 'dodge')+ 
@@ -283,4 +246,24 @@ ggplot(vet_edu, aes(x = education, y = percent, fill = veteran))+
  # theme(axis.text.x = element_text(angle = 90))+ 
   labs(title = "Veteran's Education Distribution in Burning Glass Data")
 ```
+
+## Veteran v.s. Non-veteran's Certificates
+```{r fig.width=11, fig.height=5, message=FALSE, warning=FALSE, paged.print=FALSE}
+cert_vet <- bg_full%>%
+  filter(!is.na(cert_name))%>%
+  group_by(veteran, cert_name)%>%
+  summarize(ttl_cert = n())%>%
+  group_by(veteran)%>%
+  top_n(10, ttl_cert)%>%
+  group_by(veteran)%>%
+  summarize(cert_name=cert_name, percent = ttl_cert / sum(ttl_cert) * 100)
+
+ggplot(cert_vet, aes(x = cert_name, y = percent, fill = veteran))+
+  geom_bar(stat = "identity",position = 'dodge')+ 
+  scale_fill_brewer(palette = "Set2")+
+  coord_flip()+
+  labs(title = "Top Certificates for Veterans v.s. Non-Veterans", x = "certificate")
+```
+
+
 
