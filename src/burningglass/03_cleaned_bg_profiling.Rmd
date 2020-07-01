@@ -356,10 +356,10 @@ ggplot(vet_edu, aes(x = education, y = percent, fill = veteran))+
 
 -jobposition: smaller more recent job updates
 -onet job zone: 1-5, larger requires more skills and preparation
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 #Changing jobs but in same occupation as a change or not?
 bg_vet_job_transition <- bg_vet_job%>%
-  select(id, jobposition, onet_job_zone, onet_title, startdate, enddate)
+  select(id, onet, jobposition, onet_job_zone, onet_title, startdate, enddate)
 
 #identify how many people have had a job change but in the same occupation
 id <- unique(bg_vet_job_transition$id)
@@ -398,7 +398,9 @@ id_dup <- id_num_dup%>%
   filter(num_dup > 0)
 id_dup <- as.vector(id_dup$id)
 
+bg_dup_df<- c()
 for (i in 1:length(id_dup)){
+  message("check the time span of the duplicates for individual #", i)
   pers <- id_dup[i]
   bg_i <- bg_vet_job_transition%>%
     filter(id == pers)
@@ -406,9 +408,20 @@ for (i in 1:length(id_dup)){
   dup_vec <-  duplicated(onet_i)
   bg_i <- as.data.frame(cbind(bg_i,dup_vec))
   bg_i <- bg_i%>%
-    filter(dup_vec == T)
-  dup_onet <- as.vector(bg_i$onet_i)
+    filter(dup_vec == T)%>%
+    mutate(diff = as.numeric(enddate - startdate))
+  bg_dup_df <- rbind(bg_dup_df, bg_i)
 }
+
+
+
+hist(bg_dup_df$diff)
+summary(bg_dup_df$diff)
+sd(bg_dup_df$diff)
+
+table(bg_dup_df$diff > 365)
+
+table(id_num_dup$num_dup > 2)
 
 ```
 
