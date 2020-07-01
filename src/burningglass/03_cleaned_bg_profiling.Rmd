@@ -71,15 +71,28 @@ pers <- DBI::dbGetQuery(con, "
 #                          )"
 # )
 
-tbl <- RPostgreSQL::dbGetQuery(con, "SELECT * FROM bgt.progression")
+onet <- DBI::dbGetQuery(con, "SELECT * FROM onet.job_zones")
 
 DBI::dbDisconnect(con)
+
+#functions
+data_profiling <- function(df){
+  nrow = nrow(df)
+summary_table <- tibble(var = names(df),
+       variable_type = map_chr(.x = df, .f = function(col) class(x = col)),                 
+       num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
+       num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
+  mutate(perc_missing = round(x = 100 * num_missing / nrow, digits = 2L))
+
+return(summary_table)
+}
 
 #convert all dataframes to data table
 cert <- as.data.table(cert)
 ed <- as.data.table(ed)
 job <- as.data.table(job)
 pers <- as.data.table(pers)
+onet <- as.data.table(onet)
 ```
 
 # Data Preprocessing
@@ -169,7 +182,7 @@ military_ids <- job %>%
   pull(id)
 pers_cleaned <- pers%>%
   mutate(veteran =if_else(id %in% military_ids, "veteran", "not veteran"))%>%
-  select(id, gender, noofschooldegrees, noofcertifications, noofjobs, veteran)
+  select(id, gender, noofjobs, veteran)
 ```
 
 ### 3. clean cert data table
@@ -181,34 +194,43 @@ cert_cleaned <- cert%>%
 ### 4. clean job data table
 ```{r message=FALSE, warning=FALSE}
 # extracted from Joanna's code in 02_data_profiling_DC.Rmd
+
 job_cleaned <- job %>%
   filter(!is.na(onet) & !is.na(jobposition) &  !is.na(startdate) & !is.na(enddate)) %>%
-  mutate(start_year = year(startdate), end_year = year(enddate), start_month = month(startdate), end_month = month(enddate), start_day = day(startdate), end_day = day(enddate)) 
+  mutate(start_year = year(startdate), end_year = year(enddate), start_month = month(startdate), end_month = month(enddate), start_day = day(startdate), end_day = day(enddate))
+
+round((nrow(job)-nrow(job_cleaned))/nrow(job) *100, digits = 2)
+```
+
+
+### 5. clean onet data crosswalk
+```{r}
+onet_cleaned <- onet %>%
+  select(onetsoc_code, title, job_zone)%>%
+  rename("onet_title" = "title", "onet_job_zone" = "job_zone")
 ```
 
 ## Join All Cleaned Data Tables
 ```{r}
 bg_full <- pers_cleaned%>%
   left_join(ed_cleaned, by="id")%>%  #one person would only have one highest degree
-  left_join(cert_cleaned, by="id")%>%  #one person might have multiple certificates
-  left_join(job_cleaned, by = "id") #one person might have multiple job listed
+ # left_join(cert_cleaned, by="id")%>%  #one person might have multiple certificates
+  left_join(job_cleaned, by = "id")%>% #one person might have multiple job listed
+  left_join(onet_cleaned, by = c("onet" = "onetsoc_code"))
+
+bg_full_cleaned <- bg_full%>%
+  filter(!is.na(onet_job_zone))
+
+round((nrow(bg_full)-nrow(bg_full_cleaned))/nrow(bg_full) *100, digits = 2)
 ```
 
 # Data Profiling on Joined Burning Galss Data
-```{r}
-data_profiling <- function(df){
-  nrow = nrow(df)
-summary_table <- tibble(var = names(df),
-       variable_type = map_chr(.x = df, .f = function(col) class(x = col)),                 
-       num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
-       num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
-  mutate(perc_missing = round(x = 100 * num_missing / nrow, digits = 2L))
+## 1. demographic, education of all individuals in bgt
+There are 8345 veterans in DC metropolitan area included in our analysis.
 
-return(summary_table)
-}
+```{r  fig.width=10, fig.height=6, message=FALSE, warning=FALSE}
 
-# data profiling 1. demographic, education
-bg_demographic <- bg_full%>%
+bg_demographic <- bg_full_cleaned%>%
   select(id, gender, veteran, degree_highest)
 bg_demographic <- bg_demographic[!duplicated(bg_demographic$id), ]
 
@@ -216,25 +238,70 @@ bg_demographic%>%
   data_profiling()%>%
   gt()%>%
   tab_header(
-    title =" data profiling on demographic and education variables"
+    title ="data profiling on demographic and education variables among all individuals"
   )
 
-## data profiling 2. job
-bg_job <- bg_full %>%
-  select(id, onet, jobposition, sector, startdate, enddate, start_month, end_month, start_day, end_day)%>%
-  filter(!is.na(onet))
+plot_bar(bg_demographic)
+```
+
+## 2. demographic, education of veterans
+There are 8345 veterans in DC metropolitan area included in our analysis.
+```{r}
+bg_vet_demographic <- bg_full_cleaned%>%
+  filter(veteran == "veteran")%>%
+  select(id, gender, degree_highest)
+bg_vet_demographic <- bg_vet_demographic[!duplicated(bg_vet_demographic$id), ]
+
+bg_vet_demographic%>%
+  data_profiling()%>%
+  gt()%>%
+  tab_header(
+    title ="data profiling on demographic and education variables among veterans"
+  )
+
+plot_bar(bg_vet_demographic)
+```
+
+## 3. job of all individuals in bgt
+```{r fig.width=13, fig.height=7}
+bg_job <- bg_full_cleaned %>%
+  select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_month, end_month, start_day, end_day, onet_title, onet_job_zone)%>%
+  filter(!is.na(onet) & !is.na(jobposition) &  !is.na(startdate) & !is.na(enddate))
+
 
 bg_job%>%
-  group_by(id)%>%
-  summarize()
-bg_demographic <- bg_demographic[!duplicated(bg_demographic$id), ]
+  data_profiling()%>%
+  gt()%>%
+  tab_header(
+    title ="data profiling on cleaned job variables among all individuals"
+  )
+plot_bar(bg_job)
+plot_histogram(bg_job)
+```
 
+## 4. job of veterans
+```{r fig.width=13, fig.height=7}
+bg_vet_job <- bg_full_cleaned %>%
+  filter(veteran == "veteran")%>%
+  select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_month, end_month, start_day, end_day, onet_title, onet_job_zone)%>%
+  filter(!is.na(onet) & !is.na(jobposition) &  !is.na(startdate) & !is.na(enddate))
+
+
+bg_vet_job%>%
+  data_profiling()%>%
+  gt()%>%
+  tab_header(
+    title ="data profiling on cleaned job variables among veterans"
+  )
+
+plot_bar(bg_vet_job)
+plot_histogram(bg_vet_job)
 ```
 
 # Demographic
 ## Veteran v.s. Non-veteran's Gender
 ```{r fig.width=6, fig.height=4, message=FALSE, warning=FALSE, paged.print=FALSE}
-vet_sex <- table(bg_full$veteran, bg_full$gender)%>%
+vet_sex <- table(bg_demographic$veteran, bg_demographic$gender)%>%
   as.data.frame()%>%
   rename("veteran" = "Var1", "gender" = "Var2")%>%
   group_by(veteran)%>%
@@ -249,9 +316,8 @@ ggplot(vet_sex, aes(x = gender, y = percent, fill=veteran))+
 # Career
 ## Veteran v.s. Non-veteran's Degree Level
 ```{r fig.height=5, fig.width=8, message=FALSE, warning=FALSE}
-bg_vet_edu<- bg_full%>%
+bg_vet_edu<- bg_demographic%>%
   select(id, veteran, degree_highest)
-bg_vet_edu <- bg_vet_edu[!duplicated(bg_vet_edu$id), ]
 
 vet_edu <- table(bg_vet_edu$veteran, bg_vet_edu$degree_highest)%>%
   as.data.frame()%>%
@@ -267,37 +333,82 @@ vet_edu$education <- factor(vet_edu$education , levels = c("others","certificate
 ggplot(vet_edu, aes(x = education, y = percent, fill = veteran))+
   geom_bar(stat = "identity",position = 'dodge')+ 
   scale_fill_brewer(palette = "Set2")+
-  #facet_wrap(~veteran) +
- # theme(axis.text.x = element_text(angle = 90))+ 
   labs(title = "Veteran's Education Distribution in Burning Glass Data")
 ```
 
-## Veteran v.s. Non-veteran's Certificates
+## Veteran v.s. Non-veteran's Certificates (exclude)
 ```{r fig.width=11, fig.height=5, message=FALSE, warning=FALSE, paged.print=FALSE}
-cert_vet <- bg_full%>%
-  filter(!is.na(cert_name))%>%
-  group_by(veteran, cert_name)%>%
-  summarize(ttl_cert = n())%>%
-  group_by(veteran)%>%
-  top_n(10, ttl_cert)%>%
-  group_by(veteran)%>%
-  summarize(cert_name=cert_name, percent = ttl_cert / sum(ttl_cert) * 100)
-
-ggplot(cert_vet, aes(x = cert_name, y = percent, fill = veteran))+
-  geom_bar(stat = "identity",position = 'dodge')+ 
-  scale_fill_brewer(palette = "Set2")+
-  coord_flip()+
-  labs(title = "Top Certificates for Veterans v.s. Non-Veterans", x = "certificate")
+# cert_vet <- bg_full%>%
+#   filter(!is.na(cert_name))%>%
+#   group_by(veteran, cert_name)%>%
+#   summarize(ttl_cert = n())%>%
+#   group_by(veteran)%>%
+#   top_n(10, ttl_cert)%>%
+#   group_by(veteran)%>%
+#   summarize(cert_name=cert_name, percent = ttl_cert / sum(ttl_cert) * 100)
+# 
+# ggplot(cert_vet, aes(x = cert_name, y = percent, fill = veteran))+
+#   geom_bar(stat = "identity",position = 'dodge')+ 
+#   scale_fill_brewer(palette = "Set2")+
+#   coord_flip()+
+#   labs(title = "Top Certificates for Veterans v.s. Non-Veterans", x = "certificate")
 ```
 
+-jobposition: smaller more recent job updates
+-onet job zone: 1-5, larger requires more skills and preparation
+```{r}
+#Changing jobs but in same occupation as a change or not?
+bg_vet_job_transition <- bg_vet_job%>%
+  select(id, jobposition, onet_job_zone, onet_title, startdate, enddate)
 
-```{r fig.width=12, fig.height=10}
-plot_bar(bg_full)
+#identify how many people have had a job change but in the same occupation
+id <- unique(bg_vet_job_transition$id)
+num_dup <- c()
+for (i in 1: length(id)){
+  message("check duplicates for individual #", i)
+  pers <- id[i]
+  bg_i <- bg_vet_job_transition%>%
+    filter(id == pers)
+  onet_i <- as.vector(bg_i$onet)
+  if (sum(duplicated(onet_i)) == 0){
+    num_dup[i] <- 0
+  }else{
+     num_dup[i] <- sum(duplicated(onet_i)) + 1 #sum of onet codes that are
+  }
+}
 
-```
+# cook book
+# a <- c("apple", "banana", "cranberry")
+# duplicated(a)
+# 
+# b <- c("apple", "apple", "apple")
+# duplicated(b)
 
 
-```{r fig.width=15, fig.height=12}
-plot_histogram(bg_full)
+id_num_dup <- as.data.table(cbind(id, num_dup))
+
+hist(id_num_dup$num_dup)
+summary(id_num_dup$num_dup)
+table(id_num_dup$num_dup > 0)
+table(id_num_dup$num_dup > 2)
+
+# among those people who have duplicates
+# identify how many of them had their later job(s) lasted for longer than one year 
+id_dup <- id_num_dup%>%
+  filter(num_dup > 0)
+id_dup <- as.vector(id_dup$id)
+
+for (i in 1:length(id_dup)){
+  pers <- id_dup[i]
+  bg_i <- bg_vet_job_transition%>%
+    filter(id == pers)
+  onet_i <- as.vector(bg_i$onet)
+  dup_vec <-  duplicated(onet_i)
+  bg_i <- as.data.frame(cbind(bg_i,dup_vec))
+  bg_i <- bg_i%>%
+    filter(dup_vec == T)
+  dup_onet <- as.vector(bg_i$onet_i)
+}
+
 ```
 
