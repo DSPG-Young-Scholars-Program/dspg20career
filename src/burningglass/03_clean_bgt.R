@@ -1,7 +1,3 @@
-for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer")) {
-  library(pkg, character.only = TRUE)
-}
-
 get_db_conn <-
   function(db_name = "sdad",
            db_host = "postgis1",
@@ -72,6 +68,8 @@ job_cleaned <- job %>%
   mutate(job_duration_day = as.numeric(enddate- startdate))%>%
   mutate(tenure = if_else(job_duration_day >= 365, "tenure", "not tenure"))%>%
   filter(job_duration_day >= 0)
+
+round((nrow(job)-nrow(job_cleaned))/nrow(job_cleaned) *100, digits = 2)
 
 #3. cleaning ed table
 ed_rename <- ed%>%
@@ -158,6 +156,7 @@ bg_full <- pers_cleaned%>%
 #5. clean joined table
 bg_full_cleaned <- bg_full%>%
   filter(!is.na(onet_job_zone))
+round((nrow(bg_full)-nrow(bg_full_cleaned))/nrow(bg_full) *100, digits = 2)
 
 
 
