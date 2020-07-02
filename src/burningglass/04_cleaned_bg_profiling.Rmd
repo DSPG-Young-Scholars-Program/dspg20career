@@ -14,6 +14,13 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+source("~/git/dspg20career/src/burningglass/03_clean_bgt.R", echo = T, prompt.echo = "", spaced = F)
+
+bg_clean_ls <- clean_bg(job = job, ed = ed, pers = pers, onet = onet)
+```
+
+
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # load packages 
 for (pkg in c("tidyverse",  "data.table", "R.utils",  "cowplot", "maditr", "stringr", "stringi", "mosaic", "dplyr", "ggplot2", "lubridate", "readxl", "gt", "DataExplorer")) {
@@ -171,7 +178,7 @@ ed_cleaned <- rbindlist(list)
 
 ```
 
-### 2. cleaning ed data table
+### 2. cleaning pers data table
 ```{r message=FALSE, warning=FALSE}
 #create identifier for veterans
 military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
@@ -194,12 +201,18 @@ cert_cleaned <- cert%>%
 ### 4. clean job data table
 ```{r message=FALSE, warning=FALSE}
 # extracted from Joanna's code in 02_data_profiling_DC.Rmd
-
-job_cleaned <- job %>%
+job_cleaned1 <- job %>%
   filter(!is.na(onet) & !is.na(jobposition) &  !is.na(startdate) & !is.na(enddate)) %>%
-  mutate(start_year = year(startdate), end_year = year(enddate), start_month = month(startdate), end_month = month(enddate), start_day = day(startdate), end_day = day(enddate))
+  mutate(start_year = year(startdate), end_year = year(enddate), start_month = month(startdate), end_month = month(enddate), start_day = day(startdate), end_day = day(enddate)) 
+round((nrow(job)-nrow(job_cleaned1))/nrow(job) *100, digits = 2)
 
-round((nrow(job)-nrow(job_cleaned))/nrow(job) *100, digits = 2)
+
+job_cleaned2 <- job_cleaned1%>%
+  mutate(job_duration_day = as.numeric(enddate- startdate), tenure = if_else(job_duration_day >= 365, "tenure", "not tenure"))%>%
+  filter(job_duration_day > 0)
+
+round((nrow(job_cleaned1)-nrow(job_cleaned2))/nrow(job_cleaned1) *100, digits = 2)
+
 ```
 
 
@@ -215,7 +228,7 @@ onet_cleaned <- onet %>%
 bg_full <- pers_cleaned%>%
   left_join(ed_cleaned, by="id")%>%  #one person would only have one highest degree
  # left_join(cert_cleaned, by="id")%>%  #one person might have multiple certificates
-  left_join(job_cleaned, by = "id")%>% #one person might have multiple job listed
+  left_join(job_cleaned2, by = "id")%>% #one person might have multiple job listed
   left_join(onet_cleaned, by = c("onet" = "onetsoc_code"))
 
 bg_full_cleaned <- bg_full%>%
@@ -226,14 +239,13 @@ round((nrow(bg_full)-nrow(bg_full_cleaned))/nrow(bg_full) *100, digits = 2)
 
 # Data Profiling on Joined Burning Galss Data
 ## 1. demographic, education of all individuals in bgt
-There are 8345 veterans in DC metropolitan area included in our analysis.
-
+620007 people are found in the DC metropolitan area, and there are 7704 (1.24%) veterans in DC metropolitan area included in our analysis.
 ```{r  fig.width=10, fig.height=6, message=FALSE, warning=FALSE}
-
 bg_demographic <- bg_full_cleaned%>%
   select(id, gender, veteran, degree_highest)
 bg_demographic <- bg_demographic[!duplicated(bg_demographic$id), ]
-
+nrow(bg_demographic)
+table(bg_demographic$veteran)
 bg_demographic%>%
   data_profiling()%>%
   gt()%>%
@@ -245,7 +257,6 @@ plot_bar(bg_demographic)
 ```
 
 ## 2. demographic, education of veterans
-There are 8345 veterans in DC metropolitan area included in our analysis.
 ```{r}
 bg_vet_demographic <- bg_full_cleaned%>%
   filter(veteran == "veteran")%>%
@@ -263,10 +274,11 @@ plot_bar(bg_vet_demographic)
 ```
 
 ## 3. job of all individuals in bgt
+Cleaned data contains individuals with unique job positions, meaning that each job change is included for each individual. According the the data profiling there are 21 unique values in the jobposition variable, meaning that the maximum number of jobs a person in bgt had was 21. However, there were 7 individuals had their maximum noofjobs smaller than their 
 ```{r fig.width=13, fig.height=7}
 bg_job <- bg_full_cleaned %>%
   select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_month, end_month, start_day, end_day, onet_title, onet_job_zone)%>%
-  filter(!is.na(onet) & !is.na(jobposition) &  !is.na(startdate) & !is.na(enddate))
+  filter(!is.na(onet) &  !is.na(startdate) & !is.na(enddate))
 
 
 bg_job%>%
@@ -283,8 +295,8 @@ plot_histogram(bg_job)
 ```{r fig.width=13, fig.height=7}
 bg_vet_job <- bg_full_cleaned %>%
   filter(veteran == "veteran")%>%
-  select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_month, end_month, start_day, end_day, onet_title, onet_job_zone)%>%
-  filter(!is.na(onet) & !is.na(jobposition) &  !is.na(startdate) & !is.na(enddate))
+  select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure)%>%
+  filter(!is.na(onet) &  !is.na(startdate) & !is.na(enddate))
 
 
 bg_vet_job%>%
@@ -356,6 +368,29 @@ ggplot(vet_edu, aes(x = education, y = percent, fill = veteran))+
 
 -jobposition: smaller more recent job updates
 -onet job zone: 1-5, larger requires more skills and preparation
+
+### More Analysis 
+#### Temporary jobs
+20.53%  (N=6640) of the jobs are not tenured.
+```{r}
+summary(bg_vet_job$job_duration_day)
+histogram(bg_vet_job$job_duration_day)
+nrow = nrow(bg_vet_job)
+
+bg_vet_job%>%
+  group_by(tenure)%>%
+  summarize(N=n(), perc = N/ nrow *100)
+
+n_tenure = 25708
+n_not_tenure = 6640
+
+bg_vet_job%>%
+  group_by(tenure, onet_job_zone)%>%
+  summarize(N=n())%>%
+  mutate(perc = if_else(tenure == "tenure", 100*N/n_tenure, 100*N/n_not_tenure))
+
+```
+
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 #Changing jobs but in same occupation as a change or not?
 bg_vet_job_transition <- bg_vet_job%>%
