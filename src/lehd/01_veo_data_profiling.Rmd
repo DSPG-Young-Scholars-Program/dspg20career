@@ -139,15 +139,19 @@ ggplot(veo_occ_long, aes(x = dod_occ_code, y = value, fill = dod_occ_code)) +
 
 # VEO Industry and Employment Counts
 ```{r warning = FALSE}
+# Create long df of veo industries
 veo_ind_long <- veo_ind %>% select(label_cohort, label_industry, industry, y1_emp, y5_emp, y10_emp) %>% melt(id.vars = c("label_cohort", "label_industry", "industry"))
 
 veo_ind_long$value <- as.integer(veo_ind_long$value)
 
+# Remove created federal government industry code for comparison
 veo_ind_long<- veo_ind_long %>% mutate(industry_compare = ifelse(industry == 99, 92, industry)) %>% mutate(label_industry_compare = ifelse(industry == 99, "Public Administration", label_industry))
   
+# Calculate percentage in industries
 veo_ind_long_perc <- veo_ind_long %>% drop_na() %>% group_by(variable) %>% mutate(perc = value/sum(value))
 
-ggplot(veo_ind_long_perc, aes(filter(variable = y10_emp), x = label_industry_compare, y = perc, fill = label_industry_compare)) +
+# Plot
+ggplot(veo_ind_long_perc, aes(x = label_industry_compare, y = perc, fill = label_industry_compare)) +
   geom_col(show.legend = FALSE) + 
   labs(title = "VEO Industry and Employment Counts") +
   #facet_grid(rows = vars(variable)) +
@@ -156,53 +160,73 @@ ggplot(veo_ind_long_perc, aes(filter(variable = y10_emp), x = label_industry_com
 ```
 
 ```{r warning = FALSE}
+# Create pattern for military ids and gather ids
 military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
-
 military_ids <- job %>% filter(str_detect(job$onet, military)) %>% distinct(id)
 
+# Create df of resumes for military ids, get counts in each sector
 res_mil <- job %>% filter(id %in% military_ids$id) %>% group_by(sector) %>% summarise(n = n()) %>% drop_na()
 
+# Join industry labels by NAICS codes
 res_mil_labels <- res_mil %>% left_join(select(veo_ind_long, label_industry, industry), by = c("sector" = "industry"))
 
+# Calculate percent in each sector, prepare dfs for rbind
 res_mil_labels <- res_mil_labels %>% distinct() %>% mutate(perc = n/sum(n)) %>% mutate(variable = "bgt") %>% rename(value = n, label_industry_compare = label_industry, industry_compare = sector)
 
 veo_ind_long_perc <- veo_ind_long_perc %>% select(variable, value, industry_compare, label_industry_compare, perc)
 
-combined_industry_profile <- rbind(veo_ind_long_perc, res_mil_labels)
+#Rbind
+veo_bgt_industry_profile <- rbind(veo_ind_long_perc, res_mil_labels)
 
-combined_industry_profile <- combined_industry_profile %>% group_by(variable, industry_compare) %>% mutate(percen = sum(perc))
+#Sum industry percent
+veo_bgt_industry_profile <- veo_bgt_industry_profile %>% group_by(variable, industry_compare) %>% mutate(percen = sum(perc))
 
-ggplot(combined_industry_profile, aes(x = label_industry_compare, y = percen, fill = variable)) +
+ggplot(veo_bgt_industry_profile, aes(x = label_industry_compare, y = percen, fill = variable)) +
   geom_col(position = "dodge") +
   labs(title = "Combined Industry and Employment Percents") +
   scale_y_continuous(labels = scales::percent) +
   coord_flip() +
   theme_classic()
 
-unique(res_mil_labels$sector)
-```
-
-```{r}
-combined_industry_profile %>% select(label_cohort, label_industry_compare, industry_compare, variable, value, perc, bgt_perc) %>% melt(id.vars = c("label_cohort", "label_industry", "industry", ))
 ```
 
 ```{r}
 lodes <- read_excel("~/git/DSPG2020/career/src/lehd/otm.xls", sheet = 1, range = "A24:AG45")
 
-lodes <- lodes %>% rename("label_industry_compare" = "...1", "count_2017" = "2017", "share_2017" = "...3", "count_2016" = "2016", "share_2016" = "...5", "count_2015" = "2015", "share_2015" = "...7", "count_2014" = "2014", "share_2014" = "...9", "count_2013" = "2013", "share_2013" = "...11", "count_2012" = "2012", "share_2012" = "...13", "count_2011" = "2011", "share_2011" = "...15","count_2010" = "2010", "share_2010" = "...17", "count_2009" = "2009", "share_2009" = "...19", "count_2008" = "2008", "share_2008" = "...21", "count_2007" = "2007", "share_2007" = "...23", "count_2006" = "2006", "share_2006" = "...25", "count_2005" = "2005", "share_2005" = "...27", "count_2004" = "2004", "share_2004" = "...29", "count_2003" = "2003", "share_2003" = "...31", "count_2002" = "2002", "share_2002" = "...33")
+lodes <- lodes %>% rename("label_industry" = "...1", "count_2017" = "2017", "share_2017" = "...3", "count_2016" = "2016", "share_2016" = "...5", "count_2015" = "2015", "share_2015" = "...7", "count_2014" = "2014", "share_2014" = "...9", "count_2013" = "2013", "share_2013" = "...11", "count_2012" = "2012", "share_2012" = "...13", "count_2011" = "2011", "share_2011" = "...15","count_2010" = "2010", "share_2010" = "...17", "count_2009" = "2009", "share_2009" = "...19", "count_2008" = "2008", "share_2008" = "...21", "count_2007" = "2007", "share_2007" = "...23", "count_2006" = "2006", "share_2006" = "...25", "count_2005" = "2005", "share_2005" = "...27", "count_2004" = "2004", "share_2004" = "...29", "count_2003" = "2003", "share_2003" = "...31", "count_2002" = "2002", "share_2002" = "...33")
 
+# Remove first row
 lodes <- lodes[-c(1), ]
 
-lodes <- lodes %>% select("label_industry_compare", contains("share")) %>% melt(id.vars = c("label_industry_compare"))
+# Change to long
+lodes <- lodes %>% select("label_industry", contains("share")) %>% melt(id.vars = c("label_industry")) 
 
 lodes$value <- as.numeric(lodes$value)
 
-lodes_sum <- lodes %>% mutate(industry_compare = NA) %>% group_by(label_industry_compare) %>% summarise(percen = mean(value))
+#Summarise percent by industry, add lodes variable for rbind
+lodes_sum <- lodes %>% group_by(label_industry) %>% summarise(percen = mean(value)) %>% mutate(variable = "lodes")
 
-combined_industry_profile <- combined_industry_profile %>% select(-c(perc, value))
-all_industry_profile <- rbind(combined_industry_profile, lodes) %>% select(-value) %>% distinct()
+# Check for differences in labels
+unique(lodes_sum$label_industry)
+unique(veo_bgt_industry_profile$label_industry_compare)
 
-all_industry_profile <- all_industry_profile %>% left_join(select(res_mil_labels, perc, label_industry_compare), by = "label_industry_compare") %>% rename(bgt_percent = perc) %>% mutate(diff = percen - bgt_percent)
+# Add compared labels
+
+labels <- unique(veo_bgt_industry_profile$label_industry_compare) %>% sort()
+
+lodes_sum <- lodes_sum %>% mutate(label_industry_compare = labels)
+# Check for matches, looks good!
+# Remove old industry labels for rbind
+lodes_sum <- lodes_sum %>% select(-label_industry)
+
+# Deselect perc column
+veo_bgt_industry_profile <- veo_bgt_industry_profile %>% select(-c(perc, value))
+
+# Rbind
+all_industry_profile <- rbind(veo_bgt_industry_profile, lodes_sum) 
+
+# Add bgt percent reference column, calculate bgt percent difference
+all_industry_profile <- all_industry_profile %>% left_join(select(res_mil_labels, perc, label_industry_compare), by = "label_industry_compare") %>% rename(bgt_percent = perc) %>% mutate(diff = percen - bgt_percent) %>% mutate(percent_diff = abs(diff)/percen)
 
 
 ggplot(all_industry_profile, aes(filter(variable != bgt), x = label_industry_compare, y = diff, fill = variable)) +
@@ -213,13 +237,66 @@ ggplot(all_industry_profile, aes(filter(variable != bgt), x = label_industry_com
   theme_classic()
 
 
-ggplot(lodes, aes(x = label_industry_compare, y = value, fill = label_industry_compare)) +
+ggplot(lodes, aes(x = label_industry, y = value, fill = label_industry)) +
   geom_col(position = "dodge", show.legend = FALSE) +
   labs(title = "LODES Industry and Employment Percents") +
   scale_y_continuous(labels = scales::percent) +
   coord_flip() +
   theme_classic()
 
+uvapal1 = c("#232D4B","#0E879C","#E6CE3A","#E57200")
+uvapal2 = c("#2C4F6B", "#E57200")
 
+all_industry_profile %>%
+  filter(variable != "lodes") %>% 
+  mutate(diff_lab = ifelse(diff == 0, NA, (paste0(round(percent_diff*100, digits = 1),"%")))) %>%
+  mutate(position = ifelse(variable == "y1_emp", 2,
+                           ifelse(variable == "y5_emp", 3,
+                                  ifelse(variable == "y10_emp", 4, 1)))) %>%
+  arrange(position) %>%
+  ggplot(aes(x = reorder(label_industry_compare, percen), y = percen, 
+             fill = reorder(variable, position))) +
+  geom_col(position = "dodge") +
+  labs(title = "Benchmarking BGT: Estimates of Veteran Employment by Industry",
+       subtitle = "Differences between BGT subset and VEO one, five, and ten year bins",
+       fill = "Estimate source",
+       caption = "Percent labels indicate percent difference between estimate source and BGT
+       Data from BGT and VEO") +
+  xlab("NAICS Industry") +
+  ylab("") +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(aes(x = label_industry_compare,
+                y = percen,
+                label = diff_lab, 
+                fill = reorder(variable, position)),
+            position = position_dodge(width = 1),
+            hjust = -0.5, size = 2, fontface = "plain") +
+  scale_fill_manual(values = uvapal1, labels = c("BGT", "VEO 1 year", "VEO 5 year", "VE0 10 year")) +
+  coord_flip() +
+  theme_classic()
+
+all_industry_profile %>%
+  filter(!(variable %in% c("y1_emp", "y5_emp", "y10_emp"))) %>% 
+  mutate(diff_lab = ifelse(diff == 0, NA, (paste0(round(percent_diff*100, digits = 1),"%")))) %>%
+  ggplot(aes(x = reorder(label_industry_compare, percen), y = percen, 
+             fill = variable)) +
+  geom_col(position = position_dodge2(width = 1, preserve = "single")) +
+  labs(title = "Benchmarking BGT: Estimates of DC MSA Employment by Industry",
+       subtitle = "Differences between BGT subset and LODES",
+       fill = "Estimate source",
+       caption = "") +
+  xlab("NAICS Industry") +
+  ylab("") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_discrete(labels = c("BGT", "LODES")) +
+  geom_text(aes(x = label_industry_compare,
+                y = percen,
+                label = diff_lab, 
+                fill = variable),
+            position = position_dodge2(width = 1, preserve = "single"),
+            hjust = -0.5, size = 2, fontface = "plain") +
+  scale_fill_manual(values = uvapal2) +
+  coord_flip() +
+  theme_classic()
 ```
 
