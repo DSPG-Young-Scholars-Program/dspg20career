@@ -45,7 +45,64 @@ return(summary_table)
 ```
 
 
+#viz for presentation
+```{r}
 
+bg_all_job$month <- as.factor(bg_all_job$month)
+
+bg_all_job_date <- bg_all_job%>%
+  select(id, start_month, end_month)%>%
+  gather("start_end", "month", -id)%>%
+  group_by(start_end, month)%>%
+  summarize(count = n())
+
+
+
+# vet_sex <- table(bg_all_job_date$month, bg_demographic$gender)%>%
+#   as.data.frame()%>%
+#   rename("veteran" = "Var1", "gender" = "Var2")%>%
+#   group_by(veteran)%>%
+#   summarize(gender=gender,percent = Freq / sum(Freq) * 100)
+
+
+# bg_all_job_date$education <- factor(vet_edu$education , levels = c("others","certificate","somehs", "highschool", "associate", "bachelor",  "master","doctor"))
+uva_color_palette <- 
+c("#232D4B", #space cadet
+  "#2C4F6B", #indigo dye
+  "#0E879C", #blue munsell
+  "#60999A", #cadet blue
+  "#D1E0BF", #tea green
+  "#D9E12B", #pear
+  "#E6CE3A", #citrine
+  "#E6A01D", #marigold
+  "#E57200" #princeton orange
+)
+
+ggplot(bg_all_job_date, aes(x = month, y = count, fill = start_end))+
+  geom_bar(stat = "identity",position = 'dodge')+
+  labs(title = "Start and End Month in BGT")+ scale_x_discrete(limits=c("Jan", "Feb", "Mar","April","May", "June", "July","Aug", "Sep", "Oct", "Nov", "Dec"))+ 
+  scale_fill_manual(values = c("#2C4F6B", "#E57200"))
+```
+
+
+```{r}
+bg_all_job_duration <- bg_all_job%>%
+  mutate(duration = as.numeric(enddate-startdate), tenure = if_else(duration >= 365, "tenure", "not tenure"))%>%
+  group_by(tenure, onet_job_zone)%>%
+  summarize(count = n())%>%
+  group_by(tenure)%>%
+  mutate(sum = sum(count))%>%
+  mutate(perc = count/sum * 100)%>%
+  filter(!is.na(onet_job_zone))
+
+
+
+ggplot(bg_all_job_duration, aes(x = onet_job_zone, y = perc, fill = tenure)) + 
+  geom_bar(stat="identity", position = "dodge") +
+  labs(title = "") + theme(legend.position = "right") + 
+  scale_fill_manual(values = c("#2C4F6B", "#E57200"))
+
+```
 
 # Data Profiling on Joined Burning Galss Data
 ## 1. demographic, education of all individuals in bgt
@@ -61,6 +118,7 @@ bg_all_demographic%>%
   )
 
 plot_bar(bg_all_demographic)
+
 ```
 
 ## 2. demographic, education of veterans
@@ -119,7 +177,7 @@ ggplot(vet_sex, aes(x = gender, y = percent, fill=veteran))+
 # Career
 ## Veteran v.s. Non-veteran's Degree Level
 ```{r fig.height=5, fig.width=8, message=FALSE, warning=FALSE}
-bg_vet_edu<- bg_demographic%>%
+bg_vet_edu<- bg_all_demographic%>%
   select(id, veteran, degree_highest)
 
 vet_edu <- table(bg_vet_edu$veteran, bg_vet_edu$degree_highest)%>%
@@ -136,7 +194,8 @@ vet_edu$education <- factor(vet_edu$education , levels = c("others","certificate
 ggplot(vet_edu, aes(x = education, y = percent, fill = veteran))+
   geom_bar(stat = "identity",position = 'dodge')+ 
   scale_fill_brewer(palette = "Set2")+
-  labs(title = "Veteran's Education Distribution in Burning Glass Data")
+  labs(title = "Veteran's Education Distribution in Burning Glass Data")+ 
+  scale_fill_manual(values = c("#2C4F6B", "#E57200"))
 ```
 
 ## Veteran v.s. Non-veteran's Certificates (exclude)
@@ -248,6 +307,11 @@ sd(bg_dup_df$diff)
 table(bg_dup_df$diff > 365)
 
 table(id_num_dup$num_dup > 2)
+
+```
+
+
+```{r}
 
 ```
 

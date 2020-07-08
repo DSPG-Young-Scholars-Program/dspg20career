@@ -72,6 +72,9 @@ job_cleaned <- job %>%
 round((nrow(job)-nrow(job_cleaned))/nrow(job_cleaned) *100, digits = 2)
 
 #3. cleaning ed table
+# degreetype <- ed%>%
+#   filter(!is.na(degreetype))%>%
+#   select(degreetype)
 ed_rename <- ed%>%
   filter(!is.na(degreetype))%>%
   mutate(degree_certificate = if_else(str_detect(string = degreetype, 
@@ -81,9 +84,10 @@ ed_rename <- ed%>%
   mutate(degree_hs = if_else(str_detect(string = degreetype, 
                                         pattern = "\\b(?i)(12|High School|ged)\\b"), T,F))%>%
   mutate(degree_associate = if_else(str_detect(string = degreetype, 
-                                               pattern = "\\b(?i)(Associate|associate)\\b"), T,F))%>%
+                                               pattern = "\\b(?i)(Associate|associate|AA|A.A|aa|a.a|as|a.s|AS|A.S|aas|AAS|a.a.s|A.A.S|A.G.S|a.g.s|ags|AGS)\\b"), T,F))%>%
+  mutate(degree_somebachelor = if_else(str_detect(degreetype, pattern = "\\b(?i)(some college)\\b"), T, F))%>%
   mutate(degree_bachelor = if_else(str_detect(string = degreetype, 
-                                              pattern = "\\b(?i)(Bachelor|bachelor|Bachelors|BS|bs|B.S|BA|B.A|ba|AA|A.A|Undergraduate|undergraduate|postgraduate|Post-Graduate|post-graduate)\\b"), T,F))%>%
+                                              pattern = "\\b(?i)(Bachelor|bachelor|Bachelors|BS|bs|B.S|BA|B.A|ba|Undergraduate|undergraduate|postgraduate|Post-Graduate|post-graduate)\\b"), T,F))%>%
   mutate(degree_master = if_else(str_detect(string = degreetype, 
                                             pattern = "\\b(?i)(master|Master|MBA|M.S|MS|MD)\\b"), T,F))%>%
   mutate(degree_doctor = if_else(str_detect(string = degreetype, 
@@ -170,16 +174,18 @@ bg_vet_demographic <- bg_full_cleaned%>%
   filter(veteran == "veteran")%>%
   select(id, gender, degree_highest)
 bg_vet_demographic <- bg_vet_demographic[!duplicated(bg_vet_demographic$id), ]
+table(duplicated(bg_vet_demographic$id))
+table(bg_vet_demographic$gender)
 
 #output table 3
 bg_all_job <- bg_full_cleaned %>%
-  select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_month, end_month, start_day, end_day, onet_title, onet_job_zone)%>%
+  select(id, onet, jobposition, noofjobs, sector, startdate, enddate, start_year, end_year, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure)%>%
   filter(!is.na(onet) &  !is.na(startdate) & !is.na(enddate))
 
 #output table 4
 bg_vet_job <- bg_full_cleaned %>%
   filter(veteran == "veteran")%>%
-  select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure)%>%
+  select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_year, end_year, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure)%>%
   filter(!is.na(onet)  &  !is.na(startdate) & !is.na(enddate))
 
 
