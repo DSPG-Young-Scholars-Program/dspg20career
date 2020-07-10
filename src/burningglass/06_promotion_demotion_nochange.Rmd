@@ -50,29 +50,30 @@ class(bg_all_job$jobposition)
 
 first_job <- bg_all_job%>%
   group_by(id)%>%
-  mutate(max_jobposition = max(jobposition, na.rm=T), match = if_else(jobposition == max_jobposition, T, F))%>%
+  mutate(max_jobposition = max(jobposition, na.rm=T), 
+         match = if_else(jobposition == max_jobposition, T, F),
+         today = as.Date("2019-01-01"),
+         days_in_job_market = today - startdate,
+         days_employed = sum(job_duration_day),
+         days_unemployed = days_in_job_market-days_employed)%>%
   filter(max_jobposition >0)%>%
   filter(match == T)%>%
-  select(id, start_year)%>%
+  select(id, start_year, days_in_job_market)%>%
   rename(first_job_start_year = start_year)
 
-last_job <- bg_all_job%>%
+ last_job <- bg_all_job%>%
   group_by(id)%>%
   mutate(min_jobposition = min(jobposition, na.rm=T), match = if_else(jobposition == min_jobposition, T, F))%>%
   filter(min_jobposition >0)%>%
   filter(match == T) %>%
-  mutate(more_than_one_year_out = if_else(end_year <= 2017, T, F)) 
-
-last_job <- last_job%>%
+  mutate(more_than_one_year_out = if_else(end_year <= 2017, T, F))%>%
   select(id, end_year, more_than_one_year_out, noofjobs, onet_job_zone)%>%
   rename(last_job_end_year = end_year)
 
-first_last_job <- left_join(first_job, last_job, by = "id")
-
-first_last_job <- left_join(first_last_job, vet_id, by = "id")
-
-first_last_job <- first_last_job%>%
-  mutate(first_job_start_cat = if_else(first_job_start_year < 2000, "before 2000", if_else(first_job_start_year < 2010, "2000-2010", "2010 and later")))%>%
+first_last_job <- first_job %>%
+  left_join(last_job, by = "id")%>%
+   left_join(vet_id, by = "id")%>%
+  mutate(first_job_start_cat = if_else(first_job_start_year < 2000, "before 2000 \n (Seniors)", if_else(first_job_start_year < 2010, "2000-2010 \n (Middle-Aged)", "2010 and later \n (Young Professional)")))%>%
   mutate(time_in_job_market = 2018- first_job_start_year)
 
 table(first_last_job$first_job_start_cat)
@@ -85,19 +86,15 @@ table(first_last_job$more_than_one_year_out)
 ```{r}
 first_last_job$first_job_start_cat <- factor(first_last_job$first_job_start_cat, levels = c("2010 and later","2000-2010", "before 2000"))
 
-ggplot(first_last_job, aes(x=veteran, y=noofjobs, fill = first_job_start_cat)) + 
-  geom_boxplot(outlier.size = 0.1)+
-  coord_flip()+
-  scale_fill_manual(values=c(uva_color_palette[2], uva_color_palette[4], uva_color_palette[5]),  guide = guide_legend(reverse = T))+
-  labs(fill="time entering \n job market", y = "number of jobs")+   
-  theme_classic()
-
 ggplot(first_last_job, aes(x=first_job_start_cat, y=noofjobs, fill = veteran)) + 
   geom_boxplot(outlier.size = 0.1)+
   coord_flip()+
   scale_fill_manual(values=c(uva_color_palette[2], uva_color_palette[8]),  guide = guide_legend(reverse = T))+
-   labs(fill="veteran", y = "number of jobs", x="time entering job market")+   
-  theme_classic()
+   labs(fill="veteran", y = "number of jobs", x="time entering job market")+
+  theme_classic() +
+    theme(axis.text.y = element_text(size=15),
+          axis.title.x= element_text(size=15),
+          axis.title.y= element_text(size=15))
 
 ```
 
@@ -119,7 +116,5 @@ using date
 ```{r}
 bg_vet_job_change<- bg_vet_job%>%
  select(id, startdate, enddate, job_duration_day, onet_job_zone, onet_title)
-
-
 ```
 

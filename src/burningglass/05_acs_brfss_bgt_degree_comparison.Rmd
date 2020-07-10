@@ -40,7 +40,7 @@ acs_vet_ed <- acs_vet_ed%>%
                                   if_else(education == "some_college", "some college/associate", "bachelor and more"))))%>%
   select(-count)%>%
   mutate(perc = perc * 100)%>%
-  mutate(data = "American Community Survey \n (ACS), 2018 Five-year estimates \n D.C. area, N = 4,144,490")
+  mutate(data = "American Community Survey \n (ACS), 2018 Five-year estimates \n D.C. MSA, N = 4,144,490")
 acs_vet_ed
 ```
 
@@ -70,7 +70,7 @@ brfss_vet_edu <- brfss_vet_edu%>%
   group_by(veteran)%>%
   summarize(education=education, perc = Freq / sum(Freq) * 100)%>%
   filter(!is.na(education))%>%
-  mutate(data = "Behavioral Risk Factor Surveillance System \n (BRFSS), 2018 \n National area, N = 435,300")
+  mutate(data = "Behavioral Risk Factor Surveillance System \n (BRFSS), 2018 \n National , N = 435,300")
 brfss_vet_edu
 ```
 
@@ -94,7 +94,7 @@ vet_edu <- vet_edu %>%
   group_by(veteran)%>%
   summarize(education=education, perc = Freq / sum(Freq) * 100)%>%
   filter(!is.na(education))%>% 
-  mutate(data = "Burning Glass \n 1990-2018 \n D.C. area, N = 288,826")
+  mutate(data = "Burning Glass \n 2016-2018 \n D.C. MSA, N = 620,497")
 vet_edu
 ```
 
@@ -132,10 +132,10 @@ ggplot(vet_edu_all, aes(x = education, y = perc, fill = data))+
   geom_bar(stat = "identity",position = 'dodge')+
   scale_fill_brewer(palette = "Set2")+
   facet_wrap(~veteran) +
-  labs(title = "Education Comparison in ACS, BRFSS, BGT")+ 
+  labs(title = "Education Comparison in ACS, BRFSS, BGT", y= "percent")+ 
   scale_fill_manual(values = c(uva_color_palette[1],uva_color_palette[4],uva_color_palette[8])) + 
   theme_hc()+
   theme(legend.position="top") 
-#save size: 900x500
+#save size: 980x500
 ```
 
