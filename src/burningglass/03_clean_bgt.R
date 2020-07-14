@@ -17,6 +17,7 @@ get_db_conn <-
 con <- get_db_conn()
 
 ed <- DBI::dbGetQuery(con, "SELECT *
+
                       FROM bgt_res.ed A
                       JOIN bgt_res.id_msa_dc B
                       ON A.id = B.id"
@@ -24,9 +25,9 @@ ed <- DBI::dbGetQuery(con, "SELECT *
 ed <-ed[,1:12]
 
 job <- DBI::dbGetQuery(con, "SELECT *
-                       FROM bgt_res.job A
-                       JOIN bgt_res.id_msa_dc B
-                       ON A.id = B.id"
+FROM bgt_res.job A
+JOIN bgt_res.id_msa_dc B
+ON A.id = B.id"
 )
 job <- job[, 1:9]
 
@@ -189,3 +190,154 @@ clean_bg <- function(job = job, ed = ed, pers = pers, onet = onet){
 }
 
 
+#convert all dataframes to data table
+job <- as.data.table(job)
+ed <- as.data.table(ed)
+pers <- as.data.table(pers)
+onet <- as.data.table(onet)
+
+#cleaning before joining
+#1. cleaning ed table
+#create identifier for veterans
+military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
+#extract unique military id
+military_ids <- job %>% 
+  filter(str_detect(job$onet, military))%>%
+  distinct(id)%>%
+  pull(id)
+pers_cleaned <- pers%>%
+  mutate(veteran =if_else(id %in% military_ids, "veteran", "not veteran"))%>%
+  select(id, gender, noofjobs, veteran)
+
+#2. cleaning job table
+job_cleaned <- job %>%
+  filter(!is.na(onet) & !is.na(startdate) & !is.na(enddate))%>%
+  mutate(start_year = year(startdate), end_year = year(enddate), start_month = month(startdate), end_month = month(enddate), start_day = day(startdate), end_day = day(enddate))%>%
+  mutate(job_duration_day = as.numeric(enddate- startdate))%>%
+  mutate(tenure = if_else(job_duration_day >= 365, "tenure", "not tenure"))%>%
+  filter(job_duration_day >= 0)
+
+round((nrow(job)-nrow(job_cleaned))/nrow(job_cleaned) *100, digits = 2)
+
+#3. cleaning ed table
+# degreetype <- ed%>%
+#   filter(!is.na(degreetype))%>%
+#   select(degreetype)
+ed_rename <- ed%>%
+  filter(!is.na(degreetype))%>%
+  mutate(degree_certificate = if_else(str_detect(string = degreetype, 
+                                                 pattern = "\\b(?i)(certificate|certificate)\\b"),T,F))%>%
+  mutate(degree_somehs = if_else(str_detect(string = degreetype, 
+                                            pattern = "\\b(?i)(10|11|9)\\b"), T,F))%>%
+  mutate(degree_hs = if_else(str_detect(string = degreetype, 
+                                        pattern = "\\b(?i)(12|High School|ged)\\b"), T,F))%>%
+  mutate(degree_associate = if_else(str_detect(string = degreetype, 
+                                               pattern = "\\b(?i)(Associate|associate|AA|A.A|aa|a.a|as|a.s|AS|A.S|aas|AAS|a.a.s|A.A.S|A.G.S|a.g.s|ags|AGS)\\b"), T,F))%>%
+  mutate(degree_somebachelor = if_else(str_detect(degreetype, pattern = "\\b(?i)(some college)\\b"), T, F))%>%
+  mutate(degree_bachelor = if_else(str_detect(string = degreetype, 
+                                              pattern = "\\b(?i)(Bachelor|bachelor|Bachelors|BS|bs|B.S|BA|B.A|ba|Undergraduate|undergraduate|postgraduate|Post-Graduate|post-graduate)\\b"), T,F))%>%
+  mutate(degree_master = if_else(str_detect(string = degreetype, 
+                                            pattern = "\\b(?i)(master|Master|MBA|M.S|MS|MD)\\b"), T,F))%>%
+  mutate(degree_doctor = if_else(str_detect(string = degreetype, 
+                                            pattern = "\\b(?i)(phd|Ph.D|postdoc|J.D|JD)\\b"), T,F))
+
+#duplicated degree
+ed_rename_dup <- ed_rename%>%
+  group_by(id)%>%
+  mutate(number_degree = n())%>%
+  filter(number_degree > 1)%>%
+  as.data.table()%>%
+  mutate(degree_highest = if_else(degree_doctor == T, "doctor", 
+                                  if_else(degree_master == T, "master",
+                                          if_else(degree_bachelor == T, "bachelor", 
+                                                  if_else(degree_associate == T, "associate", 
+                                                          if_else(degree_hs == T, "highschool",
+                                                                  if_else(degree_somehs == T, "somehs", 
+                                                                          if_else(degree_certificate ==T, "certificate", 
+                                                                                  "others"))))))))
+
+ed_rename_dup <- ed_rename_dup%>%
+  select(id, degree_highest)%>%
+  tibble::rowid_to_column()%>%
+  mutate(dup =T)%>%
+  pivot_wider(names_from = degree_highest, values_from = dup)%>%
+  select(-rowid)
+
+ed_rename_dup <- replace(ed_rename_dup, is.na(ed_rename_dup), FALSE)
+
+ed_rename_dup <- ed_rename_dup %>%
+  arrange(id, -doctor, -master, -bachelor, -associate, -highschool, -somehs, -certificate, -others) %>%
+  group_by(id)%>%
+  filter(row_number()==1)%>%
+  mutate(degree_highest = c("certificate", "somehs", "highschool", "associate", "bachelor","master", "doctor")[which.max(x = c(certificate, somehs, highschool, associate, bachelor, master, doctor))]) %>%
+  select(id, degree_highest)%>%
+  as.data.table()
+
+## users with no duplicated degree
+ed_rename_no_dup <- ed_rename%>%
+  group_by(id)%>%
+  mutate(number_degree = n())%>%
+  filter(number_degree == 1)%>%
+  filter(!degree_bachelor)%>%
+  as.data.table()%>%
+  mutate(degree_highest = if_else(degree_doctor == T, "doctor", 
+                                  if_else(degree_master == T, "master",
+                                          if_else(degree_bachelor == T, "bachelor", 
+                                                  if_else(degree_associate == T, "associate", 
+                                                          if_else(degree_hs == T, "highschool",
+                                                                  if_else(degree_somehs == T, "somehs", 
+                                                                          if_else(degree_certificate ==T, "certificate", 
+                                                                                  "others"))))))))%>%
+  select(id, degree_highest)
+
+##join the two table: ed_rename_no_dup, ed_rename_dup
+list = list(ed_rename_no_dup, ed_rename_dup)
+ed_cleaned <- rbindlist(list)
+
+#4. cleaning onet table
+onet_cleaned <- onet %>%
+  select(onetsoc_code, title, job_zone)%>%
+  rename("onet_title" = "title", "onet_job_zone" = "job_zone")
+
+#join all tbs
+bg_full <- pers_cleaned%>%
+  left_join(ed_cleaned, by="id")%>%  #one person would only have one highest degree
+  left_join(job_cleaned, by = "id")%>% #one person might have multiple job listed
+  left_join(onet_cleaned, by = c("onet" = "onetsoc_code"))
+
+#5. clean joined table
+bg_full_cleaned <- bg_full%>%
+  filter(!is.na(onet_job_zone))
+round((nrow(bg_full)-nrow(bg_full_cleaned))/nrow(bg_full) *100, digits = 2)
+
+
+
+# output table 1
+bg_all_demographic <- bg_full_cleaned%>%
+  select(id, gender, veteran, degree_highest)
+bg_all_demographic <- bg_all_demographic[!duplicated(bg_all_demographic$id), ]
+
+# output table 2
+bg_vet_demographic <- bg_full_cleaned%>%
+  filter(veteran == "veteran")%>%
+  select(id, gender, degree_highest)
+bg_vet_demographic <- bg_vet_demographic[!duplicated(bg_vet_demographic$id), ]
+table(duplicated(bg_vet_demographic$id))
+table(bg_vet_demographic$gender)
+
+#output table 3
+bg_all_job <- bg_full_cleaned %>%
+  select(id, onet, jobposition, noofjobs, sector, startdate, enddate, start_year, end_year, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure)%>%
+  filter(!is.na(onet) &  !is.na(startdate) & !is.na(enddate))
+
+#output table 4
+bg_vet_job <- bg_full_cleaned %>%
+  filter(veteran == "veteran")%>%
+  select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_year, end_year, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure)%>%
+  filter(!is.na(onet)  &  !is.na(startdate) & !is.na(enddate))
+
+
+bg_cleaned <- list(bg_all_demographic, bg_vet_demographic, bg_all_job, bg_vet_job)
+names(bg_cleaned) <- c("bg_all_demographic", "bg_vet_demographic", "bg_all_job", "bg_vet_job")
+return(bg_cleaned)
+}
