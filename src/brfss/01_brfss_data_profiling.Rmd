@@ -205,6 +205,34 @@ ggplot(vet_edu, aes(x = education, y = Freq))+
   scale_fill_brewer(palette = "Set2")+
   facet_wrap(~veteran) +
   theme(axis.text.x = element_text(angle = 90))
+
+################
+# table(brfss2018$education)
+# brfss2018_vet_edu <- brfss2018 %>%
+#   mutate(education = if_else(education == "College 1 year to 3 years (Some college or technical school) ", "some college",
+#                              if_else(education == "College 4 years or more (College graduate)", "bachelor and more",
+#                                      if_else(education == "Grade 12 or GED (High school graduate)", "hs", 
+#                                              if_else(education == "Grades 9 through 11 (Some high school)", "somehs", "others")))))%>%
+#   mutate(veteran = if_else(veteran == "Yes", "veteran", 
+#                            if_else(veteran == "No", "not veteran", "others")))
+# 
+# vet_edu <- table(brfss2018_vet_edu$veteran, brfss2018_vet_edu$education)%>%
+#   as.data.frame()%>%
+#   rename("veteran" = "Var1", "education" = "Var2")%>%
+#   filter(veteran != "others")%>%
+#   group_by(veteran)%>%
+#   summarize(education=education,percent = Freq / sum(Freq) * 100)%>%
+#   filter(!is.na(education))
+# 
+# 
+# vet_edu$education <- factor(vet_edu$education , levels = c("somehs", "hs", "bachelor and more", "others"))
+# 
+# ggplot(vet_edu, aes(x = education, y = percent, fill = veteran))+
+#   geom_bar(stat = "identity",position = 'dodge')+ 
+#   scale_fill_brewer(palette = "Set2")+
+#   #facet_wrap(~veteran) +
+#   theme(axis.text.x = element_text(angle = 90))+ 
+#   labs(title = "Veteran's Education Distribution in BRFSS Data")
 ```
 
 
