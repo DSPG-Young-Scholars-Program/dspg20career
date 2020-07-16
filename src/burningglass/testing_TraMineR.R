@@ -56,15 +56,22 @@ names(bf.sts.a) <- paste0("a", 15:30)
 head(bf.sts.a)
 
 ## Here I am trying to go SPELL to STS with our dataset, I used BG job change short (commenting out lines to select variables and spread) because I was originally working with the corrected job_position variable, but you could probably use a different dataset with the id, startdate, enddate, and job zone as well
-testing <- head(bg_vet_job_change_short, 100) 
-testing <- testing %>% select("id", "start_year", "end_year", "onet_job_zone")
+testing <- head(bg_vet_job, 1000) 
+testing <- testing %>% 
+  mutate(startyear = year(startdate), endyear = year(enddate)) %>%
+  select("id", "startyear", "endyear", "onet_job_zone")
+
+id
 
 sts.test <- seqformat(testing, from = "SPELL", to = "STS",
-                      id = "id",  begin = "start_year", end = "end_year", 
+                      id = "id",  begin = "startyear", end = "endyear", 
                       status = "onet_job_zone",  process = FALSE)
+
+
+head(sts.test)
 
 # In TraMineR users guide "converting from the spell format" starts on pg. 42
 # Documentation on seqformat function http://traminer.unige.ch/doc/seqformat.html
 
-
+??seqdef
 
