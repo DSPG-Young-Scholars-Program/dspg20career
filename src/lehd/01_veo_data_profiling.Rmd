@@ -165,7 +165,9 @@ military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
 military_ids <- job %>% filter(str_detect(job$onet, military)) %>% distinct(id)
 
 # Create df of resumes for military ids, get counts in each sector
-res_mil <- job %>% filter(id %in% military_ids$id) %>% group_by(sector) %>% summarise(n = n()) %>% drop_na()
+res_mil <- job %>% filter(id %in% military_ids$id)
+
+%>% group_by(sector) %>% summarise(n = n()) %>% drop_na()
 
 # Join industry labels by NAICS codes
 res_mil_labels <- res_mil %>% left_join(select(veo_ind_long, label_industry, industry), by = c("sector" = "industry"))
@@ -247,21 +249,22 @@ ggplot(lodes, aes(x = label_industry, y = value, fill = label_industry)) +
 uvapal1 = c("#232D4B","#0E879C","#E6CE3A","#E57200")
 uvapal2 = c("#2C4F6B", "#E57200")
 
-all_industry_profile %>%
+plot <- all_industry_profile %>%
   filter(variable != "lodes") %>% 
   mutate(diff_lab = ifelse(diff == 0, NA, (paste0(round(percent_diff*100, digits = 1),"%")))) %>%
-  mutate(position = ifelse(variable == "y1_emp", 2,
-                           ifelse(variable == "y5_emp", 3,
-                                  ifelse(variable == "y10_emp", 4, 1)))) %>%
+  mutate(position = ifelse(variable == "y1_emp", 3,
+                           ifelse(variable == "y5_emp", 2,
+                                  ifelse(variable == "y10_emp", 1, 4)))) %>%
   arrange(position) %>%
   ggplot(aes(x = reorder(label_industry_compare, percen), y = percen, 
              fill = reorder(variable, position))) +
   geom_col(position = "dodge") +
   labs(title = "Benchmarking BGT: Estimates of Veteran Employment by Industry",
-       subtitle = "Differences between BGT subset and VEO one, five, and ten year bins",
+       subtitle = "Comparison of BGT subset and VEO one, five, and ten years after discharge",
        fill = "Estimate source",
        caption = "Percent labels indicate percent difference between estimate source and BGT
-       Data from BGT and VEO") +
+Note: BGT is subset to DC MSA and military specific *ONET occupations while VEO data is nationally representative of all Army service members
+       Data from BGT (pulled 2015-2018) and VEO (2000-2015)") +
   xlab("NAICS Industry") +
   ylab("") +
   scale_y_continuous(labels = scales::percent) +
@@ -270,33 +273,43 @@ all_industry_profile %>%
                 label = diff_lab, 
                 fill = reorder(variable, position)),
             position = position_dodge(width = 1),
-            hjust = -0.5, size = 2, fontface = "plain") +
-  scale_fill_manual(values = uvapal1, labels = c("BGT", "VEO 1 year", "VEO 5 year", "VE0 10 year")) +
+            hjust = -0.5, size = 2.3, fontface = "plain") +
+  scale_fill_manual(values = uvapal1, labels = c("VE0 10 year", "VEO 5 year", "VEO 1 year", "BGT"), guide = guide_legend(reverse = TRUE)) +
   coord_flip() +
   theme_classic()
 
-all_industry_profile %>%
+
+plot + theme(legend.justification = c(1,0), legend.position = c(1,0))
+
+
+plot2 <- all_industry_profile %>%
   filter(!(variable %in% c("y1_emp", "y5_emp", "y10_emp"))) %>% 
   mutate(diff_lab = ifelse(diff == 0, NA, (paste0(round(percent_diff*100, digits = 1),"%")))) %>%
+  mutate(position = ifelse(variable == "bgt", 2, 1)) %>%
+  arrange(position) %>%
   ggplot(aes(x = reorder(label_industry_compare, percen), y = percen, 
-             fill = variable)) +
+             fill = reorder(variable, position))) +
   geom_col(position = position_dodge2(width = 1, preserve = "single")) +
   labs(title = "Benchmarking BGT: Estimates of DC MSA Employment by Industry",
-       subtitle = "Differences between BGT subset and LODES",
+       subtitle = "Comparison of BGT subset and LODES data for all jobs in DC MSA",
        fill = "Estimate source",
-       caption = "") +
+       caption = "Percent labels indicate percent difference between estimate source and BGT
+Note: BGT is subset to DC MSA and military specific *ONET occupations while LODES data represents all workers in DC MSA
+       Data from BGT (pulled 2015-2018) and LODES (2002-2017)") +
   xlab("NAICS Industry") +
   ylab("") +
   scale_y_continuous(labels = scales::percent) +
-  scale_fill_discrete(labels = c("BGT", "LODES")) +
   geom_text(aes(x = label_industry_compare,
                 y = percen,
                 label = diff_lab, 
-                fill = variable),
+                fill = reorder(variable, position)),
             position = position_dodge2(width = 1, preserve = "single"),
             hjust = -0.5, size = 2, fontface = "plain") +
-  scale_fill_manual(values = uvapal2) +
+  scale_fill_manual(values = uvapal2, labels = c("LODES", "BGT"), 
+                    guide = guide_legend(reverse = TRUE)) +
   coord_flip() +
-  theme_classic()
+  theme_classic()  
+
+plot2 + theme(legend.justification = c(1,0), legend.position = c(1,0))
 ```
 
