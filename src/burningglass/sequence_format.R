@@ -1,38 +1,65 @@
+library(tidyverse)
+library(lubridate)
 library(TraMineR)
 library(TraMineRextras)
-library(RColorBrewer)
+
 
 ### Aligned sequences for veterans, we need one table of sequences and one of first job years -----
+# Check file path, loading the clean dataset for sequence analysis
+bg_vet_job <- read_csv("~/git/DSPG2020/career/data/05_bg_vet_job.csv")
+
+# We are choosing years as our unit of analysis because months are unreliable. We are also taking the highest O*NET job zone for a given year to deal with overlapping jobs.
 bg_vet_job_seq <- bg_vet_job %>%
   mutate(startyear = year(startdate), endyear = year(enddate)) %>%
-  select("id", "startyear", "endyear", "onet_job_zone")
-bg_vet_job_first <- bg_vet_job %>% 
-  select("id", "startdate") %>% group_by(id) %>% transmute(enter = year(min(startdate))) %>% distinct() %>% ungroup()
-sts.vet <- seqformat(bg_vet_job_seq, from = "SPELL", to = "STS",
+  select("id", "startyear", "endyear", "onet_job_zone")%>%
+  group_by(id)%>%
+  arrange(desc(onet_job_zone))%>%
+  group_by(id)%>%
+  distinct(id, startyear, endyear, .keep_all = TRUE)
+
+# We need an auxillary table with the year of entering the job market to align the sequences
+bg_vet_job_first <- bg_vet_job_seq %>% 
+  select("id", "startyear") %>% group_by(id) %>% transmute(enter = min(startyear)) %>% distinct() %>% ungroup()
+
+# The seqformat() function does not like any data that has been previously grouped. Here we are "resetting" the data so that it will pass through the function.
+bg_vet_job_seq <- as.matrix(bg_vet_job_seq)
+bg_vet_job_seq <- as.data.frame(bg_vet_job_seq)
+bg_vet_job_first <- as.matrix(bg_vet_job_first)
+bg_vet_job_first <- as.data.frame(bg_vet_job_first)
+
+# The input for the function is the prepared sequence table. The data is in format SPELL and we are transforming to format STS. By setting process = TRUE we can align the sequences using the prepared auxillary table.
+sts_vet <- seqformat(bg_vet_job_seq, from = "SPELL", to = "STS",
                      id = "id",  begin = "startyear", end = "endyear", 
-                     status = "onet_job_zone",  process = TRUE)
+                     status = "onet_job_zone", process = TRUE,
+                     pdata = bg_vet_job_first, pvar = c("id", "enter"))
+# Here we are renaming columns to be in format "yn" (year in the job market)
+names(sts_vet) <- paste0("y", 1:100)
 
+# Writing the final table as a csv
+write.csv(sts_vet, "sts_vet.csv")
 
-## ---Everything above this works! ------------------
+## Aligned sequences for all jobs (This will take a while to run, I haven't gotten it yet) ---------
 
+bg_all_job_seq <- bg_all_job %>%
+  mutate(startyear = year(startdate), endyear = year(enddate)) %>%
+  select("id", "startyear", "endyear", "onet_job_zone")%>%
+  group_by(id)%>%
+  arrange(desc(onet_job_zone))%>%
+  group_by(id)%>%
+  distinct(id, startyear, endyear, .keep_all = TRUE)
 
-test <- seqdef(bg_vet_job_seq, from = "SPELL", to = "STS",
-               id = "id",  begin = "startyear", end = "endyear", 
-               status = "onet_job_zone",  process = TRUE, states = events)
+bg_all_job_first <- bg_all_job_seq %>% 
+  select("id", "startyear") %>% group_by(id) %>% transmute(enter = min(startyear)) %>% distinct() %>% ungroup()
 
-test <- bg_vet_job_first
-events <- c(1, 2, 3, 4, 5)
-test<-as.matrix(test)
-test<-as.data.frame(test)
+bg_all_job_seq <- as.matrix(bg_all_job_seq)
+bg_all_job_seq <- as.data.frame(bg_all_job_seq)
+bg_all_job_first <- as.matrix(bg_all_job_first)
+bg_all_job_first <- as.data.frame(bg_all_job_first)
 
+sts_all <- seqformat(bg_all_job_seq, from = "SPELL", to = "STS",
+                     id = "id",  begin = "startyear", end = "endyear", 
+                     status = "onet_job_zone", process = TRUE,
+                     pdata = bg_all_job_first, pvar = c("id", "enter"))
+names(sts_all) <- paste0("y", 1:100)
 
-sts.vet <- seqformat(bg_vet_job_seq, from = "SPELL", to = "STS",
-                      id = "id",  begin = "startyear", end = "endyear", 
-                      status = "onet_job_zone",  process = TRUE)
-test <- seqdef(bg_vet_job_seq, from = "SPELL", to = "STS",
-               id = "id",  begin = "startyear", end = "endyear", 
-               status = "onet_job_zone",  process = TRUE, states = events)
-seqiplot(head(test, 10))
-seqstatl(test)
-
-### Aligned sequence for all, again we need two tables ------------------------
+write.csv(sts_all, "sts_vet.csv")
