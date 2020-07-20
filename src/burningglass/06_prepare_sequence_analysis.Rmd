@@ -11,39 +11,50 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## R Markdown
 ```{r}
-for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer")) {
+for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras")) {
   library(pkg, character.only = TRUE)
 }
-
 #double check your working directory
-source("~/git/dspg20career/src/burningglass/03_clean_bgt.R", echo = T, prompt.echo = "", spaced = F)
-bg_clean_ls <- clean_bg(job = job, ed = ed, pers = pers, onet = onet)
+# source("~/git/dspg20career/src/burningglass/03_clean_bgt.R", echo = T, prompt.echo = "", spaced = F)
+bg_cleaned <- clean_bg(job = job, ed = ed, pers = pers, onet = onet)
+bg_all_demographic <- as.data.table(bg_cleaned$bg_all_demographic)
+bg_vet_demographic <- as.data.table(bg_cleaned$bg_vet_demographic)
+bg_all_job <- as.data.table(bg_cleaned$bg_all_job)
+bg_vet_job <- as.data.table(bg_cleaned$bg_vet_job)
 
-bg_all_demographic <- as.data.table(bg_clean_ls$bg_all_demographic)
-bg_vet_demographic <- as.data.table(bg_clean_ls$bg_vet_demographic)
-bg_all_job <- as.data.table(bg_clean_ls$bg_all_job)
-bg_vet_job <- as.data.table(bg_clean_ls$bg_vet_job)
+# write.csv(bg_all_demographic, file= "data/01_bg_all_demographic.csv", row.names = F)
+# write.csv(bg_vet_demographic, file= "data/02_bg_vet_demographic.csv", row.names = F)
+# write.csv(bg_all_job, file= "data/03_bg_all_job.csv", row.names = F)
+# write.csv(bg_vet_job, file= "data/04_bg_vet_job.csv", row.names = F)
+# 
+# bg_all_job <- read.csv("data/04_bg_all_job.csv")
+# bg_vet_job <- read.csv("data/05_bg_vet_job.csv")
+
+```
 
 
-#select a subset of bg_all_
+```{r}
+# reconnecting to the database 
+# conn <- dbConnect(drv = PostgreSQL(), 
+#                   dbname = "sdad", 
+#                   host = "10.250.124.195", 
+#                   port = 5432, 
+#                   user = Sys.getenv("db_userid"), 
+#                   password = Sys.getenv("db_pwd"))
+# # writing the new city_clean_finall table to postgis_2
+# dbWriteTable(conn, c("bg", "bg_job_dc"), city_clean_final, row.names=F)
+# # disconnect from postgresql database  
+# dbDisconnect(conn)
+```
+
+
+```{r}
+#select a subset of bg_all_job
 set.seed(1)
 id <- as.vector(bg_all_demographic$id)
 sample_id <-  sample(id, size = 100)
-
-bg_all_job <- bg_all_job%>%
+bg_all_job_sample <- bg_all_job%>%
   filter(id %in% sample_id)
-
-uva_color_palette <- 
-c("#232D4B", #space cadet
-  "#2C4F6B", #indigo dye
-  "#0E879C", #blue munsell
-  "#60999A", #cadet blue
-  "#D1E0BF", #tea green
-  "#D9E12B", #pear
-  "#E6CE3A", #citrine
-  "#E6A01D", #marigold
-  "#E57200" #princeton orange
-)
 ```
 
 ```{r}
@@ -57,37 +68,38 @@ vet_id <- bg_all_demographic%>%
 table(bg_all_job$start_year)
 class(bg_all_job$jobposition)
 
-first_job <- bg_all_job%>%
-  group_by(id)%>%
-  mutate(max_jobposition = max(jobposition, na.rm=T),  #identify the job that has the maximum of job position, indicates that it's the first job
-         match = if_else(jobposition == max_jobposition, T, F),
-         today = as.Date("2019-01-01"),
-         days_in_job_market = today - startdate,
-         days_employed = sum(job_duration_day),
-         days_unemployed = days_in_job_market-days_employed)%>%
-  filter(max_jobposition >0)%>%
-  filter(match == T)%>%
-  select(id, start_year, days_in_job_market, days_employed, days_unemployed)%>%
-  rename(first_job_start_year = start_year)
+# first_job <- bg_all_job%>%
+#   group_by(id)%>%
+#   mutate(max_jobposition = max(jobposition, na.rm=T),  #identify the job that has the maximum of job position, indicates that it's the first job
+#          match = if_else(jobposition == max_jobposition, T, F)
+#         # today = as.Date("2019-01-01")
+#         # days_in_job_market = today - startdate,
+#         # days_employed = sum(job_duration_day),
+#         # days_unemployed = days_in_job_market-days_employed
+#          )%>%
+#   filter(max_jobposition >0)%>%
+#   filter(match == T)%>%
+#   select(id, start_year)%>%
+#   rename(first_job_start_year = start_year)
 
- last_job <- bg_all_job%>%
-  group_by(id)%>%
-  mutate(min_jobposition = min(jobposition, na.rm=T), match = if_else(jobposition == min_jobposition, T, F))%>%
-  filter(min_jobposition >0)%>%
-  filter(match == T) %>%
-  mutate(more_than_one_year_out = if_else(end_year <= 2017, T, F))%>%
-  select(id, end_year, more_than_one_year_out, noofjobs, onet_job_zone)%>%
-  rename(last_job_end_year = end_year)
+ # last_job <- bg_all_job%>%
+ #  group_by(id)%>%
+ #  mutate(min_jobposition = min(jobposition, na.rm=T), match = if_else(jobposition == min_jobposition, T, F))%>%
+ #  filter(min_jobposition >0)%>%
+ #  filter(match == T) %>%
+ #  mutate(more_than_one_year_out = if_else(end_year <= 2017, T, F))%>%
+ #  select(id, end_year, more_than_one_year_out, noofjobs, onet_job_zone)%>%
+ #  rename(last_job_end_year = end_year)
 
-first_last_job <- first_job %>%
-  left_join(last_job, by = "id")%>%
-   left_join(vet_id, by = "id")%>%
-  mutate(first_job_start_cat = if_else(first_job_start_year < 2000, "before 2000 \n (Seniors)", if_else(first_job_start_year < 2010, "2000-2010 \n (Middle-Aged)", "2010 and later \n (Young Professional)")))%>%
-  mutate(time_in_job_market = 2018- first_job_start_year)
+# first_last_job <- first_job %>%
+#   left_join(last_job, by = "id")%>%
+#    left_join(vet_id, by = "id")%>%
+#   mutate(first_job_start_cat = if_else(first_job_start_year < 2000, "before 2000 \n (Seniors)", if_else(first_job_start_year < 2010, "2000-2010 \n (Middle-Aged)", "2010 and later \n (Young Professional)")))%>%
+#   mutate(time_in_job_market = 2018- first_job_start_year)
 
-table(first_last_job$first_job_start_cat)
+#table(first_last_job$first_job_start_cat)
 #table(duplicated(first_last_job$id)) #check duplicates
-table(first_last_job$more_than_one_year_out)
+#table(first_last_job$more_than_one_year_out)
 ```
 
 
@@ -122,8 +134,46 @@ vet_more_than_one_job <- bg_vet_job_change_short%>%
 ```
 
 
+#Identify overlapping jobs
+## 1. two or more jobs start and end in the same year
 ```{r}
-bg_vet_job_change<- bg_vet_job%>%
- select(id, startdate, enddate, job_duration_day, onet_job_zone, onet_title)
+df <- tibble(id = c(1,1,1,1),
+               start = c(2000,2001,2005,2005),
+               end = c(2001, 2002, 2006,2006),
+               jobzone = c(1,2,3,4))
+df %>%
+  arrange(desc(jobzone))%>%
+  distinct(start, end, .keep_all = FALSE)
+
+
+bg_vet_job_seq <- bg_vet_job %>%
+  mutate(startyear = year(startdate), endyear = year(enddate)) %>%
+  select("id", "startyear", "endyear", "onet_job_zone")%>%
+  group_by(id)%>%
+  arrange(desc(onet_job_zone))%>%
+  group_by(id)%>%
+  distinct(id,startyear, endyear, .keep_all = TRUE)
 ```
 
+```{r}
+bg_vet_job_seq <- bg_vet_job %>%
+  mutate(startyear = year(startdate), endyear = year(enddate)) %>%
+  select("id", "startyear", "endyear", "onet_job_zone")
+
+
+bg_vet_job_first <- bg_vet_job %>%
+  select("id", "startdate") %>% 
+  group_by(id) %>% 
+  transmute(enter = year(min(startdate))) %>% 
+  distinct() %>% 
+  ungroup()
+
+
+sts.vet <- seqformat(bg_vet_job_seq, from = "SPELL", to = "STS",
+                     id = "id",  begin = "startyear", end = "endyear",
+                     status = "onet_job_zone",  process = TRUE)
+
+test <- seqdef(bg_vet_job_seq, from = "SPELL", to = "STS",
+               id = "id",  begin = "startyear", end = "endyear",
+               status = "onet_job_zone",  process = TRUE, states = events)
+```
