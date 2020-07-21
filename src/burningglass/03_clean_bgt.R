@@ -170,14 +170,6 @@ clean_bg <- function(job = job, ed = ed, pers = pers, onet = onet){
     left_join(onet_cleaned, by = c("onet" = "onetsoc_code"))
   
   #5. clean joined table
-  if(bg_full$date_enter_job_market != bg_full$start_day){
-    message("not first job")
-  }
-  data.frame(x = 1:5) %>% 
-    filter(if (y=="") x>3 else x<3) %>%  
-    tail(1)
-  
-  
   #if the job is not the person's first job, then we exclude that job if its onet job zone variable is missing
   bg_full_not_first_job <- bg_full %>%
     group_by(id)%>%

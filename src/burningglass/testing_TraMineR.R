@@ -60,15 +60,22 @@ testing <- head(bg_vet_job, 1000)
 testing <- testing %>% 
   mutate(startyear = year(startdate), endyear = year(enddate)) %>%
   select("id", "startyear", "endyear", "onet_job_zone")
-
+testing_first <- testing %>% 
+  select("id", "startyear") %>% group_by(id) %>% transmute(enter = min(startyear)) %>% distinct() %>% ungroup()
+b <- as.matrix(testing_first)
+a <- as.data.frame(b)
 id
 
 sts.test <- seqformat(testing, from = "SPELL", to = "STS",
                       id = "id",  begin = "startyear", end = "endyear", 
-                      status = "onet_job_zone",  process = FALSE)
+                      status = "onet_job_zone",  process = TRUE,
+                      pdata = a, pvar = c("id", "enter"))
 
-
-head(sts.test)
+seqstatl(sts.test)
+length(seqstatl(sts.test[, -1]))
+comp.seq <- seqdef(sts.test[,-1])
+print(comp.seq[1:3, ])
+seqiplot(comp.seq,border = NA, with.legend = "right", cpal = c("#E57200", "#62BB46", "#FDDA24", "#009FDF", "#EF3F6B"), xlim =c(0,30))
 
 # In TraMineR users guide "converting from the spell format" starts on pg. 42
 # Documentation on seqformat function http://traminer.unige.ch/doc/seqformat.html
