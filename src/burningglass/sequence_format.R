@@ -63,3 +63,17 @@ sts_all <- seqformat(bg_all_job_seq, from = "SPELL", to = "STS",
 names(sts_all) <- paste0("y", 1:100)
 
 write.csv(sts_all, "sts_vet.csv")
+
+seq <- seqdef(sts_vet[,-1])
+
+seqmtplot(seq, ylim = c(0, 10), border = NA, with.legend= FALSE,cpal = c("#D1E0BF",  "#60999A", "#0E879C","#2C4F6B", "#232D4B"))
+
+seqmsplot(seq, with.legend = "right",  cpal = c("#D1E0BF",  "#60999A", "#0E879C","#2C4F6B", "#232D4B"), border = NA)
+
+seqdplot(seq, xlim = c(0, 46), border = NA, with.legend = "right", cpal = c("#D1E0BF",  "#60999A", "#0E879C","#2C4F6B", "#232D4B"))
+
+, #space cadet
+"#2C4F6B", #indigo dye
+"#0E879C", #blue munsell
+"#60999A", #cadet blue
+"#D1E0BF"

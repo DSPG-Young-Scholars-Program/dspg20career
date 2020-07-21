@@ -1,0 +1,179 @@
+---
+title: "Exploring Ward Clustering"
+output: html_document
+author: Joanna Schroeder
+---
+
+## What is Ward's Method?
+Ward’s method (a.k.a. Minimum variance method or Ward’s Minimum Variance Clustering Method) is an alternative to single-link clustering. Popular in fields like linguistics, it’s liked because it usually creates compact, even-sized clusters. Like most other clustering methods, Ward’s method is computationally intensive. However, Ward’s has significantly fewer computations than other methods. The drawback is this usually results in less than optimal clusters. That said, the resulting clusters are usually good enough for most purposes.
+
+Like other clustering methods, Ward’s method starts with n clusters, each containing a single object. These n clusters are combined to make one cluster containing all objects. At each step, the process makes a new cluster that minimizes variance, measured by an index called E (also called the sum of squares index).
+
+## What is Partitioning Around Medoids (PAM)?
+K-medoids or partitioning around medoids (PAM) algorithm is a clustering algorithm reminiscent of the k-means algorithm. Both the k-means and k-medoids algorithms are partitional (breaking the dataset up into groups) and both attempt to minimize the distance between points labeled to be in a cluster and a point designated as the center of that cluster.
+
+```{r include = TRUE, echo = FALSE, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(class)
+library(TraMineR)
+library(dplyr)
+library(cluster)
+
+## Load data and sample
+
+set.seed(01301998)
+
+sts_vet <- read.csv("~/git/DSPG2020/career/data/sts_vet.csv", row.names = 1)
+
+sts_vet <- seqdef(sts_vet, cpal = c("#D1E0BF",  "#60999A", "#0E879C","#2C4F6B", "#232D4B"), missing.color = "gray", with.missing = TRUE)
+
+sample <- sample_n(sts_vet, 3500)
+```
+
+## Sequence descriptives
+```{r include = TRUE, echo = FALSE, warning = FALSE, message = FALSE}
+# Seqmtplot displays the mean time spent in each state
+seqmtplot(sts_vet, main = "Mean time distribution plot", ylim = c(0, 10), border = NA, with.legend= FALSE)
+
+# Seqdplot represents the sequence of the cross-sectional state frequencies by position
+seqdplot(sts_vet, main = "Sequence distribution plot",  xlim = c(0, 46), border = NA, with.legend = "right")
+
+# Seqfplot displays the most frequent sequences
+seqfplot(sts_vet, main = "Sequence frequency plot", with.legend = TRUE ,pbarw = TRUE)
+
+# Transition matrix
+tr <- seqtrate(sts_vet)
+round(tr, 2)
+```
+
+
+## Clustering and dendrogram
+```{r include = TRUE, echo = FALSE, warning = FALSE, message = FALSE}
+# Creating distance matrix using optimal matching, including missing (unemployment) values
+dist.om1 <- seqdist(sample, method = "OM", indel = 1, sm = "TRATE", with.missing = TRUE)
+
+# Implementing clustering, using Ward's method
+clusterward1 <- agnes(dist.om1, diss = TRUE, method = "ward")
+
+# Plot the dendrogram
+plot(clusterward1, which.plot = 2)
+```
+
+
+### Three Clusters
+```{r include = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
+cl1.3 <- cutree(clusterward1, k = 3)
+cl1.3fac <- factor(cl1.3, labels = paste("Type", 1:3))
+
+# Number of sequences in each cluster
+table(cl1.3)
+
+# Seqrplot displays a reduced, non redundant set of representative sequences extracted from the provided state sequence object and sorted according to a representativeness criterion
+seqrplot(sample, diss = dist.om1, group = cl1.3fac,border = NA)
+
+# Seqdplot represents the sequence of the cross-sectional state frequencies by position (time point)
+seqdplot(sample, group = cl1.3fac, border = NA)
+
+# Seqfplot displays the most frequent sequences, each one with an horizontal stack bar of its successive states
+seqfplot(sample, group = cl1.3fac, border = NA)
+
+# Seqmtplot displays the mean time spent in each state
+seqmtplot(sample, group = cl1.3fac, border = NA)
+
+# Seqhtplot displays the evolution over positions of the cross-sectional entropies ( entropy is 0 when all cases are in the same state and is maximal when the same proportion of cases are in each state; the entropy can be seen as a measure of the diversity of states observed at the considered time point)
+seqHtplot(sample, group = cl1.3fac, border = NA)
+```
+
+
+### Four Clusters
+```{r include = TRUE, echo = TRUE, warning = FALSE, message = FALSE}
+cl1.4 <- cutree(clusterward1, k = 4)
+cl1.4fac <- factor(cl1.4, labels = paste("Type", 1:4))
+
+table(cl1.4)
+
+seqrplot(sample, diss = dist.om1, group = cl1.4fac,border = NA)
+
+seqdplot(sample, group = cl1.4fac, border = NA)
+
+seqfplot(sample, group = cl1.4fac, border = NA)
+
+seqmtplot(sample, group = cl1.4fac, border = NA)
+
+seqHtplot(sample, group = cl1.4fac, border = NA)
+```
+
+
+
+### Five Clusters
+```{r include = TRUE, echo = TRUE, warning = FALSE, fig.height=10, message = FALSE}
+cl1.5 <- cutree(clusterward1, k = 5)
+cl1.5fac <- factor(cl1.5, labels = paste("Type", 1:5))
+
+table(cl1.5)
+
+seqrplot(sample, diss = dist.om1, group = cl1.5fac,border = NA)
+
+seqdplot(sample, group = cl1.5fac, border = NA)
+
+seqfplot(sample, group = cl1.5fac, border = NA)
+
+seqmtplot(sample, group = cl1.5fac, border = NA)
+
+seqHtplot(sample, group = cl1.5fac, border = NA)
+```
+
+### Six Clusters
+```{r include = TRUE, echo = TRUE, warning = FALSE, fig.height=10, message = FALSE}
+cl1.6 <- cutree(clusterward1, k = 6)
+cl1.6fac <- factor(cl1.6, labels = paste("Type", 1:6))
+
+table(cl1.6)
+
+seqrplot(sample, diss = dist.om1, group = cl1.6fac,border = NA)
+
+seqdplot(sample, group = cl1.6fac, border = NA)
+
+seqfplot(sample, group = cl1.6fac, border = NA)
+
+seqmtplot(sample, group = cl1.6fac, border = NA)
+
+seqHtplot(sample, group = cl1.6fac, border = NA)
+```
+
+### Seven Clusters
+```{r include = TRUE, echo = TRUE, warning = FALSE, fig.height=10, message = FALSE}
+cl1.7 <- cutree(clusterward1, k = 7)
+cl1.7fac <- factor(cl1.7, labels = paste("Type", 1:7))
+
+table(cl1.7)
+
+seqrplot(sample, diss = dist.om1, group = cl1.7fac,border = NA)
+
+seqdplot(sample, group = cl1.7fac, border = NA)
+
+seqfplot(sample, group = cl1.7fac, border = NA)
+
+seqmtplot(sample, group = cl1.7fac, border = NA)
+
+seqHtplot(sample, group = cl1.7fac, border = NA)
+```
+
+### Eight Clusters
+```{r include = TRUE, echo = TRUE, warning = FALSE, fig.height=10, message = FALSE}
+par(mar= c(1, 1, 1, 1))
+cl1.8 <- cutree(clusterward1, k = 8)
+cl1.8fac <- factor(cl1.8, labels = paste("Type", 1:8))
+
+table(cl1.8)
+
+seqrplot(sample, diss = dist.om1, group = cl1.8fac,border = NA)
+
+seqdplot(sample, group = cl1.8fac, border = NA)
+
+seqfplot(sample, group = cl1.8fac, border = NA)
+
+seqmtplot(sample, group = cl1.8fac, border = NA)
+
+seqHtplot(sample, group = cl1.8fac, border = NA)
+```
