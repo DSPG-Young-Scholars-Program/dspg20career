@@ -1,35 +1,97 @@
 ---
-title: "07_clustering"
+title: "08 Post-Military Career Clustering"
 output: html_document
 ---
 
-```{r}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
 for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster")) {
   library(pkg, character.only = TRUE)
 }
 ```
 
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")%>%
+  mutate(is_onet55 = if_else(str_detect(onet, "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"), T, F))%>%
+  select(id,onet,is_onet55, onet_job_zone, startdate, enddate, start_year, end_year, onet_title, date_enter_job_market)%>%
+  mutate(year_enter_job_market = year(date_enter_job_market))
+
+#how many onet55 job each person have
+df <- bg_vet_job%>%
+  group_by(id)%>%
+  summarize(ttl_onet55_job = sum(is_onet55), ttl_job = n())
+
+table(df$ttl_onet55_job)
+```
+Among veteran population, `r table(df$ttl_onet55_job)[1]/nrow(df)*100`% (N=`r table(df$ttl_onet55_job)[1]`) does not have a valid onet 55 job (missing date);     
+`r table(df$ttl_onet55_job)[2]/nrow(df)*100`% (N=`r table(df$ttl_onet55_job)[2]`)have one valid onet 55 job;    
+`r table(df$ttl_onet55_job)[3]/nrow(df)*100`% (N=`r table(df$ttl_onet55_job)[3]`) have 2 valid onet 55 job;   
+`r table(df$ttl_onet55_job)[4]/nrow(df)*100`% (N=`r table(df$ttl_onet55_job)[4]`) have 4 valid onet 55 job.   
+
+
+Problem: All 55-ONET jobs are missing ONET job zone
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+bg_vet_job%>%
+  filter(is_onet55)%>%
+  group_by(onet, onet_job_zone)%>%
+  summarize(N=n())%>%
+  arrange(desc(N))
+#make sure we get the end date of the last onet55 job
+```
+
+We have 3412 veterans in our sample who have valid onet55 job (with start and end date). The average year they end their last military job (ONET55 job) is 2000, with standard deviation of 10.
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+vet_endmilitary <- bg_vet_job%>%
+  mutate(year_end_onet55 = if_else(is_onet55==T, end_year, 0))%>%
+  filter(year_end_onet55 != 0)%>%  #exluce people who don't have valid onet55 code
+  select(id, year_end_onet55, year_enter_job_market) %>%
+  #keep the latest onet55 job
+  group_by(id)%>%   
+  arrange(desc(year_end_onet55))%>%
+  group_by(id)%>%
+  distinct(id, .keep_all = TRUE)%>%
+  select(id, year_end_onet55)
+
+# summary(bg_vet_job$year_end_onet55)
+# sd(bg_vet_job$year_end_onet55)
+
+ggplot(vet_endmilitary, aes(year_end_onet55))+
+  geom_histogram()+
+  labs(x = "year when the last ONET 55 job end")
+```
+# Sequence Analysis
 # Step 1. Formating sequence data
 ```{r}
-bg_vet_job <- read.csv("data/04_bg_vet_job.csv")
+
+bg_vet_job  <- left_join(bg_vet_job, vet_endmilitary, by = "id")
+
+vet_id <- unique(vet_endmilitary$id)
 
 bg_vet_job_seq <- bg_vet_job %>%
+  filter(id %in% vet_id)%>%
   select("id", "start_year", "end_year", "onet_job_zone")%>%
   group_by(id)%>%
   arrange(desc(onet_job_zone))%>%
   group_by(id)%>%
   distinct(id, start_year, end_year, .keep_all = TRUE)
+length(unique(bg_vet_job_seq$id))  #confirm sample size match
 
 # We need an auxillary table with the year of entering the job market to align the sequences
-bg_vet_job_first <- bg_vet_job_seq %>% 
-  select("id", "start_year") %>% group_by(id) %>% transmute(enter = min(start_year)) %>% distinct() %>% ungroup()
+bg_vet_job_first <- vet_endmilitary %>%
+  rename(enter = year_end_onet55)
+nrow(bg_vet_job_first) #confirm sample size match
 
 # The seqformat() function does not like any data that has been previously grouped. Here we are "resetting" the data so that it will pass through the function.
-bg_vet_job_seq <- as.matrix(bg_vet_job_seq)
+#bg_vet_job_seq <- as.matrix(bg_vet_job_seq)
 bg_vet_job_seq <- as.data.frame(bg_vet_job_seq)
-bg_vet_job_first <- as.matrix(bg_vet_job_first)
+#bg_vet_job_first <- as.matrix(bg_vet_job_first)
 bg_vet_job_first <- as.data.frame(bg_vet_job_first)
+
 
 
 # The input for the function is the prepared sequence table. The data is in format SPELL and we are transforming to format STS. By setting process = TRUE we can align the sequences using the prepared auxillary table.
@@ -39,7 +101,6 @@ sts_vet <- seqformat(bg_vet_job_seq, from = "SPELL", to = "STS",
                      pdata = bg_vet_job_first, pvar = c("id", "enter"))
 # Here we are renaming columns to be in format "yn" (year in the job market)
 names(sts_vet) <- paste0("y", 1:100)
-
 ```
 
 # Step 1. (alt)
@@ -138,4 +199,8 @@ seqfplot(vet.seq, group = cluster3, pbarw = T)
 #another cluster plot
 seqmtplot(vet.seq, group = cluster3)
 ```
+
+
+
+
 
