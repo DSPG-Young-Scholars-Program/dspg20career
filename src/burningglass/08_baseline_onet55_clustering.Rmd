@@ -22,6 +22,18 @@ knitr::opts_chunk$set(
 for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster")) {
   library(pkg, character.only = TRUE)
 }
+
+uva_color_palette <- 
+c("#232D4B", #space cadet
+  "#2C4F6B", #indigo dye
+  "#0E879C", #blue munsell
+  "#60999A", #cadet blue
+  "#D1E0BF", #tea green
+  "#D9E12B", #pear
+  "#E6CE3A", #citrine
+  "#E6A01D", #marigold
+  "#E57200" #princeton orange
+)
 ```
 
 
@@ -123,6 +135,8 @@ sts_vet <- seqformat(bg_vet_job_seq, from = "SPELL", to = "STS",
                      id = "id",  begin = "start_year", end = "end_year", 
                      status = "onet_job_zone", process = FALSE)
 
+
+
 # Here we are renaming columns to be in format "yn" (year in the job market)
 names(sts_vet) <- paste0("y", 1:ncol(sts_vet))
 
@@ -130,6 +144,9 @@ nrow(sts_vet)  #total number of samples
 
 #delete missing values at front and end
 vet.seq <- seqdef(sts_vet, left="DEL", gaps="NA", right="DEL")
+
+# vet.seq <- seqdef(sts_vet, left="DEL", gaps="NA", right="DEL", cpal = c( uva_color_palette[4],  uva_color_palette[3], uva_color_palette[2],uva_color_palette[2], uva_color_palette[8], "#CBBEB5"), with.missing=TRUE)
+
 class(vet.seq)
 
 #example of three sequences
@@ -399,7 +416,7 @@ names(sts_vet) <- paste0("y", 1:ncol(sts_vet))
 nrow(sts_vet)  #total number of samples
 
 #delete missing values at front and end
-vet.seq <- seqdef(sts_vet, left="DEL", gaps="NA", right="DEL")
+vet.seq <- seqdef(sts_vet, left="NA", gaps="NA", right="DEL")
 class(vet.seq)
 
 #example of three sequences
@@ -417,7 +434,7 @@ cost_matrix_constant <- seqsubm(vet.seq, method = "CONSTANT", with.missing = TRU
 ```
 
 ### II.a. Constant cost matrix
-```{r}
+```{r, fig.height = 10, fig.width = 8}
 # vet.seq.OM <- seqdist(vet.seq, method = "OM", indel = 3, sm = cost_matrix_constant, with.missing = TRUE)
 # clusterward <- agnes(vet.seq.OM, diss = TRUE, method = "ward")
 # saveRDS(clusterward, file = "data/clusterward_onet55_10yrs_constant_matrix.rds")

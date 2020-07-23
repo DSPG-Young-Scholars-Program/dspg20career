@@ -18,18 +18,38 @@ knitr::opts_chunk$set(echo = TRUE)
 for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer")) {
   library(pkg, character.only = TRUE)
 }
+```
+
+# After cleaning the burning glass data, we write four dataset to data folder
+```{r}
+#double check your working directory
+
+#source("~/git/dspg20career/src/burningglass/03_clean_bgt.R", echo = T, prompt.echo = "", spaced = F)
+#bg_cleaned <- clean_bg(job = job, ed = ed, pers = pers, onet = onet)
 
 #double check your working directory
-source("~/git/dspg20career/src/burningglass/03_clean_bgt.R", echo = T, prompt.echo = "", spaced = F)
-bg_clean_ls <- clean_bg(job = job, ed = ed, pers = pers, onet = onet)
+#bg_cleaned <- clean_bg(job = job, ed = ed, pers = pers, onet = onet)
+# bg_all_demographic <- as.data.table(bg_cleaned$bg_all_demographic)
+# bg_vet_demographic <- as.data.table(bg_cleaned$bg_vet_demographic)
+# bg_all_job <- as.data.table(bg_cleaned$bg_all_job)
+# bg_vet_job <- as.data.table(bg_cleaned$bg_vet_job)
+# 
+# write.csv(bg_all_demographic, file= "data/01_bg_all_demographic.csv", row.names = F)
+# write.csv(bg_vet_demographic, file= "data/02_bg_vet_demographic.csv", row.names = F)
+# write.csv(bg_all_job, file= "data/03_bg_all_job.csv", row.names = F)
+# write.csv(bg_vet_job, file= "data/04_bg_vet_job.csv", row.names = F)
+```
 
-bg_all_demographic <- bg_clean_ls$bg_all_demographic
-bg_vet_demographic <- bg_clean_ls$bg_vet_demographic
-bg_all_job <- bg_clean_ls$bg_all_job
-bg_vet_job <- bg_clean_ls$bg_vet_job
+# Read in cleaned data directly from the data folder
+```{r}
+bg_all_demographic <- read.csv("data/01_bg_all_demographic.csv")
+bg_vet_demographic <- read.csv("data/02_bg_vet_demographic.csv")
+bg_all_job <- read.csv("data/03_bg_all_job.csv")
+bg_vet_job <-read.csv("data/04_bg_vet_job.csv")
 ```
 
 
+# Data profiling function
 ```{r}
 #functions
 data_profiling <- function(df){
@@ -45,7 +65,7 @@ return(summary_table)
 ```
 
 
-#viz for presentation
+# Viz for presentation
 ```{r}
 
 bg_all_job$month <- as.factor(bg_all_job$month)

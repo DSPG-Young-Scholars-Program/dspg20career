@@ -65,7 +65,7 @@ clean_bg <- function(job = job, ed = ed, pers = pers, onet = onet){
   #2. cleaning job table
   job_onet <- job %>%
     filter(!is.na(onet) & !is.na(startdate) & !is.na(enddate))
-  
+
   job_missing_onet <- job%>%
     filter(!is.na(startdate) & !is.na(enddate))%>%
     group_by(id)%>%
@@ -75,17 +75,20 @@ clean_bg <- function(job = job, ed = ed, pers = pers, onet = onet){
     select(-enter)
   
   job_cleaned <- rbind(job_onet,job_missing_onet)
+  table(is.na(job_cleaned$onet)) #missing onet code
   
   job_cleaned <- job_cleaned%>%
     mutate(start_year = year(startdate), end_year = year(enddate), start_month = month(startdate), end_month = month(enddate), start_day = day(startdate), end_day = day(enddate))%>%
     mutate(job_duration_day = as.numeric(enddate- startdate))%>%
+    mutate(enddate = if_else(enddate == "1900-01-01", startdate, enddate))%>%  #if missing enddate, system defaul to 1900-01-01, we recoded enddate = startdate
+    mutate(end_year = year(enddate))%>%
     mutate(tenure = if_else(job_duration_day >= 365, "tenure", "not tenure"))%>%
     filter(job_duration_day >= 0)%>%
     group_by(id)%>%
     mutate(date_enter_job_market = min(startdate))
   
 
-  round((nrow(job)-nrow(job_cleaned))/nrow(job_cleaned) *100, digits = 2)
+ # round((nrow(job)-nrow(job_cleaned))/nrow(job_cleaned) *100, digits = 2)
   
   #3. cleaning ed table
   ed_rename <- ed%>%
@@ -170,21 +173,14 @@ clean_bg <- function(job = job, ed = ed, pers = pers, onet = onet){
     left_join(onet_cleaned, by = c("onet" = "onetsoc_code"))
   
   #5. clean joined table
-  #if the job is not the person's first job, then we exclude that job if its onet job zone variable is missing
-  bg_full_not_first_job <- bg_full %>%
-    group_by(id)%>%
-    filter(startdate != date_enter_job_market)%>%
-    filter(!is.na(onet_job_zone))
+  # clean job zone
+  table(is.na(bg_full$onet_job_zone))
+  bg_full_cleaned <- bg_full%>%
+    mutate(is_onet55 = if_else(str_detect(onet, "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"), T, F))%>%
+    mutate(onet_job_zone = if_else(is_onet55, 55, onet_job_zone))%>%  #assign 55 to military jobs (ONET 55-)
+    mutate(onet_job_zone = if_else(is.na(onet_job_zone), 0, onet_job_zone)) #assign job zone=0 to jobs that are missing job zones
   
-  bg_full_first_job <- bg_full %>%
-    group_by(id)%>%
-    filter(startdate == date_enter_job_market)
-  
-  bg_full_cleaned <- rbind(bg_full_not_first_job, bg_full_first_job)
-
-  round((nrow(bg_full)-nrow(bg_full_cleaned))/nrow(bg_full) *100, digits = 2)
-  
-  
+  table(is.na(bg_full_cleaned$onet_job_zone)) 
   
   # output table 1
   bg_all_demographic <- bg_full_cleaned%>%
@@ -199,13 +195,13 @@ clean_bg <- function(job = job, ed = ed, pers = pers, onet = onet){
   
   #output table 3
   bg_all_job <- bg_full_cleaned %>%
-    select(id, onet, jobposition, noofjobs,sector, startdate, enddate, start_year, end_year, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure, date_enter_job_market)%>%
+    select(id, onet, is_onet55, noofjobs,sector, startdate, enddate, start_year, end_year, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure, date_enter_job_market)%>%
     filter(!is.na(onet) &  !is.na(startdate) & !is.na(enddate))
   
   #output table 4
   bg_vet_job <- bg_full_cleaned %>%
     filter(veteran == "veteran")%>%
-    select(id, onet, jobposition, noofjobs,sector, startdate, enddate,  start_year, end_year, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure, date_enter_job_market)%>%
+    select(id, onet,  is_onet55, noofjobs,sector, startdate, enddate,  start_year, end_year, start_month, end_month, start_day, end_day, onet_title, onet_job_zone, job_duration_day, tenure, date_enter_job_market)%>%
     filter(!is.na(onet)  &  !is.na(startdate) & !is.na(enddate))
   
   
