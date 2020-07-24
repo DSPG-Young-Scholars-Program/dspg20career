@@ -12,6 +12,8 @@ for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "strin
 
 # Step 1. Formating sequence data
 ```{r}
+bg_vet_job <- read.csv("data/04_bg_vet_job.csv")
+
 bg_vet_job_seq <- bg_vet_job %>%
   select("id", "start_year", "end_year", "onet_job_zone")%>%
   group_by(id)%>%

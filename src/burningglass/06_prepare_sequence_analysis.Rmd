@@ -15,20 +15,20 @@ for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "strin
   library(pkg, character.only = TRUE)
 }
 #double check your working directory
-source("~/git/dspg20career/src/burningglass/03_clean_bgt.R", echo = T, prompt.echo = "", spaced = F)
-#bg_cleaned <- clean_bg(job = job, ed = ed, pers = pers, onet = onet)
-bg_all_demographic <- as.data.table(bg_cleaned$bg_all_demographic)
-bg_vet_demographic <- as.data.table(bg_cleaned$bg_vet_demographic)
-bg_all_job <- as.data.table(bg_cleaned$bg_all_job)
-bg_vet_job <- as.data.table(bg_cleaned$bg_vet_job)
+# source("~/git/dspg20career/src/burningglass/03_clean_bgt.R", echo = T, prompt.echo = "", spaced = F)
+# #bg_cleaned <- clean_bg(job = job, ed = ed, pers = pers, onet = onet)
+# bg_all_demographic <- as.data.table(bg_cleaned$bg_all_demographic)
+# bg_vet_demographic <- as.data.table(bg_cleaned$bg_vet_demographic)
+# bg_all_job <- as.data.table(bg_cleaned$bg_all_job)
+# bg_vet_job <- as.data.table(bg_cleaned$bg_vet_job)
+# 
+# write.csv(bg_all_demographic, file= "data/01_bg_all_demographic.csv", row.names = F)
+# write.csv(bg_vet_demographic, file= "data/02_bg_vet_demographic.csv", row.names = F)
+# write.csv(bg_all_job, file= "data/03_bg_all_job.csv", row.names = F)
+# write.csv(bg_vet_job, file= "data/04_bg_vet_job.csv", row.names = F)
 
-write.csv(bg_all_demographic, file= "data/01_bg_all_demographic.csv", row.names = F)
-write.csv(bg_vet_demographic, file= "data/02_bg_vet_demographic.csv", row.names = F)
-write.csv(bg_all_job, file= "data/03_bg_all_job.csv", row.names = F)
-write.csv(bg_vet_job, file= "data/04_bg_vet_job.csv", row.names = F)
-
-bg_all_job <- read.csv("data/04_bg_all_job.csv")
-bg_vet_job <- read.csv("data/05_bg_vet_job.csv")
+#bg_all_job <- read.csv("data/03_bg_all_job.csv")
+bg_vet_job <- read.csv("data/04_bg_vet_job.csv")
 ```
 
 
