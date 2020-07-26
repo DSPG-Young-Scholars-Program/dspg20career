@@ -4,19 +4,17 @@
 
 ### 2020 Fairfax County Summer Project {style=text-align:center}
 
-##### [Optional: General description of your project, team members, and how they complement each other.] {style=text-align:center}
-
 ### DSPG Team Members {style=text-align:center}
 
 ##### [Photos go about here.] {style=text-align:center}
 
-[Susweta Ray, Fellow (PhD Student at University of Nebraska-Lincoln, Agricultural Economics)](https://github.com/SuswetaRay), [Sarah McDonald, Intern (Marymount University, Mathematics)](https://github.com/sm9dv), [Owen Hart, Intern (University of California, Berkeley, Economics/Data Science)](https://github.com/hartowen), and [Sean Pietrowicz, Intern (Notre Dame, Mathematics)](https://github.com/sp3sd)
+[Madeline Pickens, Fellow (M.S. Data Science for Public Policy, Georgetown University)](https://github.com/mclaire19), [Joanna Schroeder, Intern (College of William and Mary, Government and Public Health)](https://github.com/jo-schroeder), [Crystal Zang, Intern (Smith College, Mathematics, Statistical and Data Science)](https://github.com/czang97)
 
 ### UVA SDAD Team Members {style=text-align:center}
 
 ##### [Photos go about here.] {style=text-align:center} 
 
-[Teja Pristavec (Research Assistant Professor, DSPG Project Lead)](https://biocomplexity.virginia.edu/teja-pristavec), [Brandon Kramer (Postdocotral Research Associate)](https://biocomplexity.virginia.edu/brandon-kramer), [Josh Goldstein (Research Assistant Professor)](https://biocomplexity.virginia.edu/joshua-goldstein), [Joy Tobin (Principal Scientist)](https://biocomplexity.virginia.edu/joy-tobin), [Stephanie Shipp (Deputy Division Director, Research Professor)](https://biocomplexity.virginia.edu/stephanie-shipp), and [Sallie Keller (Division Director, Distinguished Professor)](https://biocomplexity.virginia.edu/sallie-keller)
+[Joshua Goldstein (Research Assistant Professor, DSPG Project Lead)](https://biocomplexity.virginia.edu/joshua-goldstein), [Vicki Lancaster (Principal Scientist)](https://biocomplexity.virginia.edu/vicki-lancaster)
 
 ### Project Sponsors/Stakeholders {style=text-align:center}
 
