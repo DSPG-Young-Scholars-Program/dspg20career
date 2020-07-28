@@ -62,11 +62,6 @@ publishDir = "docs"
     url = "https://github.com/DSPG-Young-Scholars-Program/dspg20career"
     name = "fab fa-github"
     weight = 2
-
-[[menu.icon]]
-    url = "https://twitter.com/UVA_BI"
-    name = "fab fa-twitter"
-    weight = 3
     
 [[menu.icon]]
     url = "mailto:josh.goldstein@virginia.edu"
