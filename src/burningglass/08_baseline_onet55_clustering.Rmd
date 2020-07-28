@@ -462,7 +462,20 @@ seqmtplot(vet.seq, group = cluster3)
 ```{r, fig.height = 8, fig.width = 8}
 cluster4 <- cutree(clusterward, k=4)
 cluster4 <- factor(cluster4, labels = c("Type 1",  "Type 2", "Type 3", "Type 4"))
-table(cluster4)
+table(cluster4)#### II.a.i. Three clusters
+```
+
+```{r, fig.height = 8, fig.width = 8}
+cluster3 <- cutree(clusterward, k=3)
+cluster3 <- factor(cluster3, labels = c("Type 1",  "Type 2", "Type 3"))
+table(cluster3)
+
+#longitudinal plot
+seqfplot(vet.seq, group = cluster3, pbarw = T)
+
+#another cluster plot
+seqmtplot(vet.seq, group = cluster3)
+```
 
 #longitudinal plot
 seqfplot(vet.seq, group = cluster4, pbarw = T)
