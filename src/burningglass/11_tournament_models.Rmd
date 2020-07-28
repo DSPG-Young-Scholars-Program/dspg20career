@@ -1,0 +1,221 @@
+---
+title: "11 Tournament Models"
+author:
+  "Maddie Pickens"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    highlight: tango
+editor_options: 
+  chunk_output_type: console
+weight: 1
+draft: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE
+)
+
+for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster")) {
+  library(pkg, character.only = TRUE)
+}
+
+uva_color_palette <- 
+c("#232D4B", #space cadet
+  "#2C4F6B", #indigo dye
+  "#0E879C", #blue munsell
+  "#60999A", #cadet blue
+  "#D1E0BF", #tea green
+  "#D9E12B", #pear
+  "#E6CE3A", #citrine
+  "#E6A01D", #marigold
+  "#E57200" #princeton orange
+)
+```
+
+## R Markdown
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")%>%
+  mutate(is_onet55 = if_else(str_detect(onet, "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"), T, F))%>%
+  select(id,onet,is_onet55, onet_job_zone, startdate, enddate, start_year, end_year, onet_title, date_enter_job_market, job_duration_day)%>%
+  mutate(year_enter_job_market = year(date_enter_job_market))
+
+bg_vet_job%>%
+  filter(is_onet55)%>%
+  group_by(onet, onet_job_zone)%>%
+  summarize(N=n())%>%
+  arrange(desc(N))
+
+vet_endmilitary <- bg_vet_job%>%
+  mutate(date_end_onet55 = if_else(is_onet55==T, enddate, as.Date(NA)))%>%
+  filter(!is.na(date_end_onet55))%>%  #exluce people who don't have valid onet55 code
+  select(id, date_end_onet55) %>%
+  #keep the latest onet55 job
+  group_by(id)%>%   
+  arrange(desc(date_end_onet55))%>%
+  group_by(id)%>%
+  distinct(id, .keep_all = TRUE)
+
+bg_vet_job  <- inner_join(bg_vet_job, vet_endmilitary, by = "id")
+
+bg_vet_job_seq <- bg_vet_job %>%
+  select(id, end_year, onet_job_zone, startdate, enddate, job_duration_day, date_end_onet55, year_enter_job_market)%>%
+  filter(startdate > date_end_onet55)  %>% #find jobs that came after the date ended onet55 job
+  mutate(start_year = year(startdate))
+
+bg_vet_job_seq_10 <- bg_vet_job_seq %>%
+  mutate(start_year = start_year - year_enter_job_market + 1)%>%
+  mutate(end_year = end_year - year_enter_job_market + 1)%>%
+  select(id, start_year, end_year, onet_job_zone)%>%
+  group_by(id)%>%
+  arrange(desc(onet_job_zone))%>%
+  group_by(id)%>%
+  distinct(id, start_year, end_year, .keep_all = TRUE) #%>%
+  #mutate(seqduration = end_year - start_year) #%>%
+  # filter(seqduration >= 10) %>% # select only sequences that last 10 years or more
+  # select(-seqduration)
+
+bg_vet_job_seq_10 <- as.matrix(bg_vet_job_seq_10)
+bg_vet_job_seq_10 <- as.data.frame(bg_vet_job_seq_10)
+
+sts_vet <- seqformat(bg_vet_job_seq_10, from = "SPELL", to = "STS",
+                     id = "id",  begin = "start_year", end = "end_year", 
+                     status = "onet_job_zone", process = FALSE)
+
+
+
+# Here we are renaming columns to be in format "yn" (year in the job market)
+names(sts_vet) <- paste0("y", 1:ncol(sts_vet))
+
+vet.seq <- seqdef(sts_vet, left="DEL", gaps="NA", right="DEL")
+
+# limit to first 10 years
+vet.seq.10 <- vet.seq[,1:10]
+vet.seq.10 <- as.data.frame(vet.seq.10)
+
+vet.seq.10 <- vet.seq.10 %>%
+  filter(y10 != '%' & y9 != '%' & y7 != '%' & y6 != '%' & 
+           y5 != '%' & y4 != '%' & y3 != '%' & y2 != '%' & y1 != '%')
+```
+
+### Group the sequences
+```{r}
+# vet.seq.10.promote <- vet.seq.10 %>%
+#   mutate(promotepd1 = ifelse(((as.numeric(y3) > as.numeric(y2)) & y3 != 'NA'), TRUE, FALSE),
+#          promotedlater = ifelse(((as.numeric(y10) > as.numeric(y1) & y10 != 'NA'), TRUE, FALSE)),
+#          
+# 
+
+
+prm_pd1 <- vet.seq.10 %>%
+  filter((as.numeric(y3) > as.numeric(y2)) & y3 != 'NA')
+
+not_prm_pd1 <- vet.seq.10 %>%
+  filter(!(as.numeric(y3) > as.numeric(y2)))
+
+prm_pd2 <- vet.seq.10 %>%
+  filter((as.numeric(y5) > as.numeric(y4)) & y5 != 'NA')
+
+not_prm_pd2 <- vet.seq.10 %>%
+  filter(!(as.numeric(y5) > as.numeric(y4)))
+
+prm_pd3 <- vet.seq.10 %>%
+  filter((as.numeric(y7) > as.numeric(y6)) & y7 != 'NA')
+
+not_prm_pd3 <- vet.seq.10 %>%
+  filter(!(as.numeric(y7) > as.numeric(y6)))
+
+prm_pd4 <- vet.seq.10 %>%
+  filter((as.numeric(y9) > as.numeric(y8)) & y9 != 'NA')
+
+not_prm_pd4 <- vet.seq.10 %>%
+  filter(!(as.numeric(y9) > as.numeric(y8)))
+
+prm_pd5 <- vet.seq.10 %>%
+  filter((as.numeric(y10) > as.numeric(y9)) & y10 != 'NA')
+
+not_prm_pd5 <- vet.seq.10 %>%
+  filter(!(as.numeric(y10) > as.numeric(y9)))
+
+lvl3_yr5 <- vet.seq.10 %>%
+  filter((as.numeric(y5) >= 3) & y5 != 'NA')
+
+notlvl3_yr5 <- vet.seq.10 %>%
+  filter(!(as.numeric(y5) >= 3))
+
+prm_later_pd <- vet.seq.10 %>%
+  filter(((as.numeric(y10) > as.numeric(y9)) & y10 != 'NA') |
+         ((as.numeric(y9) > as.numeric(y8)) & y9 != 'NA') |
+         ((as.numeric(y7) > as.numeric(y6)) & y7 != 'NA') |
+         ((as.numeric(y5) > as.numeric(y4)) & y5 != 'NA'))
+
+lv45_yr10 <- vet.seq.10 %>%
+  filter((as.numeric(y10) >=4) & y10 != 'NA')
+
+notlv45_yr10 <- vet.seq.10 %>%
+  filter(!(as.numeric(y10) >=4))
+
+prmpd1_notpd2 <- vet.seq.10 %>%
+    filter(((as.numeric(y3) > as.numeric(y2)) & y3 != 'NA') &
+  (!(as.numeric(y5) > as.numeric(y4)) & y5 != 'NA'))
+
+prmpd1_andpd2 <- vet.seq.10 %>%
+  filter(((as.numeric(y3) > as.numeric(y2)) & y3 != 'NA') &
+  ((as.numeric(y5) > as.numeric(y4)) & y5 != 'NA'))
+
+prm_pd1 <- vet.seq.10 %>%
+  filter((as.numeric(y3) > as.numeric(y2)) & y3 != 'NA')
+
+not_prmpd1_orpd2 <- vet.seq.10 %>%
+  filter(!(as.numeric(y3) > as.numeric(y2)) &
+          !(as.numeric(y5) > as.numeric(y4)))
+
+not_prmpd1_prmpd2 <- vet.seq.10 %>%
+  filter((as.numeric(y5) > as.numeric(y4)) & y5 != 'NA' & !(as.numeric(y3) > as.numeric(y2)))
+```
+
+```{r}
+nrow(prmpd1_andpd2)
+nrow(prmpd1_notpd2)
+nrow(not_prmpd1_orpd2)
+nrow(not_prmpd1_prmpd2)
+tblA <- matrix(c(5, 167, 140, 2121), nrow = 2, ncol = 2)
+
+# chances of being promoted in second period higher for those in first
+chisq.test(tblA)
+```
+
+```{r}
+#promoted first period and level 3 in 5 years
+prm_pd1_and_lvl3_yr5 <- vet.seq.10 %>%
+  filter(((as.numeric(y5) >= 3) & y5 != 'NA') & ((as.numeric(y3) > as.numeric(y2)) & y3 != 'NA'))
+nrow(prm_pd1_and_lvl3_yr5)
+
+# promoted first period, not level 3 in 5 years
+prm_pd1_not_lvl3_yr5 <- vet.seq.10 %>%
+  filter((!(as.numeric(y5) >= 3) & y5 != 'NA') & ((as.numeric(y3) > as.numeric(y2)) & y3 != 'NA'))
+nrow(prm_pd1_not_lvl3_yr5)
+
+# promoted later period, and level 3 in 5 years
+prm_later_and_lvl3_yr5 <- vet.seq.10 %>%
+  filter(((as.numeric(y5) >= 3) & y5 != 'NA') & ((as.numeric(y10) > as.numeric(y9)) & y10 != 'NA') |((as.numeric(y9) > as.numeric(y8)) & y9 != 'NA') |((as.numeric(y7) > as.numeric(y6)) & y7 != 'NA') |((as.numeric(y5) > as.numeric(y4)) & y5 != 'NA'))
+nrow(prm_later_and_lvl3_yr5)
+
+# not promoted later, not level 3 in 5 years
+notprm_later_and_notlvl3_yr5 <- vet.seq.10 %>%
+  filter((!(as.numeric(y5) >= 3) & y5 != 'NA') & (!((as.numeric(y10) > as.numeric(y9)) & y10 != 'NA') |((as.numeric(y9) > as.numeric(y8)) & y9 != 'NA') |((as.numeric(y7) > as.numeric(y6)) & y7 != 'NA') |(as.numeric(y5) > as.numeric(y4)) & y5 != 'NA'))
+nrow(notprm_later_and_notlvl3_yr5)
+
+# promoted in first period ("early performers") reaching lower management in 5 years (level 3)
+# vs "late performers" doing so
+tblD <- matrix(c(129, 523, 16, 440), nrow = 2, ncol = 2)
+chisq.test(tblD)
+
+# add job zone 5
+
+```
+
