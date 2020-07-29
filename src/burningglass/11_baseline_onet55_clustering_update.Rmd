@@ -36,7 +36,6 @@ c("#232D4B", #space cadet
 )
 ```
 
-
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #import veteran job data
 bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")%>%
@@ -86,7 +85,10 @@ bg_vet_job_seq <- bg_vet_job_seq%>%
   arrange(desc(onet_job_zone))%>%
   group_by(id)%>%
   distinct(id, start_year, end_year, .keep_all = TRUE)
+```
 
+
+```{r}
 #table(bg_vet_job_seq$onet_job_zone)
 #length(unique(bg_vet_job_seq$id))  #confirm sample size match
 
