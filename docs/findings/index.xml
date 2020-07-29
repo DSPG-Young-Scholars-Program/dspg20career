@@ -11,7 +11,7 @@
     
     
     <item>
-      <title>General Overview of the Project</title>
+      <title>General Project Overview</title>
       <link>/findings/general-overview/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
@@ -21,7 +21,7 @@ Main Findings [Here you will describe the results and include important visualiz
     </item>
     
     <item>
-      <title>Results Section One</title>
+      <title>Data Profiling and Benchmarking</title>
       <link>/findings/results-section-one/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
@@ -30,7 +30,7 @@ Main Findings [Here you will describe the results and include important visualiz
     </item>
     
     <item>
-      <title>Results Section Two</title>
+      <title>Sequence Exploration</title>
       <link>/findings/results-section-two/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
@@ -40,13 +40,23 @@ Main Findings [Here you will describe the results and include important visualiz
     </item>
     
     <item>
-      <title>Results Section Three</title>
+      <title>Sequence Clustering</title>
       <link>/findings/results-section-three/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/findings/results-section-three/</guid>
       <description>[Here you will describe the data discoversy process, the data used, and the methods employed for this single page. Since you already have a Project Overview and Data &amp;amp; Methods tabs, you probably want to keep this first paragraph fairly short and use the rest of the document to walk your readers through your analyses.]
 Main Findings [Here you will describe the results and include important visualizations from your project.</description>
+    </item>
+    
+    <item>
+      <title>Tournament Theory</title>
+      <link>/findings/results-section-four/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/findings/results-section-four/</guid>
+      <description>R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
+When you click the Knit button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</description>
     </item>
     
   </channel>

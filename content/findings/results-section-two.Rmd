@@ -1,7 +1,6 @@
 ---
-title: "Results Section Two"
-description: "Project description here"
-tags: ["R", "collapsibleTree"]
+title: "Sequence Exploration"
+description: "Visualizing and exploring post-military veteran career sequences"
 weight: 3
 draft: false
 output: html_document

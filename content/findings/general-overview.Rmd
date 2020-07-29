@@ -1,7 +1,6 @@
 ---
-title: "General Overview of the Project"
-description: "Project description here"
-tags: ["R", "geospatial"]
+title: "General Project Overview"
+description: "Main findings and outline"
 weight: 1
 draft: false
 output: html_document
