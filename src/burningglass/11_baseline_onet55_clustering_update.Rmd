@@ -1,5 +1,5 @@
 ---
-title: "10 Baseline Onet55 Clustering"
+title: "11 Baseline Onet55 Clustering"
 author:
   "Crystal Zang"
 output: 
@@ -35,7 +35,6 @@ c("#232D4B", #space cadet
   "#E57200" #princeton orange
 )
 ```
-
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #import veteran job data
@@ -86,7 +85,10 @@ bg_vet_job_seq <- bg_vet_job_seq%>%
   arrange(desc(onet_job_zone))%>%
   group_by(id)%>%
   distinct(id, start_year, end_year, .keep_all = TRUE)
+```
 
+
+```{r}
 #table(bg_vet_job_seq$onet_job_zone)
 #length(unique(bg_vet_job_seq$id))  #confirm sample size match
 
