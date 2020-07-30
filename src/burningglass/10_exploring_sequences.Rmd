@@ -9,7 +9,7 @@ knitr::opts_chunk$set(
 	message = FALSE,
 	warning = FALSE
 )
-for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster")) {
+for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster", "viridis")) {
   library(pkg, character.only = TRUE)
 }
 
@@ -55,12 +55,14 @@ sts_vet <- seqformat(bg_vet_job_seq, from = "SPELL", to = "STS",
                      status = "onet_job_zone", process = TRUE,
                      pdata = bg_vet_job_first, pvar = c("id", "enter"))
 # Here we are renaming columns to be in format "yn" (year in the job market)
-names(sts_vet) <- paste0("y", 1:100)
+names(sts_vet) <- paste0(1:100)
 
 # Writing the final table as a csv
-write.csv(sts_vet, "sts_vet_55.csv")
+#write.csv(sts_vet, "sts_vet_55.csv")
 
-sts_vet <- seqdef(sts_vet, cpal = c("purple", "#D1E0BF",  "#60999A", "#0E879C","#2C4F6B", "#232D4B", "red", "gray"), left="DEL", gaps="unemployed", right="DEL")
+sts_vet <- seqdef(sts_vet, cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "#CBBEB5"), left="DEL", gaps="unemployed", right="DEL",
+labels = c("Missing job zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployment"))
+
 ```
 
 ```{r}
@@ -68,7 +70,7 @@ sts_vet <- seqdef(sts_vet, cpal = c("purple", "#D1E0BF",  "#60999A", "#0E879C","
 seqmtplot(sts_vet, main = "Mean time distribution plot", ylim = c(0, 10), border = NA, with.legend= FALSE)
 
 # Seqdplot represents the sequence of the cross-sectional state frequencies by position
-seqdplot(sts_vet, main = "Sequence distribution plot",  xlim = c(0, 46), border = NA, with.legend = "right")
+seqdplot(sts_vet, main = "Sequence distribution plot", border = NA, with.legend = "right")
 
 # Seqfplot displays the most frequent sequences
 seqfplot(sts_vet, main = "Sequence frequency plot", with.legend = TRUE ,pbarw = TRUE)
@@ -202,6 +204,321 @@ seqIplot(sts_vet, border = NA, group = demo$degree_highest, sortv = dist.mostfre
 # Sequential association ruleA rule subseq1→subseq2such that1Has a minimal support2When subseq1occurs, it is most often followed by subseq2Extracted from frequent sequences.
 #rules <- TraMineR:::seqerules(sub_vet_sub)
 #rules[order(rules$Lift, decreasing = TRUE)[1:10], 1:4]
+
+```
+
+
+```{r}
+statd <- seqstatd(sts_vet)
+states <- statd$Frequencies
+states <- as.data.frame(states)
+names(states) <- paste0(1:100)
+states <- states %>% rownames_to_column(var = "state")
+states <- melt(states, id = "state")
+
+v_states <- statd$ValidStates
+v_states <- as.data.frame(v_states)
+v_states <- v_states %>% rownames_to_column(var = "variable")
+
+ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+  geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/8068),
+            size = 2) +
+  scale_y_continuous(name = "Share of careers in a job state",
+                     sec.axis = sec_axis(trans = ~.*(8068), name = "Number of careers in year of career")) +
+  xlim(0,78) +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployed")) +
+  xlab("Year of career") +
+  labs(title = "Visualizing career paths of veterans: Job states over time",
+       fill = "Job state") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+meant <- seqmeant(sts_vet)
+meant <- as.data.frame(meant)
+meant <- meant %>% rownames_to_column(var = "state")
+
+ggplot(data = meant, aes(x = state, y = Mean, fill = state)) +
+  geom_col() +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployed")) +
+  scale_x_discrete(name = "Job state", labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployed")) +
+  labs(title = "Mean time spent in each state",
+       fill = "Job state") +
+  ylab("Mean time (years)") +
+  theme_classic() +
+  theme(legend.position = "none")
+
+lengths <- seqlength(sts_vet)
+lengths <- as.data.frame(lengths)
+lengths <- lengths %>% rownames_to_column(var = "id")
+length_sum <- quantile(lengths$Length)
+length_sum <- as.data.frame(length_sum)
+length_sum <- length_sum %>% rownames_to_column(var = "measure")
+summary(lengths)
+
+ggplot(data = lengths, aes(x = Length)) +
+  geom_histogram(binwidth = 5, colour="black", fill = "white") +
+  geom_vline(data = length_sum, aes(xintercept = 20,
+               color="Median"), linetype="solid", size=1) +
+  geom_vline(data = length_sum, aes(xintercept = 13,
+               color= "1st Qu."), linetype="solid", size=1) +
+  geom_vline(data = length_sum, aes(xintercept = 29,
+               color="3rd Qu."), linetype="solid", size=1) +
+    geom_vline(data = length_sum, aes(xintercept = 1,
+               color="Min"), linetype="solid", size=1) +
+    geom_vline(data = length_sum, aes(xintercept = 86,
+               color="Max"), linetype="solid", size=1) +
+  xlim(1,86) +
+  labs(title = "Sequence lengths for all veterans in DC metro area",
+       caption = "Data: BGT Resumes") +
+  xlab("Sequence length (years)") +
+  ylab("Count of sequences") +
+#  annotate("text", x=74, y=364, 
+#           label=paste("Min. =", length_sum[1,2],"\n Max. = ", length_sum[5,2]), size=3) +
+  theme_classic() +
+  theme(legend.position=c(.8,.5)) +
+  scale_color_viridis_d(name = "Values", limits = c("Min", "1st Qu.", "Median", "3rd Qu.", "Max"))
+
+ # scale_color_manual(name = "Values", values = c("1st Qu." = "#33638DFF", "Median" #= "#440154FF", "3rd Qu." = "#29AF7FFF"), limits = c("1st Qu.", "Median", "3rd Qu."))
+  
+```
+
+```{r}
+## Crystal
+#import veteran job data
+#bg_vet_job <-read_csv("~/git/DSPG2020/career/data/04_bg_vet_job.csv")%>%
+#  mutate(year_enter_job_market = year(date_enter_job_market))%>%
+#  select(-noofjobs, -sector, -tenure)
+#colnames(bg_vet_job)
+
+#veterans and the date they ended their last ONET 55 job
+#vet_endmilitary <- bg_vet_job%>%
+#  mutate(date_end_onet55 = if_else(is_onet55==T, enddate, as.Date(NA)))%>%
+#  filter(!is.na(date_end_onet55))%>%  #exluce people who don't have valid onet55 code
+#  select(id, date_end_onet55) %>%
+  #keep the latest onet55 job
+#  group_by(id)%>%   
+#  arrange(desc(date_end_onet55))%>%
+#  group_by(id)%>%
+#  distinct(id, .keep_all = TRUE) 
+
+#bg_vet_job  <- inner_join(bg_vet_job, vet_endmilitary, by = "id")
+
+## sequence data
+#bg_vet_job_seq <- bg_vet_job %>%
+#  select(id, end_year, onet_job_zone, startdate, enddate, job_duration_day, date_end_onet55, year_enter_job_market)%>%
+#  mutate(year_end_onet55 = year(date_end_onet55))%>%
+#  select(-year_enter_job_market)%>%
+#  filter(startdate >= date_end_onet55)%>% #find jobs that came after the date ended onet55 job
+#  filter(onet_job_zone != 55)  %>%  #filter out 55 jobs that have the same start and end date  
+#  mutate(start_year = year(startdate))
+
+
+#check <- bg_vet_job_seq%>%
+#  mutate(year_until_first_job = start_year- year_end_onet55)%>%
+#  group_by(id)%>%
+#  summarize(years = min(year_until_first_job))
+
+#ggplot(check, aes(x = years)) + 
+#  geom_histogram(binwidth = 1.4) + 
+#  labs(title = "", x = "years until first job") 
+
+#summary(check$years)
+
+#bg_vet_job_seq <- bg_vet_job_seq%>%
+#  mutate(start_year = start_year - year_end_onet55 + 1)%>%  #transform from calender year to year start sequence analysis
+#  mutate(end_year = end_year - year_end_onet55 + 1) %>% #transform from calender year to year start sequence analysis
+#  select(id, start_year, end_year, onet_job_zone)%>%
+#  group_by(id)%>%
+#  arrange(desc(onet_job_zone))%>%
+#  group_by(id)%>%
+#  distinct(id, start_year, end_year, .keep_all = TRUE)
+
+#bg_vet_job_seq <- as.matrix(bg_vet_job_seq)
+#bg_vet_job_seq <- as.data.frame(bg_vet_job_seq)
+
+#sts_vet <- seqformat(bg_vet_job_seq, from = "SPELL", to = "STS",
+#                     id = "id",  begin = "start_year", end = "end_year", 
+#                     status = "onet_job_zone", process = FALSE)
+
+#obtain jobs that appear after 10 years they exit military 
+#sts_vet_qu <- sts_vet[, 1:10]
+
+# Here we are renaming columns to be in format "yn" (year in the job market)
+#names(sts_vet) <- paste0("y", 1:ncol(sts_vet))
+
+sts_vet_qu <- sts_vet
+```
+
+```{r}
+statd <- seqstatd(vet.seq)
+states <- statd$Frequencies
+states <- as.data.frame(states)
+names(states) <- paste0(1:10)
+states <- states %>% rownames_to_column(var = "state")
+states <- melt(states, id = "state")
+
+v_states <- statd$ValidStates
+v_states <- as.data.frame(v_states)
+v_states <- v_states %>% rownames_to_column(var = "variable")
+
+seqdplot(vet.seq)
+seqmtplot(vet.seq)
+
+ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+ # geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/5185),
+ #           size = 2) +
+  scale_y_continuous(name = "Share of careers in a job state") +
+  xlim(0,10) +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "gray", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Transitional unemployed", "Unemployed")) +
+  xlab("Year of career") +
+  labs(title = "Visualizing career paths of veterans: Job states over time",
+       fill = "Job state") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+meant <- seqmeant(vet.seq)
+meant <- as.data.frame(meant)
+meant <- meant %>% rownames_to_column(var = "state")
+
+ggplot(data = meant, aes(x = state, y = Mean, fill = state)) +
+  geom_col() +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5", "#CBBEB5","#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Transition unemployed", "Unemployed", "Unemployed/Exit")) +
+  scale_x_discrete(name = "Job state", labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Transition unemployed", "Unemployed", "Unemployed/Exit")) +
+  labs(title = "Mean time spent in each state",
+       fill = "Job state") +
+  ylab("Mean time (years)") +
+  theme_classic() +
+  theme(legend.position = "none")
+```
+
+```{r}
+
+library(scales)
+ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+  geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/8068),
+            size = 2) +
+  scale_y_continuous(name = "Share of careers in a job state",
+                     sec.axis = sec_axis(trans = ~.*(8068), name = "Number of careers in year of career")) +
+  xlim(0,78) +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployed")) +
+  xlab("Year of career") +
+  labs(title = "Visualizing career paths of veterans: Job states over time",
+       fill = "Job state") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+  geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/5185),
+            size = 2) +
+  scale_y_continuous(name = "Share of careers in a job state",
+                     sec.axis = sec_axis(trans = ~.*(5185), name = "Number of careers in year of career")) +
+  xlim(0,10) +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "gray", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Transitional unemployed", "Unemployed")) +
+  xlab("Year of career") +
+  labs(title = "Visualizing career paths of veterans: Job states over time",
+       fill = "Job state") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+ggplot(data = lengths, aes(x = Length)) +
+  geom_histogram(binwidth = 5, colour="black", fill = "white") +
+  geom_vline(data = length_sum, aes(xintercept = 20,
+                                    color="Median"), linetype="solid", size=1) +
+  geom_vline(data = length_sum, aes(xintercept = 13,
+                                    color= "1st Qu."), linetype="solid", size=1) +
+  geom_vline(data = length_sum, aes(xintercept = 29,
+                                    color="3rd Qu."), linetype="solid", size=1) +
+  geom_vline(data = length_sum, aes(xintercept = 1,
+                                    color="Min"), linetype="solid", size=1) +
+  geom_vline(data = length_sum, aes(xintercept = 86,
+                                    color="Max"), linetype="solid", size=1) +
+  xlim(1,86) +
+  labs(title = "Lengths of career sequences for veteran's whole careers",
+       caption = "Data: BGT Resumes") +
+  xlab("Sequence length (years)") +
+  ylab("Count of sequences") +
+  #  annotate("text", x=74, y=364, 
+  #           label=paste("Min. =", length_sum[1,2],"\n Max. = ", length_sum[5,2]), size=3) +
+  theme_classic() +
+  theme(legend.position=c(.8,.5)) +
+  scale_color_viridis_d(name = "Values", limits = c("Min", "1st Qu.", "Median", "3rd Qu.", "Max"))
+
+ggplot(data = meant, aes(x = state, y = Mean, fill = state)) +
+  geom_col() +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployed")) +
+  scale_x_discrete(name = "Job state", labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployed")) +
+  labs(title = "Mean time spent in each state for veteran's whole career sequence",
+       fill = "Job state",
+       caption = "Data: BGT Resumes") +
+  ylab("Mean time (years)") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 40, hjust = 1))
+
+ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+  geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/8068),
+            size = 2) +
+  scale_y_continuous(name = "Share of careers in a job state",
+                     sec.axis = sec_axis(trans = ~.*(8068), name = "Number of careers in year of career")) +
+  xlim(0,78) +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployed")) +
+  xlab("Year of career") +
+  labs(title = "Job states over time for veteran's whole career sequence",
+       fill = "Job state",
+       caption = "Data: BGT Resumes") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+
+ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+  geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/8068),
+            size = 2) +
+  scale_y_continuous(name = "Share of careers in a job state",
+                     sec.axis = sec_axis(trans = ~.*(8068), name = "Number of careers in year of career")) +
+  xlim(0,78) +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployed")) +
+  xlab("Year of career") +
+  labs(title = "Job states over time for veteran's whole career sequence",
+       fill = "Job state",
+       caption = "Data: BGT Resumes") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+
+ggplot(data = meant, aes(x = state, y = Mean, fill = state)) +
+  geom_col() +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5", "#CBBEB5","#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Transition unemployed", "Unemployed", "Unemployed/Exit")) +
+  scale_x_discrete(name = "Job state", labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Transition unemployed", "Unemployed", "Unemployed/Exit")) +
+  labs(title = "Mean time spent in each state for first ten years \n after veteran's last military job",
+       fill = "Job state",
+       caption = "Data: BGT Resumes") +
+  ylab("Mean time (years)") +
+  theme_classic() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 40, hjust = 1))
+
+
+p <- ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+  # geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/5185),
+  #           size = 2) +
+  scale_y_continuous(name = "Share of careers in a job state") +
+  xlim(0,10) +
+  scale_fill_manual(values = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "purple", "#CBBEB5", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Transitional unemployed", "Unemployed", "Unemployed/Exit")) +
+  xlab("Year of career") +
+  labs(title = "Job states over time for first ten years after veteran's last military job",
+       fill = "Job state",
+       caption = "Data: BGT Resumes") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+p +
+  scale_x_continuous(breaks = pretty_breaks(4))
 
 ```
 

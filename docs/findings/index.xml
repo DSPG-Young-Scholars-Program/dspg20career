@@ -35,8 +35,9 @@ Main Findings [Here you will describe the results and include important visualiz
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/findings/results-section-two/</guid>
-      <description>[Here you will describe the data discoversy process, the data used, and the methods employed for this single page. Since you already have a Project Overview and Data &amp;amp; Methods tabs, you probably want to keep this first paragraph fairly short and use the rest of the document to walk your readers through your analyses.]
-Main Findings [Here you will describe the results and include important visualizations from your project.</description>
+      <description>Exploring veteran&#39;s whole career sequences After cleaning the BGT data, we created our sequence objects using TraMineR. To begin, we created a sequence object using the whole career of veterans. This yielded 8,068 sequences of varying lengths.
+Figure 1 shows the distribution of career sequence lengths for veterans.
+When defining the sequence object, we specified to exclude left and right gaps in the sequence. Looking at a whole career, left and right sequence gaps have no substantive meaning, since there cannot be career gaps before or after a career has started or ended.</description>
     </item>
     
     <item>
