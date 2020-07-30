@@ -95,7 +95,7 @@ $(document).ready(function(){
   })
 });
 </script>
- <meta name="generator" content="Hugo 0.74.2" />
+ <meta name="generator" content="Hugo 0.74.3" />
         <link href="" rel="alternate" type="application/rss+xml" title="UVA Biocomplexity Institute" />
         <link href="" rel="feed" type="application/rss+xml" title="UVA Biocomplexity Institute" />
         
@@ -206,18 +206,28 @@ $(document).ready(function(){
     <br> <div class="text-justify">
 
 
-<p>[Here you will describe the data discoversy process, the data used, and the methods employed for this single page. Since you already have a Project Overview and Data &amp; Methods tabs, you probably want to keep this first paragraph fairly short and use the rest of the document to walk your readers through your analyses.]</p>
-<div id="main-findings" class="section level3">
-<h3>Main Findings</h3>
-<p>[Here you will describe the results and include important visualizations from your project.]</p>
+<div id="exploring-veterans-whole-career-sequences" class="section level3">
+<h3>Exploring veteran's whole career sequences</h3>
+<p>After cleaning the BGT data, we created our sequence objects using TraMineR. To begin, we created a sequence object using the whole career of veterans. This yielded 8,068 sequences of varying lengths.</p>
+<p><img src="../../findings/results-section-two_files/length.png" width="500"/></p>
+<p>Figure 1 shows the distribution of career sequence lengths for veterans.</p>
+<p>When defining the sequence object, we specified to exclude left and right gaps in the sequence. Looking at a whole career, left and right sequence gaps have no substantive meaning, since there cannot be career gaps before or after a career has started or ended. Furthermore, because we were analyzing the entire career of veterans, we chose to include not only the five O NET job zones as job states, but also a separate state for military careers. Coding a military career state into the sequences allows us to contextualize subsequential sequence analysis of veterans after their last military job. We also included a state for missing O NET job zone so that it is not miscounted as unemployment.</p>
+<p><img src="../../findings/results-section-two_files/mtall.png" width="500"/></p>
+<p>Figure 2 shows the mean time spent in each state by veterans over their whole careers.</p>
+<p><img src="../../findings/results-section-two_files/dall.png" width="500"/></p>
+<p>Figure 3 shows the distribution of sequence states over the years of veteran's careers. To account for differences in sequence lengths, we incorporated a line showing the number of valid sequences at each year.</p>
 </div>
-<div id="conclusion-and-policy-implications" class="section level3">
-<h3>Conclusion and Policy Implications</h3>
-<p>[Here you could highlight the main takeaways and the potential policy implications of your findings.]</p>
+<div id="exploring-first-ten-years-after-veterans-military-exit-sequences" class="section level3">
+<h3>Exploring first ten years after veteran's military exit sequences</h3>
+<p>To begin answering our research question about veterans careers, we needed to subset our sample to only look at careers after veterans exit the military. Additionally, after this preliminary analysis and some clustering, we decided to subset again to only the first ten years of a veteran's post military career to combat problems associated with differing sequence lengths.</p>
+<p>When defining the sequence object, we needed to reconsider the substantive interpretation of left and right career gaps. Because for this sequence object we are looking in the middle of a whole career sequence, gaps at the right and left of the sequence have substantive meaning. Right gaps indicate transitional unemployment, or a period of unemployment after a final military occupation and a subsequent job. Left gaps could mean either unemployment or a career exit. Furthermore, there are no military states to encode for this analysis.</p>
+<p><img src="../../findings/results-section-two_files/mtten.png" width="500"/></p>
+<p>Figure 4 shows the mean time spent in each state by veterans for the first ten years after their last military job.</p>
+<p><img src="../../findings/results-section-two_files/dten.png" width="500"/></p>
+<p>Figure 5 shows the distribution of sequence states over the first ten years after veteran's last military job.</p>
 </div>
-<div id="references" class="section level3">
-<h3>References</h3>
-<p>[List your references here using APA format (or at least standardize all of the references using the same format).]</p>
+<div id="conclusions-and-implications" class="section level3">
+<h3>Conclusions and Implications</h3>
 </div>
 </div>
 
