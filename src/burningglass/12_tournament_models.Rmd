@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE
 )
 
-for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster")) {
+for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster", "MASS")) {
   library(pkg, character.only = TRUE)
 }
 
@@ -39,45 +39,52 @@ c("#232D4B", #space cadet
 ## R Markdown
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")%>%
-  mutate(is_onet55 = if_else(str_detect(onet, "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"), T, F))%>%
-  select(id,onet,is_onet55, onet_job_zone, startdate, enddate, start_year, end_year, onet_title, date_enter_job_market, job_duration_day)%>%
-  mutate(year_enter_job_market = year(date_enter_job_market))
+clean_post_military <- function(bg_vet_job){
+  bg_vet_job <- bg_vet_job%>%
+    mutate(year_enter_job_market = year(date_enter_job_market))%>%
+    select(-noofjobs, -sector, -tenure)
+  
+  #veterans and the date they ended their last ONET 55 job
+  vet_endmilitary <- bg_vet_job%>%
+    mutate(date_end_onet55 = if_else(is_onet55==T, enddate, as.Date(NA)))%>%
+    filter(!is.na(date_end_onet55))%>%  #exluce people who don't have valid onet55 code
+    select(id, date_end_onet55) %>%
+    #keep the latest onet55 job
+    group_by(id)%>%   
+    arrange(desc(date_end_onet55))%>%
+    group_by(id)%>%
+    distinct(id, .keep_all = TRUE) 
+  
+  bg_vet_job  <- inner_join(bg_vet_job, vet_endmilitary, by = "id")
+  
+  ## sequence data
+  post_military_seq <- bg_vet_job %>%
+    select(id, end_year, onet_job_zone, startdate, enddate, job_duration_day, date_end_onet55, year_enter_job_market)%>%
+    mutate(year_end_onet55 = year(date_end_onet55))%>%
+    select(-year_enter_job_market)%>%
+    filter(startdate >= date_end_onet55)%>% #find jobs that came after the date ended onet55 job
+    filter(onet_job_zone != 55)  %>%  #filter out 55 jobs that have the same start and end date  
+    mutate(start_year = year(startdate))%>%
+    #transform from calender year to year start sequence analysis
+    mutate(start_year = start_year - year_end_onet55 + 1)%>%  
+    mutate(end_year = end_year - year_end_onet55 + 1) %>%
+    select(id, start_year, end_year, onet_job_zone)%>%
+    #if two jobs have the same start and end year, we chose the one with higher job zone
+    group_by(id)%>%
+    arrange(desc(onet_job_zone))%>%
+    group_by(id)%>%
+    distinct(id, start_year, end_year, .keep_all = TRUE)
+  
+  return(post_military_seq)
+}
 
-bg_vet_job%>%
-  filter(is_onet55)%>%
-  group_by(onet, onet_job_zone)%>%
-  summarize(N=n())%>%
-  arrange(desc(N))
 
-vet_endmilitary <- bg_vet_job%>%
-  mutate(date_end_onet55 = if_else(is_onet55==T, enddate, as.Date(NA)))%>%
-  filter(!is.na(date_end_onet55))%>%  #exluce people who don't have valid onet55 code
-  select(id, date_end_onet55) %>%
-  #keep the latest onet55 job
-  group_by(id)%>%   
-  arrange(desc(date_end_onet55))%>%
-  group_by(id)%>%
-  distinct(id, .keep_all = TRUE)
-
-bg_vet_job  <- inner_join(bg_vet_job, vet_endmilitary, by = "id")
-
-bg_vet_job_seq <- bg_vet_job %>%
-  select(id, end_year, onet_job_zone, startdate, enddate, job_duration_day, date_end_onet55, year_enter_job_market)%>%
-  filter(startdate > date_end_onet55)  %>% #find jobs that came after the date ended onet55 job
-  mutate(start_year = year(startdate))
-
+bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")
+bg_vet_job_seq <- clean_post_military(bg_vet_job)
 bg_vet_job_seq_10 <- bg_vet_job_seq %>%
-  mutate(start_year = start_year - year_enter_job_market + 1)%>%
-  mutate(end_year = end_year - year_enter_job_market + 1)%>%
-  select(id, start_year, end_year, onet_job_zone)%>%
-  group_by(id)%>%
-  arrange(desc(onet_job_zone))%>%
-  group_by(id)%>%
-  distinct(id, start_year, end_year, .keep_all = TRUE) #%>%
-  #mutate(seqduration = end_year - start_year) #%>%
-  # filter(seqduration >= 10) %>% # select only sequences that last 10 years or more
-  # select(-seqduration)
+  mutate(seqduration = end_year - start_year) %>%
+  filter(seqduration >= 5) %>% # select only sequences that last 10 years or more
+  select(-seqduration)
 
 bg_vet_job_seq_10 <- as.matrix(bg_vet_job_seq_10)
 bg_vet_job_seq_10 <- as.data.frame(bg_vet_job_seq_10)
@@ -93,6 +100,14 @@ names(sts_vet) <- paste0("y", 1:ncol(sts_vet))
 
 vet.seq <- seqdef(sts_vet, left="DEL", gaps="NA", right="DEL")
 
+# limit to first 5 years
+vet.seq.5 <- vet.seq[,1:5]
+vet.seq.5 <- as.data.frame(vet.seq.5)
+
+vet.seq.5 <- vet.seq.5 %>%
+  filter(y5 != '%' & y4 != '%' & y3 != '%' & y2 != '%' & y1 != '%')
+
+
 # limit to first 10 years
 vet.seq.10 <- vet.seq[,1:10]
 vet.seq.10 <- as.data.frame(vet.seq.10)
@@ -100,9 +115,43 @@ vet.seq.10 <- as.data.frame(vet.seq.10)
 vet.seq.10 <- vet.seq.10 %>%
   filter(y10 != '%' & y9 != '%' & y7 != '%' & y6 != '%' & 
            y5 != '%' & y4 != '%' & y3 != '%' & y2 != '%' & y1 != '%')
+
+# limit to first 20 years
+vet.seq.20 <- vet.seq[,1:20]
+vet.seq.20 <- as.data.frame(vet.seq.20)
+
+vet.seq.20 <- vet.seq.20 %>%
+  filter(y20 != '%' & y19 != '%' & y18 != '%' & y17 != '%' & y16 != '%' &
+    y15 != '%' & y14 != '%' & y13 != '%' & y12 != '%' & y11 != '%' & y10 != '%' & y9 != '%' 
+         & y7 != '%' & y6 != '%' & 
+           y5 != '%' & y4 != '%' & y3 != '%' & y2 != '%' & y1 != '%')
 ```
 
 ### Group the sequences
+
+```{r}
+vet.seq.10 <- vet.seq.10 %>%
+  mutate(promoted_first_period = ifelse(((as.numeric(y3) > as.numeric(y2)) & y3 != 'NA'),
+                                        'Promoted First Period', 'Not Promoted First Period'),
+        promoted_second_period = ifelse(((as.numeric(y5) > as.numeric(y4)) & y5 != 'NA'),
+                                        'Promoted Second Period', 'Not Promoted Second Period'),
+        promoted_third_period = ifelse(((as.numeric(y7) > as.numeric(y5)) & y7 != 'NA'),
+                                       'Promoted Third Period', 'Not Promoted Third Period'),
+        promoted_fourth_period = ifelse(((as.numeric(y9) > as.numeric(y5)) & y9 != 'NA'),
+                                         'Promoted Fourth Period', 'Not Promoted Fourth Period'),
+        promoted_fifth_period = ifelse(((as.numeric(y10) > as.numeric(y9)) & y10 != 'NA'),
+                                       'Promoted Fifth Period', 'Not Promoted Fifth Period')
+)
+```
+
+```{r}
+vet.seq.10$promoted_first_period <- as.factor(vet.seq.10$promoted_first_period)
+summary(vet.seq.10$promoted_first_period)
+tblA = table(vet.seq.10$promoted_first_period, vet.seq.10$promoted_second_period)
+chisq.test(tblA)
+```
+
+
 ```{r}
 # vet.seq.10.promote <- vet.seq.10 %>%
 #   mutate(promotepd1 = ifelse(((as.numeric(y3) > as.numeric(y2)) & y3 != 'NA'), TRUE, FALSE),
