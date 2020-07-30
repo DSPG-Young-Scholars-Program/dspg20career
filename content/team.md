@@ -6,20 +6,22 @@
 
 ### DSPG Team Members {style=text-align:center}
 
-##### [Photos go about here.] {style=text-align:center}
+<p align="center">
+  <img src="/./team_files/UVA.Fellow.Madeline.Pickens.jpg" />
+</p>
 
-[Madeline Pickens, Fellow (M.S. Data Science for Public Policy, Georgetown University)](https://github.com/mclaire19), [Joanna Schroeder, Intern (College of William and Mary, Government and Public Health)](https://github.com/jo-schroeder), [Crystal Zang, Intern (Smith College, Mathematics, Statistical and Data Science)](https://github.com/czang97)
+##### [Madeline Pickens, Fellow (M.S. Data Science for Public Policy, Georgetown University)](https://github.com/mclaire19) {style=text-align:center}
+
+##### [Joanna Schroeder, Intern (College of William and Mary, Government and Public Health)](https://github.com/jo-schroeder) {style=text-align:center}
+
+##### [Crystal Zang, Intern (Smith College, Mathematics, Statistical and Data Science)](https://github.com/czang97) {style=text-align:center}
 
 ### UVA SDAD Team Members {style=text-align:center}
 
-##### [Photos go about here.] {style=text-align:center} 
+##### [Joshua Goldstein (Research Assistant Professor, DSPG Project Lead)](https://biocomplexity.virginia.edu/joshua-goldstein) {style=text-align:center}
 
-[Joshua Goldstein (Research Assistant Professor, DSPG Project Lead)](https://biocomplexity.virginia.edu/joshua-goldstein), [Vicki Lancaster (Principal Scientist)](https://biocomplexity.virginia.edu/vicki-lancaster)
+##### [Vicki Lancaster (Principal Scientist)](https://biocomplexity.virginia.edu/vicki-lancaster) {style=text-align:center}
 
 ### Project Sponsors/Stakeholders {style=text-align:center}
 
-##### [Photos, information, and/or links about your sponsor go about here. You may want to use materials that your sponsors have already shared with you about their institution or coordinate with your stakeholders to include pertinent information here.] {style=text-align:center}
-
-### Acknowledgements {style=text-align:center}
-
-##### [Optional: You can also include external collaborators in this section or a separate section.] {style=text-align:center}
+The [Army Research Institute](https://ari.altess.army.mil/default.aspx) (ARI) is tasked with researching methods to improve the soldier lifecycle, informing human resource policies in the Army, and investigating relevant domain areas in the social and behavioral sciences that could impact Army-related issues. Our sponsor at ARI is Andy Slaughter, a senior research psychologist.
