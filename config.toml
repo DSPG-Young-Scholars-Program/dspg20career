@@ -71,3 +71,6 @@ publishDir = "docs"
 [[menu.icon]]
     url = "mailto:josh.goldstein@virginia.edu"
     name = "far fa-envelope"
+
+[markup.goldmark.renderer]
+unsafe= true
