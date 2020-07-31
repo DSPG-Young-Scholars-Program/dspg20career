@@ -10,21 +10,34 @@ editor_options:
 
 
 
-<div id="transition-matrix-normalization" class="section level3">
-<h3>Transition Matrix Normalization</h3>
+<div id="transition-matrix" class="section level3">
+<h3>Transition Matrix</h3>
 <p>There are nine levels of job state: job zone (level) 1, job zone (level) 2, job zone (level) 3, job zone (level) 4, job zone (level) 5, transitional unemployment, unemployment, unemployment or retirement, and unknown job zone.</p>
-<p>Transition matrix is composed of transition rates between each pair of states. Transition matrix has dimension <span class="math inline">\(k \times k\)</span>, k being the number of job states, Since we have 9 job states, our transition matrix has dimension <span class="math inline">\(9 \times 9\)</span>.</p>
-<p>Darker the color, higher the transition probability between two states. Before standardization, the diagnal, meaning no change in state, have the highest probability.</p>
-<p><img src="/findings/results-section-clustering_files/figure-html/unnamed-chunk-3-1.png" width="672" /><img src="/findings/results-section-clustering_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
-<p>Substitution-Cost matrix reflects the cost for substituting each job state with another. We used transition rate to construct substitution-cost matrix using the formula for i being the current job level, and j being the next job level: <span class="math display">\[SC(i,j) = cval -P(i,j) -P(j,i)\]</span></p>
-<p><img src="/findings/results-section-clustering_files/figure-html/unnamed-chunk-4-1.png" width="672" /><img src="/findings/results-section-clustering_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<p>[Here comes a table that explains the job levels.]</p>
+<p>In our sequence analysis, we want to categorize sequential pattern of the job levels. One approach for categorizing sequences is to compute the distance between two sequences. For example, we have two job state sequences and each sequence is composed of three states: <span class="math display">\[S_1 = \{ \text{zone 1, zone 2, zone 3} \}\]</span> <span class="math display">\[S_2 = \{ \text{zone 1, zone 1, zone 3} \}\]</span> The difference between <span class="math inline">\(S_1\)</span> and <span class="math inline">\(S_2\)</span> is at the second state where <span class="math inline">\(S_1\)</span> has zone 2 while <span class="math inline">\(S_2\)</span> has zone 1. To transform <span class="math inline">\(S_1\)</span> to <span class="math inline">\(S_2\)</span>, we substitude zone 2 with zone 1 at state 2. We use the minimum number of substitution that is required to transform one sequence to another sequence to reflect the distance between these two sequences. This is known as &quot;indels&quot;. However not all substitutions are the same: substitute zone 1 with zone 5 is way more costly than substituting with zone 2. Therefore, we use transition rate to estimate the cost to transform from one state to another state.</p>
+<p>We constructed transition matrix <span class="math inline">\(T\)</span> with dimension <span class="math inline">\(k \times k\)</span>, k being the number of job states. The transition matrix is composed of transition rates between each pair of states. <span class="math inline">\(T(i,j)\)</span> represents the probability of a sample to convert from the current job state <span class="math inline">\(i\)</span> to the next job state <span class="math inline">\(j\)</span>, for <span class="math inline">\(i \in [1,9], j \in [1,9]\)</span>. Thus the sum of each row is 1. Figure 1 shows the transition matrix.</p>
+<p>Darker the color, higher the transition probability between two states. The job states on the diagnal of the transition matrix have the darkest color, meaning that our sample has a higher probability to stay in the same job state.</p>
+<p><img src="/findings/results-section-clustering_files/figure-html/unnamed-chunk-3-1.png" width="960" /> <span class="math display">\[\text{Fig 1. Original Transition Matrix}\]</span></p>
+</div>
+<div id="transition-matrix-standardization" class="section level3">
+<h3>Transition Matrix standardization</h3>
+<p>For sequence clustering, our next step is to construct a substitution-cost matrix <span class="math inline">\(SC\)</span> using the formula <span class="math display">\[SC(i,j) = 2 -T(i,j) -T(j,i)\]</span></p>
+<p>Substitution-cost matrix reflects the cost for substituting a job state with another. <span class="math inline">\(SC(i,j)\)</span> represent the cost for changing from the current job state <span class="math inline">\(i\)</span> to the next job state <span class="math inline">\(j\)</span>, for <span class="math inline">\(i \in [1,9], j \in [1,9]\)</span>. We then use transition rate to construct substitution-cost matrix using the formula <span class="math display">\[SC(i, j) = \begin{cases}
+2-T(i,j)-T(j,i), &amp; i \neq j\\
+0, &amp; i=j
+\end{cases}\]</span></p>
+<p>The consequence for the diagnal to have large transition probability is the consistent cost between job state <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> that <span class="math inline">\(SC(i, j)\)</span> will be approximately 2. In order to make the difference between two different states more visible, we standardize the transition matrix by excluding the diagnal when constructing the transition matrix. Figure 2 shows the standardized transition matrix. Having diagnal as 0, we can better observe the difference of the transition probability between two different states.</p>
+<p><img src="/findings/results-section-clustering_files/figure-html/unnamed-chunk-4-1.png" width="960" /> <span class="math display">\[\text{Fig 2. Standardized Transition Matrix}\]</span></p>
 </div>
 <div id="clustering" class="section level3">
 <h3>Clustering</h3>
-<p>There are 5185 sequences among our sample, and there are 2113 (440.8%) distinct sequences. We identified 8 types of clusterings. We have type 1, 4, 5, 6 clusters mainly composed of veterans in job zone 4. Specifically, veterans in type 1 cluster had few years' of transitional unemployment after exiting military before their job-zone-level 4 jobs.</p>
+<p>We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 8 types of clusterings. We have type 1, 5, 6 clusters mainly composed of veterans in job zone 4. Specifically, veterans in type 1 cluster had few years' of transitional unemployment after exiting military before their job-zone-level 4 jobs.</p>
+<p><img src="/findings/results-section-clustering_files/Fig3.png" style="width:100.0%" height="800" /> <span class="math display">\[\text{Fig 3. Type 1 Clusters}\]</span></p>
 <p>We do observe a career promotion among veterans in type 2 cluster where they started with job zone 3 and went into job zone 4.</p>
+<p><img src="/findings/results-section-clustering_files/Fig4.png" style="width:80.0%" height="300" /> <span class="math display">\[\text{Fig 4. Type 2 Clusters}\]</span></p>
 <p>The remaining type 3, 7, 8 do no exibit a change in post-military career. Type 3 cluster is composed of jobs in job zone 5. Type 7 cluster is composed of jobs in job zone 1. And type 8 cluster is composed of jobs in job zone 3.</p>
-<p><img src="/findings/results-section-clustering_files/figure-html/unnamed-chunk-5-1.png" width="960" /><img src="/findings/results-section-clustering_files/figure-html/unnamed-chunk-5-2.png" width="960" /></p>
+<p><img src="/findings/results-section-clustering_files/Fig5.png" />{width=100% height=850px; margin-left: 50px; margin-right: 50px} <span class="math display">\[\text{Fig 5. Type 3 Clusters}\]</span></p>
+<p><img src="/findings/results-section-clustering_files/Fig6.png" style="width:80.0%" height="300" /> <span class="math display">\[\text{Fig 6. Type 4 Clusters}\]</span></p>
 <p>To understand how veterans developed different career trajectories, we investigated the relationship between gender, highest degree level and the career trajectory cluster they were associated with.</p>
 </div>
 <div id="do-veterans-education-background-influence-their-career-trajectory" class="section level3">
