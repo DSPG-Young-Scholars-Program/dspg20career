@@ -7,7 +7,7 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-
+ 
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 knitr::opts_chunk$set(error = TRUE)
@@ -226,7 +226,7 @@ clusterward <- readRDS(file = "~/git/dspg20career/data/clusterward_onet55_10yrs_
 # abline(h=90, col="red")
 cluster8 <- cutree(clusterward, k=8)
 cluster8 <- factor(cluster8, labels = c("Type 1",  "Type 2", "Type 3", "Type 4", "Type 5", "Type 6", "Type 7", "Type 8"))
-#table(cluster8)
+table(cluster8)
 
 #longitudinal plot
 seqfplot(vet.seq, group = cluster8, pbarw = T)
@@ -241,7 +241,12 @@ To understand how veterans developed different career trajectories, we investiga
 
 ### Do veterans' education background influence their career trajectory?
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+Here we are showing how many veterans with different degrees fall into each of these 8 clusters. Since the majority of our veteran sample had highest degree as bachelor's and master's degree, here we show the percentage of veterans fall into each of the eight clusters for each highest degree earned. Thus each row adds up to 1. 
+
+![](/findings/results-section-clustering_files/Fig7.png){width=100% height=500px}
+$$\text{Fig 7. Cluster Distribution for Different Levels of Education}$$
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 bg_vet_demographic <-read_csv("~/git/dspg20career/data/02_bg_vet_demographic.csv")
 vet <- unique(bg_vet_job_seq$id)
 vet_df <- as.data.frame(cbind(vet, cluster8))
@@ -257,22 +262,58 @@ degree <- vet_df %>%
   mutate(perc = count/sum)%>%
   filter(degree_highest != "others")
 
+degree$cluster <- as.factor(degree$cluster)
+degree$degree_highest <- factor(degree$degree_highest, levels = c("certificate","highschool", "associate", "bachelor", "master", "doctor"))
 #degree$count[is.na(degree$count)] <- 0
+#cluster distribution
+cluster_count <- degree%>%
+  group_by(cluster)%>%
+  summarize(N=sum(count))
+
+ggplot(cluster_count, aes(x = cluster, y = N, fill = N))+
+  geom_bar(stat = "identity")+ 
+  scale_fill_continuous(low = "white", high=uva_color_palette[9])+
+  theme_classic()+
+  theme(axis.text.x = element_text(size = 11, hjust = .5, vjust = .5),
+        axis.text.y = element_text(size = 11, hjust = .5, vjust = .5),  
+        axis.title.x = element_text(size = 14, hjust = .5, vjust = .5),
+        axis.title.y = element_text(size = 14, hjust = .5, vjust = .5),
+        legend.title=element_text(size=13),
+        legend.text = element_text(size=11))
+
+#degree distribution
+degree_count <- degree%>%
+  group_by(degree_highest)%>%
+  summarize(N=sum(count))
+
+ggplot(degree_count, aes(x = degree_highest, y = N, fill = N))+
+  geom_bar(stat = "identity")+ 
+  scale_fill_continuous(low = uva_color_palette[9], high=uva_color_palette[9])+
+  theme_classic()+
+  theme(axis.text.x = element_text(size = 11, hjust = .5, vjust = .5),
+        axis.text.y = element_text(size = 11, hjust = .5, vjust = .5),  
+        axis.title.x = element_text(size = 14, hjust = .5, vjust = .5),
+        axis.title.y = element_text(size = 14, hjust = .5, vjust = .5),
+        legend.title=element_text(size=13),
+        legend.text = element_text(size=11))
 
 degree$cluster <- as.factor(degree$cluster)
 degree$degree_highest <- factor(degree$degree_highest, levels = c("certificate","highschool", "associate", "bachelor", "master", "doctor"))
 degree <- as.data.frame(degree)
-# ggplot(degree, aes(cluster, degree_highest, fill= count)) + 
-#   geom_tile()+
-#   scale_fill_gradient(low="white", high="blue")+
-#   theme_classic()+
-#   labs(title = "Clustering X Degree --before standardization")
 
-ggplot(degree, aes(cluster, degree_highest, fill= perc)) + 
+#saved the figure to local file
+ggplot(degree, aes(cluster, degree_highest, fill= perc)) +
   geom_tile()+
   scale_fill_gradient(low="white", high=uva_color_palette[9])+
-  theme_classic()+ 
-  labs(title = "Degree Distribution among Clusters", y="degree")
+  theme_classic()+
+  labs(title = "Degree Distribution among Clusters", y="Highest Degree Earned", x = "Cluster")+
+  guides(fill=guide_legend(title = "Percent"))+
+  theme(axis.text.x = element_text(size = 11, hjust = .5, vjust = .5),
+        axis.text.y = element_text(size = 11, hjust = .5, vjust = .5),
+        axis.title.x = element_text(size = 14, hjust = .5, vjust = .5),
+        axis.title.y = element_text(size = 14, hjust = .5, vjust = .5),
+        legend.title=element_text(size=13),
+        legend.text = element_text(size=11))
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -305,20 +346,12 @@ for (degree in 1: ncol(table)){
 colnames(degree_p_matrix) <- c("associate","bachelor","certificate", "doctor", "highschool", "master", "others")
 degree_p_matrix <- degree_p_matrix[,c("others","certificate","highschool", "associate", "bachelor", "master", "doctor")]
 
-#degree_p_matrix
-#degree_p_matrix <= 0.05
-#table(degree_p_matrix <= 0.05)
-#round(degree_p_matrix,2)
-
-
 state <- c("others","certificate","highschool", "associate", "bachelor", "master", "doctor")
 #original transitional matrix 
 degree_p_df<- as.data.frame(degree_p_matrix)
-#tmatrix.df$startState <- row.names(tmatrix.df)
 degree_p_df$cluster <- c("cluster1", "cluster2", "cluster3", "cluster4", "cluster5", "cluster6", "cluster7", "cluster8")
 
 degree_p_df <- melt(degree_p_df, "cluster")
-#colnames(tmatrix.df)[colnames(tmatrix.df) == "variable"] <- "endState"
 colnames(degree_p_df) <- c("cluster", "degree", "value")                                      
 ggplot(data = degree_p_df, aes(x = cluster, y = factor(degree, levels = rev(state)), fill = value)) + 
   geom_tile() +    
