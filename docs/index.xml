@@ -57,10 +57,7 @@ In our sequence analysis, we want to categorize sequential pattern of the job le
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/data/</guid>
-      <description>2020 Veteran Career Pathways Summer Project Data Sources Burning Glass Technologies Resume Data Burning Glass Technologies (BGT) provides data on resumes that were scraped from publically available sites between (YEAR) AND (YEAR). finish description.
-American Community Survey describe
-Longitudinal Employer-Household Dynamics (LEHD) Origin-Destination Employment Statistics (LODES) describe
-Veteran Employment Outcomes (VEO) The Veteran Employment Outcomes (VEO) data are new Census Burea statistics on labor market outcoems for recent Army veterans. They present aggregated statistics for all Army veterans who have recently completed their term of service.</description>
+      <description>2020 Veteran Career Pathways Summer Project Data Sources Burning Glass Technologies Resume Data Burning Glass Technologies (BGT) provides data on resumes that were collected from publically available sites between 2016 AND 2018. This data includes information about an individual&amp;rsquo;s education, certifications, skills, geographic location, and of course, job history. The information on job history includes its position on a resume, the dates the job was held, and the [O*NET-SOC code] (https://www.</description>
     </item>
     
     <item>
@@ -69,7 +66,7 @@ Veteran Employment Outcomes (VEO) The Veteran Employment Outcomes (VEO) data are
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/methods/</guid>
-      <description>2020 Veteran Career Pathways Summer Project Methodology Sequence Analysis Sequence analysis refers to a method of longitudinal analysis where linear data is defined as an entire sequence. A sequence orders events and their associated states along a linear axis - in our case, time (Halpin 2016). It can be implemented with the TraMineR package in R, which enables both the analysis and visualization of sequences (Gabadinho et al. 2011). For the purposes of our sequence analysis, we define our &amp;ldquo;states&amp;rdquo; to be job zones or unemployment types and our &amp;ldquo;events&amp;rdquo; to be a transitition between jobs.</description>
+      <description>2020 Veteran Career Pathways Summer Project Methodology Data Cleaning and Profiling In order to get the resumes from veterans in the DC Metropolitan Statistical Area (MSA), we first profiled the data to better understand the completeness, potential for duplication, and expected values of the Burning Glass Technologies resume data. In addition to filtering observations to include a reported MSA of 47900 (the code for the DC-VA-MD-WV Metropolitan Statistical Area), we also checked to see if individuals reported living in a zip code that fell in the DC MSA, and ensured that none of the entries were duplicates based on the resume&amp;rsquo;s unique ID.</description>
     </item>
     
     <item>

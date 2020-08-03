@@ -2,6 +2,17 @@
 
 ### Methodology {style=text-align:center}
 
+### Data Cleaning and Profiling {style=text-align:center}
+
+In order to get the resumes from veterans in the DC Metropolitan Statistical Area (MSA), we first profiled the data to better understand the completeness, potential for duplication, and expected values of the Burning Glass Technologies resume data. In addition to filtering observations to include a reported MSA of 47900 (the code for the DC-VA-MD-WV Metropolitan Statistical Area), we also checked to see if individuals reported living in a zip code that fell in the DC MSA, and ensured that none of the entries were duplicates based on the resume's unique ID.
+
+To clean the education variables, we excluded individuals with no degree type variable listed. Then, we took the highest self-reported degree type variable, and used regular expressions to categorize them by the following levels of education:  certificates, some high school, high school, associate, bachelor, master, and doctor. 
+
+Since we require an O\*NET-SOC code to determine if an individual held a military job, and also require a start and end date to determine the chronological order of jobs, we permanently excluded individuals for which this information was missing. We identified individuals with military careers (veterans) based on an O\*NET-SOC code beginning with 55-. This may not capture all the veterans in the data, since these jobs are very military-specific, but there was no other way to guarantee that we were only including veterans in our final sample.
+
+We also created duration variables calculated from the start date and end date, and excluded individuals for which the duration was negative (implying a job that had ended before it began). For multiple jobs with the same start and end year, we assumed that these jobs lasted for less than one year each and chose the higher of the two job zones to reflect the career level for that year. Not all of the remaining individuals had a listed job zone, so provided that they have a valid start and end date, we categorized these jobs as job zone 0 to distinguish them from unemployment.
+
+
 #### Sequence Analysis {style=text-align:center}
 
 Sequence analysis refers to a method of longitudinal analysis where linear data is defined as an entire sequence. A sequence orders events and their associated states along a linear axis - in our case, time (Halpin 2016). It can be implemented with the `TraMineR` package in R, which enables both the analysis and visualization of sequences (Gabadinho et al. 2011). For the purposes of our sequence analysis, we define our "states" to be job zones or unemployment types and our "events" to be a transitition between jobs. A table describing the different types of states that are possible is included below; these states are explained further in the Sequence Exploration section.
