@@ -58,7 +58,7 @@ names(sts_vet) <- paste0("y", 1:ncol(sts_vet))
 #assign colors to different categories
 
 vet.seq <- seqdef(sts_vet, 
-                  left="Transitional Unemployment", gaps="Unemployment", right="Unemployment or Exit", 
+                  left="Military Transitional Unemployment", gaps="Civilian Unemployment", right="Retirement", 
                   cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5", "#CBBEB5","#CBBEB5")
                   )
 
@@ -116,7 +116,6 @@ We constructed transition matrix $T$ with dimension $k \times k$, k being the nu
 Darker the color, higher the transition probability between two states. The job states on the diagnal of the transition matrix have the darkest color, meaning that our sample has a higher probability to stay in the same job state. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=10}
-#
 state <- c("unknown \n zone", "zone1", "zone2", "zone3", "zone4", "zone5", "military \n transitional \n unemployment \n", "civilian \n unemployment", "retirement")
 #original transitional matrix 
 tmatrix.df <- as.data.frame(transition_matrix)
@@ -136,7 +135,7 @@ ggplot(data = tmatrix.df, aes(x = endState, y = factor(startState, levels = rev(
   theme(legend.position="bottom", panel.background = element_blank(),        
         plot.title = element_text(face = "bold")) +  
   labs(fill = "Transition Probability",        
-       title = "Original Transition Matrix",     
+       title = "Year-to-Year Transition Matrix",     
        y = "Current Job",       
        x = "Next Job")+
   theme(axis.text.x = element_text(size = 9, hjust = .5, vjust = .5),
@@ -146,7 +145,7 @@ ggplot(data = tmatrix.df, aes(x = endState, y = factor(startState, levels = rev(
         legend.title=element_text(size=14),
         legend.text = element_text(size=9))
 ```
-$$\text{Fig 1. Original Transition Matrix}$$
+$$\text{Fig 1. Year-to-Year Transition Matrix}$$
 
 ### Transition Matrix standardization
 For sequence clustering, our next step is to construct a substitution-cost matrix $SC$ using the formula 
@@ -158,7 +157,7 @@ $$SC(i, j) = \begin{cases}
 0, & i=j
 \end{cases}$$
 
-The consequence for the diagnal to have large transition probability is the consistent cost between job state $i$ and $j$ that $SC(i, j)$ will be approximately 2. In order to make the difference between two different states more visible, we standardize the transition matrix by excluding the diagnal when constructing the transition matrix. Figure 2 shows the standardized transition matrix. Having diagnal as 0, we can better observe the difference of the transition probability between two different states. 
+The consequence for the diagnal to have large transition probability is the consistent cost between job state $i$ and $j$ that $SC(i, j)$ will be approximately 2. In order to make the difference between two different states more visible, we standardize the transition matrix by excluding the diagnal when constructing the transition matrix. Figure 2 shows the standardized transition matrix that reflects changes between states. Having diagnal as 0, we can better observe the difference of the transition probability between two different states. 
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=10}
@@ -178,7 +177,7 @@ ggplot(data = tmatrix.standardize.df, aes(x = endState, y = factor(startState, l
   theme(legend.position="bottom", panel.background = element_blank(),         
         plot.title = element_text(face = "bold")) +  
   labs(fill = "Transition Probability",        
-       title = "Standardized Transition Matrix",     
+       title = "State Transition Matrix",     
        y = "Current Job",       
        x = "Next Job")+
   theme(axis.text.x = element_text(size = 9, hjust = .5, vjust = .5),
@@ -188,29 +187,27 @@ ggplot(data = tmatrix.standardize.df, aes(x = endState, y = factor(startState, l
         legend.title=element_text(size=14),
         legend.text = element_text(size=9))
 ```
-$$\text{Fig 2. Standardized Transition Matrix}$$
-
-
+$$\text{Fig 2. State Transition Matrix}$$
 
 ### Clustering
 We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 8 types of clusterings. We have type 1, 5, 6 clusters mainly composed of veterans in job zone 4. Specifically, veterans in type 1 cluster had few years' of transitional unemployment after exiting military before their job-zone-level 4 jobs. 
 
-![](/findings/results-section-clustering_files/Fig3.png){width=100% height=800px}
+![](/findings/results-section-clustering_files/Fig3.png){width=100% height=900px}
 $$\text{Fig 3. Type 1 Clusters}$$
 
 
 We do observe a career promotion among veterans in type 2 cluster where they started with job zone 3 and went into job zone 4.
 
-![](/findings/results-section-clustering_files/Fig4.png){width=80% height=300px}
+![](/findings/results-section-clustering_files/Fig4.png){width=100% height=300px}
 $$\text{Fig 4. Type 2 Clusters}$$
 
 The remaining type 3, 7, 8 do no exibit a change in post-military career. Type 3 cluster is composed of jobs in job zone 5. Type 7 cluster is composed of jobs in job zone 1. And type 8 cluster is composed of jobs in job zone 3. 
- 
-![](/findings/results-section-clustering_files/Fig5.png){width=100% height=850px; margin-left: 50px; margin-right: 50px}
-$$\text{Fig 5. Type 3 Clusters}$$
 
-![](/findings/results-section-clustering_files/Fig6.png){width=80% height=300px}
-$$\text{Fig 6. Type 4 Clusters}$$
+
+![](/findings/results-section-clustering_files/Fig5.png) {width=100% height=760px;margin-left: 50px; margin-right:50px}
+
+
+$$\text{Fig 5. Type 3 Clusters}$$
 
 
 ```{r fig.height=17, fig.width=8, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -243,10 +240,10 @@ To understand how veterans developed different career trajectories, we investiga
 
 Here we are showing how many veterans with different degrees fall into each of these 8 clusters. Since the majority of our veteran sample had highest degree as bachelor's and master's degree, here we show the percentage of veterans fall into each of the eight clusters for each highest degree earned. Thus each row adds up to 1. 
 
-![](/findings/results-section-clustering_files/Fig7.png){width=100% height=500px}
+![](/findings/results-section-clustering_files/Fig6.png){width=100% height=500px}
 $$\text{Fig 7. Cluster Distribution for Different Levels of Education}$$
 
-```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 bg_vet_demographic <-read_csv("~/git/dspg20career/data/02_bg_vet_demographic.csv")
 vet <- unique(bg_vet_job_seq$id)
 vet_df <- as.data.frame(cbind(vet, cluster8))
@@ -260,7 +257,14 @@ degree <- vet_df %>%
   group_by(degree_highest)%>%
   mutate(sum = sum(count))%>%
   mutate(perc = count/sum)%>%
-  filter(degree_highest != "others")
+  filter(degree_highest != "others")%>%
+  mutate(cluster = if_else(cluster == 2, 4,
+                  if_else(cluster == 3, 5,
+                  if_else(cluster == 4, 8,
+                  if_else(cluster == 5, 2,
+                  if_else(cluster == 6, 3,
+                  if_else(cluster == 7, 6,
+                  if_else(cluster == 8, 7, cluster))))))))
 
 degree$cluster <- as.factor(degree$cluster)
 degree$degree_highest <- factor(degree$degree_highest, levels = c("certificate","highschool", "associate", "bachelor", "master", "doctor"))
@@ -272,7 +276,7 @@ cluster_count <- degree%>%
 
 ggplot(cluster_count, aes(x = cluster, y = N, fill = N))+
   geom_bar(stat = "identity")+ 
-  scale_fill_continuous(low = "white", high=uva_color_palette[9])+
+  scale_fill_continuous(low = uva_color_palette[9], high=uva_color_palette[9])+
   theme_classic()+
   theme(axis.text.x = element_text(size = 11, hjust = .5, vjust = .5),
         axis.text.y = element_text(size = 11, hjust = .5, vjust = .5),  
@@ -316,6 +320,7 @@ ggplot(degree, aes(cluster, degree_highest, fill= perc)) +
         legend.text = element_text(size=11))
 ```
 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # contingency table
 vet <- unique(bg_vet_job_seq$id)
@@ -328,15 +333,28 @@ vet_df <- vet_df %>%
   filter(!is.na(degree_highest))
 
 table <- table(vet_df$cluster, vet_df$degree_highest)
+m<- as.data.frame(matrix(c(130, 781, 288,1745), 2, 2))
+colnames(m) <- c("cluster 2", "not cluster 2")
+rownames(m) <- c("bachelor's degree", "others")
 
+m%>%
+  as.data.frame()%>%
+  gt(rownames_to_stub = T)%>%
+  tab_header(
+    title = "Two-way Frequency Table"
+  )
+
+```
+$$\text{Table 1. Two-way Frequency Table}$$
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 degree_p_matrix <- c()
 for (degree in 1: ncol(table)){ 
   degree_p_vector_i <- c()
   for (i in 1:nrow(table)){ #cluster 1-8
     tb_i <- matrix(NA, nrow = 2, ncol = 2)
-    tb_i[1,1] <- table[i,1]
-    tb_i[2,1] <- sum(table[,1])-table[i,1]
-    tb_i[1,2] <- sum(table[1,])-table[i,1]
+    tb_i[1,1] <- table[i,degree]
+    tb_i[2,1] <- sum(table[,degree])-table[i,degree]
+    tb_i[1,2] <- sum(table[i,])-table[i,degree]
     tb_i[2,2] <- sum(table)-tb_i[1,1] - tb_i[2,1] -tb_i[1,2] 
     degree_p_vector_i[i] <- fisher.test(tb_i)$p.value
   }
