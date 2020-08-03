@@ -28,10 +28,10 @@ c("#232D4B", #space cadet
 )
 
 #import function to clean the job data to identify post military jobs
-source("~/git/DSPG2020/career/src/burningglass/clean_post_military_job.R", echo = T, prompt.echo = "", spaced = F)
+source("~/git/dspg20career/src/burningglass/clean_post_military_job.R", echo = T, prompt.echo = "", spaced = F)
  
 #read in vet job data
-bg_vet_job <-read_csv("~/git/DSPG2020/career/data/04_bg_vet_job.csv")
+bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")
  
 #perform the cleaning function
 bg_vet_job_seq <- clean_post_military(bg_vet_job)
