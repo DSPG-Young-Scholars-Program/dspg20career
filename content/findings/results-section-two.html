@@ -6,28 +6,74 @@ draft: false
 output: html_document
 ---
 
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<link href="/rmarkdown-libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+<link href="/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
 
 
 <div id="exploring-veterans-whole-career-sequences" class="section level3">
 <h3>Exploring veteran's whole career sequences</h3>
-<p>After cleaning the BGT data, we created our sequence objects using TraMineR. To begin, we created a sequence object using the whole career of veterans. This yielded 8,068 sequences of varying lengths.</p>
-<p><img src="/findings/results-section-two_files/length.png" width="500"/></p>
-<p>Figure 1 shows the distribution of career sequence lengths for veterans.</p>
+<p>After cleaning the BGT data, we created our sequence objects using TraMineR. To begin, we created a sequence object using the whole career of veterans. This yielded 8,068 sequences of varying lengths. When creating the whole career sequence object, we defined eight unique states: Zone 1, Zone 2, Zone 3, Zone 4, Zone 5, Missing zone, Military, and Unemployed.</p>
+<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","caption":"<caption>Table 1. Overview of sequence states.<\/caption>","data":[["Zone 1","Zone 2","Zone 3","Zone 4","Zone 5","Missing zone","Military","Unemployed","Military transition unemployed","Civilian unemployed","Retired"],["Z1","Z2","Z3","Z4","Z5","MISSING","MILITARY","UNEMP","TR UNEMP","CV UNEMP","RETIRED"],["O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","seqdef() gaps =","seqdef() left =","seqdef() gaps =","seqdef() right ="],["Job Zones group occupations into one of five categories based on levels of education, experience, and training necessary to perform the occupation. We matched O*NET SOC occupation codes from BGT resume items to O*NET job zones. Zone 1 is little to no preparation needed.","Zone 2 is some preparation needed.","Zone 3 is medium preparation needed.","Zone 4 is considerable preparation needed.","Zone 5 is extensive preparation needed.","A resume item that was missing an O*NET SOC code.","A resume item with O*NET SOC code for Military occupations (those beginning with \"55-\").","Gaps in time for resume items.","Gaps after the last Military job resume item and before civilian jobs begin.","Gaps in between civilian jobs.","Gaps after the last civilian job."],["Whole career &amp; 10 years post military","Whole career &amp; 10 years post military","Whole career &amp; 10 years post military","Whole career &amp; 10 years post military","Whole career &amp; 10 years post military","Whole career &amp; 10 years post military","Whole career","Whole career","10 years post military","10 years post military","10 years post military"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>State name<\/th>\n      <th>Abbreviated<\/th>\n      <th>Source<\/th>\n      <th>Definition<\/th>\n      <th>Used for which sequence object?<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollY":"500px","dom":"t","order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p>When defining the sequence object, we specified to exclude left and right gaps in the sequence. Looking at a whole career, left and right sequence gaps have no substantive meaning, since there cannot be career gaps before or after a career has started or ended. Furthermore, because we were analyzing the entire career of veterans, we chose to include not only the five O NET job zones as job states, but also a separate state for military careers. Coding a military career state into the sequences allows us to contextualize subsequential sequence analysis of veterans after their last military job. We also included a state for missing O NET job zone so that it is not miscounted as unemployment.</p>
-<p><img src="/findings/results-section-two_files/mtall.png" width="500"/></p>
-<p>Figure 2 shows the mean time spent in each state by veterans over their whole careers.</p>
-<p><img src="/findings/results-section-two_files/dall.png" width="500"/></p>
-<p>Figure 3 shows the distribution of sequence states over the years of veteran's careers. To account for differences in sequence lengths, we incorporated a line showing the number of valid sequences at each year.</p>
+<p>Among the sequences in the whole careers sequence object, there was a large distribution in sequence length. Differing lengths in sequences makes it difficult to make comparisons between sequences, including computing distance and clustering.</p>
+<center>
+<figure>
+<img src="/findings/results-section-two_files/length.png" width="500"/>
+<figcaption>
+Figure 1. Distribution of career sequence lengths for veterans.
+</figcaption>
+</figure>
+</center>
+<p>Next, we visualized the sequences by looking at the mean time spent in each state. Interestingly, veterans spend the most time of their careers in Zone 4. Veterans are also spending a lot of time in Military careers. Also, veterans spend almost as much time unemployed as in Zone 5.</p>
+<center>
+<figure>
+<img src="/findings/results-section-two_files/mtall.png" width="500"/>
+<figcaption>
+Figure 2. Mean time spent in each state by veterans over their whole careers.
+</figcaption>
+</figure>
+</center>
+<p>Looking at the state distribution plot over time, some patterns emerge.</p>
+<center>
+<figure>
+<img src="/findings/results-section-two_files/dall.png" width="500"/>
+<figcaption>
+Figure 3. Distribution of sequence states over the years of veteran's careers.
+</figcaption>
+</figure>
+</center>
 </div>
 <div id="exploring-first-ten-years-after-veterans-military-exit-sequences" class="section level3">
 <h3>Exploring first ten years after veteran's military exit sequences</h3>
-<p>To begin answering our research question about veterans careers, we needed to subset our sample to only look at careers after veterans exit the military. Additionally, after this preliminary analysis and some clustering, we decided to subset again to only the first ten years of a veteran's post military career to combat problems associated with differing sequence lengths.</p>
+<p>To begin answering our research question about veterans careers, we needed to subset our sample to only look at careers after veterans exit the military. Additionally, after this preliminary analysis and some clustering, we decided to subset again to only the first ten years of a veteran's post military career to combat problems associated with differing sequence lengths. Setting these new parameters yielded a sequence object with 5,185.</p>
 <p>When defining the sequence object, we needed to reconsider the substantive interpretation of left and right career gaps. Because for this sequence object we are looking in the middle of a whole career sequence, gaps at the right and left of the sequence have substantive meaning. Right gaps indicate transitional unemployment, or a period of unemployment after a final military occupation and a subsequent job. Left gaps could mean either unemployment or a career exit. Furthermore, there are no military states to encode for this analysis.</p>
-<p><img src="/findings/results-section-two_files/mtten.png" width="500"/></p>
-<p>Figure 4 shows the mean time spent in each state by veterans for the first ten years after their last military job.</p>
-<p><img src="/findings/results-section-two_files/dten.png" width="500"/></p>
-<p>Figure 5 shows the distribution of sequence states over the first ten years after veteran's last military job.</p>
+<p>Interestingly, Zone 4 is the least common state among veterans ten years after their military experience.</p>
+<center>
+<figure>
+<img src="/findings/results-section-two_files/mtten.png" width="500"/>
+<figcaption>
+Figure 4. Mean time spent in each state by veterans for the first ten years after their last military job.
+</figcaption>
+</figure>
+</center>
+<center>
+<figure>
+<img src="/findings/results-section-two_files/dten_grays.png" width="600"/>
+<figcaption>
+Figure 5. Distribution of sequence states over the first ten years after veteran's last military job.
+</figcaption>
+</figure>
+</center>
 </div>
 <div id="conclusions-and-implications" class="section level3">
 <h3>Conclusions and Implications</h3>
+<p>The intital exploration of sequences helped us to define and prioritize our research questions and project scope. By subsetting to the first ten years of a veteran's post military career, we are able to make more meaningful comparisons between sequences, which is necessary for cluster analysis.</p>
 </div>
