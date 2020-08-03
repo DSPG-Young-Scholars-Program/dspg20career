@@ -6,13 +6,21 @@
 
 ### DSPG Team Members {style=text-align:center}
 
-<p align="center">
-  <img src="/./team_files/UVA.Fellow.Madeline.Pickens.jpg" />
-</p>
+<center>
+<img src="../maddie.jpg" />
+</center>
 
 ##### [Madeline Pickens, Fellow (M.S. Data Science for Public Policy, Georgetown University)](https://github.com/mclaire19) {style=text-align:center}
 
+<center>
+<img src="../joanna.jpg" width = 150 />
+</center>
+
 ##### [Joanna Schroeder, Intern (College of William and Mary, Government and Public Health)](https://github.com/jo-schroeder) {style=text-align:center}
+
+<center>
+<img src="../crystal.jpeg" width = 150 />
+</center>
 
 ##### [Crystal Zang, Intern (Smith College, Mathematics, Statistical and Data Science)](https://github.com/czang97) {style=text-align:center}
 
