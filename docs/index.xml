@@ -45,8 +45,7 @@ Main Findings [Here you will describe the results and include important visualiz
       
       <guid>/findings/results-section-clustering/</guid>
       <description>Transition Matrix There are nine levels of job state: job zone (level) 1, job zone (level) 2, job zone (level) 3, job zone (level) 4, job zone (level) 5, transitional unemployment, unemployment, unemployment or retirement, and unknown job zone.
-[Here comes a table that explains the job levels.]
-In our sequence analysis, we want to categorize sequential pattern of the job levels. One approach for categorizing sequences is to compute the distance between two sequences.</description>
+library(DT) library(readxl) DT &amp;lt;- read_excel(&amp;quot;~/git/dspg20career/src/burningglass/states_table.xlsx&amp;quot;) ## Error: `path` does not exist: &amp;#39;~/git/dspg20career/src/burningglass/states_table.xlsx&amp;#39; datatable(DT, rownames = FALSE, caption = &amp;quot;Table 1. Overview of sequence states.&amp;quot;, options = list(scrollY = &amp;quot;500px&amp;quot;, dom = &amp;#39;t&amp;#39;)) ## Error in crosstalk::is.</description>
     </item>
     
     <item>
