@@ -95,7 +95,7 @@ $(document).ready(function(){
   })
 });
 </script>
- <meta name="generator" content="Hugo 0.74.3" />
+ <meta name="generator" content="Hugo 0.74.2" />
         <link href="" rel="alternate" type="application/rss+xml" title="UVA Biocomplexity Institute" />
         <link href="" rel="feed" type="application/rss+xml" title="UVA Biocomplexity Institute" />
         
@@ -206,44 +206,174 @@ $(document).ready(function(){
     <br> <div class="text-justify">
 
 
-<div id="transition-matrix-normalization" class="section level3">
-<h3>Transition Matrix Normalization</h3>
+<div id="transition-matrix" class="section level3">
+<h3>Transition Matrix</h3>
 <p>There are nine levels of job state: job zone (level) 1, job zone (level) 2, job zone (level) 3, job zone (level) 4, job zone (level) 5, transitional unemployment, unemployment, unemployment or retirement, and unknown job zone.</p>
-<p>Transition matrix is composed of transition rates between each pair of states. Transition matrix has dimension <span class="math inline">\(k \times k\)</span>, k being the number of job states, Since we have 9 job states, our transition matrix has dimension <span class="math inline">\(9 \times 9\)</span>.</p>
-<p>Darker the color, higher the transition probability between two states. Before standardization, the diagnal, meaning no change in state, have the highest probability.</p>
-<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-3-1.png" width="672" /><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
-<p>Substitution-Cost matrix reflects the cost for substituting each job state with another. We used transition rate to construct substitution-cost matrix using the formula for i being the current job level, and j being the next job level: <span class="math display">\[SC(i,j) = cval -P(i,j) -P(j,i)\]</span></p>
-<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-4-1.png" width="672" /><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<p>[Here comes a table that explains the job levels.]</p>
+<p>In our sequence analysis, we want to categorize sequential pattern of the job levels. One approach for categorizing sequences is to compute the distance between two sequences. For example, we have two job state sequences and each sequence is composed of three states: <span class="math display">\[S_1 = \{ \text{zone 1, zone 2, zone 3} \}\]</span> <span class="math display">\[S_2 = \{ \text{zone 1, zone 1, zone 3} \}\]</span> The difference between <span class="math inline">\(S_1\)</span> and <span class="math inline">\(S_2\)</span> is at the second state where <span class="math inline">\(S_1\)</span> has zone 2 while <span class="math inline">\(S_2\)</span> has zone 1. To transform <span class="math inline">\(S_1\)</span> to <span class="math inline">\(S_2\)</span>, we substitude zone 2 with zone 1 at state 2. We use the minimum number of substitution that is required to transform one sequence to another sequence to reflect the distance between these two sequences. This is known as &quot;indels&quot;. However not all substitutions are the same: substitute zone 1 with zone 5 is way more costly than substituting with zone 2. Therefore, we use transition rate to estimate the cost to transform from one state to another state.</p>
+<p>We constructed transition matrix <span class="math inline">\(T\)</span> with dimension <span class="math inline">\(k \times k\)</span>, k being the number of job states. The transition matrix is composed of transition rates between each pair of states. <span class="math inline">\(T(i,j)\)</span> represents the probability of a sample to convert from the current job state <span class="math inline">\(i\)</span> to the next job state <span class="math inline">\(j\)</span>, for <span class="math inline">\(i \in [1,9], j \in [1,9]\)</span>. Thus the sum of each row is 1. Figure 1 shows the transition matrix.</p>
+<p>Darker the color, higher the transition probability between two states. The job states on the diagnal of the transition matrix have the darkest color, meaning that our sample has a higher probability to stay in the same job state.</p>
+<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-3-1.png" width="960" /> <span class="math display">\[\text{Fig 1. Original Transition Matrix}\]</span></p>
+</div>
+<div id="transition-matrix-standardization" class="section level3">
+<h3>Transition Matrix standardization</h3>
+<p>For sequence clustering, our next step is to construct a substitution-cost matrix <span class="math inline">\(SC\)</span> using the formula <span class="math display">\[SC(i,j) = 2 -T(i,j) -T(j,i)\]</span></p>
+<p>Substitution-cost matrix reflects the cost for substituting a job state with another. <span class="math inline">\(SC(i,j)\)</span> represent the cost for changing from the current job state <span class="math inline">\(i\)</span> to the next job state <span class="math inline">\(j\)</span>, for <span class="math inline">\(i \in [1,9], j \in [1,9]\)</span>. We then use transition rate to construct substitution-cost matrix using the formula <span class="math display">\[SC(i, j) = \begin{cases}
+2-T(i,j)-T(j,i), &amp; i \neq j\\
+0, &amp; i=j
+\end{cases}\]</span></p>
+<p>The consequence for the diagnal to have large transition probability is the consistent cost between job state <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> that <span class="math inline">\(SC(i, j)\)</span> will be approximately 2. In order to make the difference between two different states more visible, we standardize the transition matrix by excluding the diagnal when constructing the transition matrix. Figure 2 shows the standardized transition matrix. Having diagnal as 0, we can better observe the difference of the transition probability between two different states.</p>
+<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-4-1.png" width="960" /> <span class="math display">\[\text{Fig 2. Standardized Transition Matrix}\]</span></p>
 </div>
 <div id="clustering" class="section level3">
 <h3>Clustering</h3>
-<p>There are 5185 sequences among our sample, and there are 2113 (440.8%) distinct sequences. We identified 8 types of clusterings. We have type 1, 4, 5, 6 clusters mainly composed of veterans in job zone 4. Specifically, veterans in type 1 cluster had few years' of transitional unemployment after exiting military before their job-zone-level 4 jobs.</p>
+<p>We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 8 types of clusterings. We have type 1, 5, 6 clusters mainly composed of veterans in job zone 4. Specifically, veterans in type 1 cluster had few years' of transitional unemployment after exiting military before their job-zone-level 4 jobs.</p>
+<p><img src="../../findings/results-section-clustering_files/Fig3.png" style="width:100.0%" height="800" /> <span class="math display">\[\text{Fig 3. Type 1 Clusters}\]</span></p>
 <p>We do observe a career promotion among veterans in type 2 cluster where they started with job zone 3 and went into job zone 4.</p>
+<p><img src="../../findings/results-section-clustering_files/Fig4.png" style="width:80.0%" height="300" /> <span class="math display">\[\text{Fig 4. Type 2 Clusters}\]</span></p>
 <p>The remaining type 3, 7, 8 do no exibit a change in post-military career. Type 3 cluster is composed of jobs in job zone 5. Type 7 cluster is composed of jobs in job zone 1. And type 8 cluster is composed of jobs in job zone 3.</p>
-<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-5-1.png" width="960" /><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-5-2.png" width="960" /></p>
+<p><img src="../../findings/results-section-clustering_files/Fig5.png" />{width=100% height=850px; margin-left: 50px; margin-right: 50px} <span class="math display">\[\text{Fig 5. Type 3 Clusters}\]</span></p>
+<p><img src="../../findings/results-section-clustering_files/Fig6.png" style="width:80.0%" height="300" /> <span class="math display">\[\text{Fig 6. Type 4 Clusters}\]</span></p>
 <p>To understand how veterans developed different career trajectories, we investigated the relationship between gender, highest degree level and the career trajectory cluster they were associated with.</p>
 </div>
 <div id="do-veterans-education-background-influence-their-career-trajectory" class="section level3">
 <h3>Do veterans' education background influence their career trajectory?</h3>
-<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Here we are showing how many veterans with different degrees fall into each of these 8 clusters. Since the majority of our veteran sample had highest degree as bachelor's and master's degree, here we show the percentage of veterans fall into each of the eight clusters for each highest degree earned. Thus each row adds up to 1.</p>
+<p><img src="../../findings/results-section-clustering_files/Fig7.png" style="width:100.0%" height="500" /> <span class="math display">\[\text{Fig 7. Cluster Distribution for Different Levels of Education}\]</span></p>
+<pre><code>## Error in is.data.frame(y): object &#39;bg_vet_demographic&#39; not found</code></pre>
+<pre><code>## Error in table(vet_df$cluster, vet_df$degree_highest): all arguments must have the same length</code></pre>
+<pre><code>## Error in 1:ncol(table): argument of length 0</code></pre>
+<pre><code>## Error in `colnames&lt;-`(`*tmp*`, value = c(&quot;associate&quot;, &quot;bachelor&quot;, &quot;certificate&quot;, : attempt to set &#39;colnames&#39; on an object with less than two dimensions</code></pre>
+<pre><code>## Error in `$&lt;-.data.frame`(`*tmp*`, cluster, value = c(&quot;cluster1&quot;, &quot;cluster2&quot;, : replacement has 8 rows, data has 0</code></pre>
+<pre><code>## Error in setnames(x, value): Can&#39;t assign 3 names to a 0 column data.table</code></pre>
+<pre><code>## Error in factor(degree, levels = rev(state)): object &#39;degree&#39; not found</code></pre>
 <p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>
 <div id="do-female-and-male-veterans-have-different-career-trajectory" class="section level3">
 <h3>Do Female and Male Veterans have different career trajectory?</h3>
-<p>In our sample, we have 15.9% (N=824) female veterans, 84.1% (N=3666) male veterans. We conducted <span class="math inline">\(\chi^2\)</span> test. Using 0.05 as the critical value, we conclude that female is statistically different from male in cluster 2 (p=0.0083), 5 (p&lt;0.001), 6 (p=0.017), and 8 (0.042). <img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<pre><code>##    
-##     female male
-##   1     70  398
-##   2     91  537
-##   3     37  219
-##   4     74  387
-##   5    316 1077
-##   6     92  528
-##   7     71  272
-##   8     73  248</code></pre>
-<pre><code>## [1] 5.220941e-02 8.293374e-03 1.149379e-01 1.994392e-01 6.078961e-07
-## [6] 1.739298e-02 2.729629e-01 4.198785e-02</code></pre>
-<pre><code>## [1] FALSE  TRUE FALSE FALSE  TRUE  TRUE FALSE  TRUE</code></pre>
+<p>In our sample, we have 15.9% (N=824) female veterans, 84.1% (N=3666) male veterans. We conducted <span class="math inline">\(\chi^2\)</span> test. Using 0.05 as the critical value, we conclude that female is statistically different from male in cluster 2 (p=0.0083), 5 (p&lt;0.001), 6 (p=0.017), and 8 (0.042).</p>
+<pre><code>## Error: Problem with `filter()` input `..1`.
+## x object &#39;gender&#39; not found
+## ℹ Input `..1` is `!is.na(gender)`.</code></pre>
+<pre><code>## Error in is.factor(x): object &#39;gender&#39; not found</code></pre>
+<pre><code>## Error in is.factor(x): object &#39;gender&#39; not found</code></pre>
+<pre><code>## Error in as.data.frame(gender): object &#39;gender&#39; not found</code></pre>
+<pre><code>## Error in ggplot(gender, aes(cluster, gender, fill = perc)): object &#39;gender&#39; not found</code></pre>
+<pre><code>## Error in is.data.frame(y): object &#39;bg_vet_demographic&#39; not found</code></pre>
+<pre><code>## Error in table(vet_df$cluster, vet_df$gender): all arguments must have the same length</code></pre>
+<pre><code>## function (..., exclude = if (useNA == &quot;no&quot;) c(NA, NaN), useNA = c(&quot;no&quot;, 
+##     &quot;ifany&quot;, &quot;always&quot;), dnn = list.names(...), deparse.level = 1) 
+## {
+##     list.names &lt;- function(...) {
+##         l &lt;- as.list(substitute(list(...)))[-1L]
+##         nm &lt;- names(l)
+##         fixup &lt;- if (is.null(nm)) 
+##             seq_along(l)
+##         else nm == &quot;&quot;
+##         dep &lt;- vapply(l[fixup], function(x) switch(deparse.level + 
+##             1, &quot;&quot;, if (is.symbol(x)) as.character(x) else &quot;&quot;, 
+##             deparse(x, nlines = 1)[1L]), &quot;&quot;)
+##         if (is.null(nm)) 
+##             dep
+##         else {
+##             nm[fixup] &lt;- dep
+##             nm
+##         }
+##     }
+##     miss.use &lt;- missing(useNA)
+##     miss.exc &lt;- missing(exclude)
+##     useNA &lt;- if (miss.use &amp;&amp; !miss.exc &amp;&amp; !match(NA, exclude, 
+##         nomatch = 0L)) 
+##         &quot;ifany&quot;
+##     else match.arg(useNA)
+##     doNA &lt;- useNA != &quot;no&quot;
+##     if (!miss.use &amp;&amp; !miss.exc &amp;&amp; doNA &amp;&amp; match(NA, exclude, 
+##         nomatch = 0L)) 
+##         warning(&quot;&#39;exclude&#39; containing NA and &#39;useNA&#39; != \&quot;no\&quot;&#39; are a bit contradicting&quot;)
+##     args &lt;- list(...)
+##     if (!length(args)) 
+##         stop(&quot;nothing to tabulate&quot;)
+##     if (length(args) == 1L &amp;&amp; is.list(args[[1L]])) {
+##         args &lt;- args[[1L]]
+##         if (length(dnn) != length(args)) 
+##             dnn &lt;- if (!is.null(argn &lt;- names(args))) 
+##                 argn
+##             else paste(dnn[1L], seq_along(args), sep = &quot;.&quot;)
+##     }
+##     bin &lt;- 0L
+##     lens &lt;- NULL
+##     dims &lt;- integer()
+##     pd &lt;- 1L
+##     dn &lt;- NULL
+##     for (a in args) {
+##         if (is.null(lens)) 
+##             lens &lt;- length(a)
+##         else if (length(a) != lens) 
+##             stop(&quot;all arguments must have the same length&quot;)
+##         fact.a &lt;- is.factor(a)
+##         if (doNA) 
+##             aNA &lt;- anyNA(a)
+##         if (!fact.a) {
+##             a0 &lt;- a
+##             a &lt;- factor(a, exclude = exclude)
+##         }
+##         add.na &lt;- doNA
+##         if (add.na) {
+##             ifany &lt;- (useNA == &quot;ifany&quot;)
+##             anNAc &lt;- anyNA(a)
+##             add.na &lt;- if (!ifany || anNAc) {
+##                 ll &lt;- levels(a)
+##                 if (add.ll &lt;- !anyNA(ll)) {
+##                   ll &lt;- c(ll, NA)
+##                   TRUE
+##                 }
+##                 else if (!ifany &amp;&amp; !anNAc) 
+##                   FALSE
+##                 else TRUE
+##             }
+##             else FALSE
+##         }
+##         if (add.na) 
+##             a &lt;- factor(a, levels = ll, exclude = NULL)
+##         else ll &lt;- levels(a)
+##         a &lt;- as.integer(a)
+##         if (fact.a &amp;&amp; !miss.exc) {
+##             ll &lt;- ll[keep &lt;- which(match(ll, exclude, nomatch = 0L) == 
+##                 0L)]
+##             a &lt;- match(a, keep)
+##         }
+##         else if (!fact.a &amp;&amp; add.na) {
+##             if (ifany &amp;&amp; !aNA &amp;&amp; add.ll) {
+##                 ll &lt;- ll[!is.na(ll)]
+##                 is.na(a) &lt;- match(a0, c(exclude, NA), nomatch = 0L) &gt; 
+##                   0L
+##             }
+##             else {
+##                 is.na(a) &lt;- match(a0, exclude, nomatch = 0L) &gt; 
+##                   0L
+##             }
+##         }
+##         nl &lt;- length(ll)
+##         dims &lt;- c(dims, nl)
+##         if (prod(dims) &gt; .Machine$integer.max) 
+##             stop(&quot;attempt to make a table with &gt;= 2^31 elements&quot;)
+##         dn &lt;- c(dn, list(ll))
+##         bin &lt;- bin + pd * (a - 1L)
+##         pd &lt;- pd * nl
+##     }
+##     names(dn) &lt;- dnn
+##     bin &lt;- bin[!is.na(bin)]
+##     if (length(bin)) 
+##         bin &lt;- bin + 1L
+##     y &lt;- array(tabulate(bin, pd), dims, dimnames = dn)
+##     class(y) &lt;- &quot;table&quot;
+##     y
+## }
+## &lt;bytecode: 0x556b8c7a6288&gt;
+## &lt;environment: namespace:base&gt;</code></pre>
+<pre><code>## Error in 1:nrow(table): argument of length 0</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## logical(0)</code></pre>
 </div>
 <div id="references" class="section level3">
 <h3>References</h3>
