@@ -509,9 +509,9 @@ p <- ggplot() +
   #           size = 2) +
   scale_y_continuous(name = "Share of careers in a job state") +
   xlim(0,10) +
-  scale_fill_manual(values = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "purple", "#CBBEB5", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Transitional unemployed", "Unemployed", "Unemployed/Exit")) +
+  scale_fill_manual(values = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#DCDCDC", "#C0C0C0", "#696969"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military transition unemployed", "Civilian unemployed", "Retired")) +
   xlab("Year of career") +
-  labs(title = "Job states over time for first ten years after veteran's last military job",
+  labs(title = "Job states over time for first ten years \n after veteran's last military job",
        fill = "Job state",
        caption = "Data: BGT Resumes") +
   theme_classic() +

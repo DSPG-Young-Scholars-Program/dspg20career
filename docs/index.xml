@@ -44,9 +44,8 @@ Main Findings [Here you will describe the results and include important visualiz
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/findings/results-section-clustering/</guid>
-      <description>Transition Matrix There are nine levels of job state: job zone (level) 1, job zone (level) 2, job zone (level) 3, job zone (level) 4, job zone (level) 5, transitional unemployment, unemployment, unemployment or retirement, and unknown job zone.
-[Here comes a table that explains the job levels.]
-In our sequence analysis, we want to categorize sequential pattern of the job levels. One approach for categorizing sequences is to compute the distance between two sequences.</description>
+      <description>Transition Matrix Normalization There are nine levels of job state: job zone (level) 1, job zone (level) 2, job zone (level) 3, job zone (level) 4, job zone (level) 5, transitional unemployment, unemployment, unemployment or retirement, and unknown job zone.
+Transition matrix is composed of transition rates between each pair of states. Transition matrix has dimension \(k \times k\), k being the number of job states, Since we have 9 job states, our transition matrix has dimension \(9 \times 9\).</description>
     </item>
     
     <item>
