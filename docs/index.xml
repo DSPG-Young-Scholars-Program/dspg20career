@@ -57,8 +57,10 @@ In our sequence analysis, we want to categorize sequential pattern of the job le
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/data/</guid>
-      <description>2020 Veteran Career Pathways Summer Project Data Sources Example text: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in varius purus. Nullam ut sodales ante. Fusee justo nisi, suscipit a lacus et, posuere sagittis ex. Nulla convallis ante elit, at consequat ipsum ultricies ut. Aliquam erat volutpat. nderline. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in variu convallis ante elit, at consequat ipsum ultricies ut.
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.</description>
+      <description>2020 Veteran Career Pathways Summer Project Data Sources Burning Glass Technologies Resume Data Burning Glass Technologies (BGT) provides data on resumes that were scraped from publically available sites between (YEAR) AND (YEAR). finish description.
+American Community Survey describe
+Longitudinal Employer-Household Dynamics (LEHD) Origin-Destination Employment Statistics (LODES) describe
+Veteran Employment Outcomes (VEO) The Veteran Employment Outcomes (VEO) data are new Census Burea statistics on labor market outcoems for recent Army veterans. They present aggregated statistics for all Army veterans who have recently completed their term of service.</description>
     </item>
     
     <item>
@@ -67,8 +69,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.</description>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/methods/</guid>
-      <description>2020 Veteran Career Pathways Summer Project Methodology Sequence Analysis Explain sequence analysis method and wrangling decisions to get sequences working.
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in varius purus. Nullam ut sodales ante. Fusee justo nisi, suscipit a lacus et, posuere sagittis ex. Nulla convallis ante elit, at consequat ipsum ultricies ut. Aliquam erat volutpat. nderline. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in variu convallis ante elit, at consequat ipsum ultricies ut.</description>
+      <description>2020 Veteran Career Pathways Summer Project Methodology Sequence Analysis Sequence analysis refers to a method of longitudinal analysis where linear data is defined as an entire sequence. A sequence orders events and their associated states along a linear axis - in our case, time (Halpin 2016). It can be implemented with the TraMineR package in R, which enables both the analysis and visualization of sequences (Gabadinho et al. 2011). For the purposes of our sequence analysis, we define our &amp;ldquo;states&amp;rdquo; to be job zones or unemployment types and our &amp;ldquo;events&amp;rdquo; to be a transitition between jobs.</description>
     </item>
     
     <item>
@@ -78,7 +79,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in varius purus
       
       <guid>/overview/</guid>
       <description>2020 Veteran Career Pathways Summer Project This project focuses on exploring the career pathways of Army veterans, observed using Burning Glass Technologies resume data. The team explores modeling techniques including sequence analysis and tournament models to classify resume data into a typology of career trajectories, and identify factors associated with career mobility. Initial modeling efforts are focused on resumes in the Washington Metropolitan area.
-Project Goals Example text: We&amp;rsquo;re devising and assessing methods that make human populations more resilient not just during, but also before and after natural disasters.</description>
+Project Goals As part of a larger project with the Army Research institute we seek to develop predictve models and metrics to describe the career pathways of veterans and active duty Soldiers.</description>
     </item>
     
     <item>
