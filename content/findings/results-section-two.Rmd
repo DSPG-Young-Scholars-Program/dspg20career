@@ -30,7 +30,7 @@ Among the sequences in the whole careers sequence object, there was a large dist
 </figure>
 </center>
 
-Next, we visualized the whole career sequences by looking at the mean time spent in each state. For help interpreting sequence graphs, please visit the <a href="../../methods.html#interpreting-sequence-graphs">relevant section </a> in our Methods.
+Next, we visualized the whole career sequences by looking at the mean time spent in each state. For help interpreting sequence graphs, please visit the <a href="../../methods#interpreting-sequence-graphs">relevant section </a> in our Methods.
 
 <center>
 <figure>
