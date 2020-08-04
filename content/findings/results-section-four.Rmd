@@ -133,6 +133,11 @@ tblA %>%
   tab_header(
     title = "Two-way Frequency Table"
   )
+```
+
+
+
+```{r echo = FALSE}
 chisq.test(tblA)
 ```
 
@@ -153,6 +158,11 @@ tblB %>%
   tab_header(
     title = "Two-way Frequency Table"
   )
+```
+
+
+
+```{r echo = FALSE}
 chisq.test(tblB)
 ```
 
@@ -173,6 +183,11 @@ tblC %>%
   tab_header(
     title = "Two-way Frequency Table"
   )
+```
+
+
+
+```{r echo = FALSE}
 chisq.test(tblC)
 ```
 
@@ -192,6 +207,11 @@ tblD %>%
   tab_header(
     title = "Two-way Frequency Table"
   )
+```
+
+
+
+```{r echo = FALSE}
 chisq.test(tblD)
 ```
 
@@ -212,6 +232,9 @@ tblE %>%
   tab_header(
     title = "Two-way Frequency Table"
   )
+```
+
+```{r echo = FALSE}
 chisq.test(tblE)
 ```
 
