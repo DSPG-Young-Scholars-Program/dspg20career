@@ -95,7 +95,7 @@ $(document).ready(function(){
   })
 });
 </script>
- <meta name="generator" content="Hugo 0.74.3" />
+ <meta name="generator" content="Hugo 0.74.2" />
         <link href="" rel="alternate" type="application/rss+xml" title="UVA Biocomplexity Institute" />
         <link href="" rel="feed" type="application/rss+xml" title="UVA Biocomplexity Institute" />
         
@@ -213,9 +213,7 @@ $(document).ready(function(){
 <h3 style="text-align:center" id="sequence-analysis">Sequence Analysis</h3>
 <p>Sequence analysis refers to a method of longitudinal analysis where linear data is defined as an entire sequence. A sequence orders events and their associated states along a linear axis - in our case, time (Halpin 2016). It can be implemented with the <code>TraMineR</code> package in R, which enables both the analysis and visualization of sequences (Gabadinho et al. 2011). For the purposes of our sequence analysis, we define our &ldquo;states&rdquo; to be job zones or unemployment types and our &ldquo;events&rdquo; to be a transitition between jobs. A table describing the different types of states that are possible is included below; these states are explained further in the Sequence Exploration section.</p>
 <p>Sequences can be represented in several ways, as <code>TraMineR</code> is able to convert between them (Gabadinho et al. 2010, p. 28). However, all formats of the data require a start and end point for a state as well as the state itself. In order to compare careers meaningfully, we lined up our sequences to all start at t=0 and progress annually, rather than including the actual years of a job. We particularly focused on sequences of careers that occurred after the last military job an individual held, as we are interested in their career pathways as veterans. We also explored both the full careers of veterans and also the 10-year period after they first exit the military.</p>
-
 <h3 style="text-align:center" id="clustering-sequences">Clustering Sequences</h3>
-
 <section>
     <a id="readgraphs">
     </a>
@@ -248,7 +246,7 @@ $(document).ready(function(){
 </figure>
 </center>
 <p>Figure 3 is a grouped state distribution plot. Here, states, again represented by colors, are shown over time, running along the x-axis. In a state distribution plot, the y-axis depicts the state frequency as a proportion of all sequences at each unit of time.</p>
-<h4 style="text-align:center" id="clustering-sequences">Clustering Sequences</h4>
+<h4 style="text-align:center" id="clustering-sequences-1">Clustering Sequences</h4>
 <p>Clustering is an unsupervised machine learning method that explores data by grouping it based on its distance from other data. Once these groups are determined, we can analyze similarities and differences between groups, and look for patterns in how the data is classified. Different methods of clustering calculate this distance differently. One such method, hierarchical clustering, does not require the number of clusters to be pre-specified, because it calculates the clusters obtained for each possible number of clusters (James et al. 2013, p. 386). These clusters can be visualized on a &ldquo;dendogram&rdquo;, a tree-based diagram. These diagrams provide information not just about the optimal number of clusters for gaining information about a dataset, but which clusters are closer or farther away from another.</p>
 <p>To implement hierarachical clustering on our sequences, we used Ward&rsquo;s method, which calculates the merging cost of combining two clusters. Ward&rsquo;s method is easily implemented with TraMineR, which has several methods for calculating distances between sequences (Studer &amp; Ritschard, 2016). We present some of these calculations in our Clustering results section. As hierarchical clustering does not require the number of clusters to be pre-specified, it is also necessary to determine the optimal number of clusters for analysis. We did this by using the dendogram (<em>BELOW</em>), which depicts the amount of additional information gained by including another level of clusters. Based on this dendogram, we decided to choose eight clusters of sequences for analysis.</p>
 <p><em>INSERT DENDOGRAM</em></p>
