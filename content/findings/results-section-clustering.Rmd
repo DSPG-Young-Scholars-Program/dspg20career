@@ -121,7 +121,7 @@ Darker the color, higher the transition probability between two states. Before s
 
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=10}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=10, fig.height= 6}
 state <- c("unknown \n zone", "zone1", "zone2", "zone3", "zone4", "zone5", "military \n transitional \n unemployment \n", "civilian \n unemployment", "retirement")
 
 #original transitional matrix 
@@ -167,7 +167,7 @@ $$SC(i, j) = \begin{cases}
 The consequence for the diagnal to have large transition probability is the consistent cost between job state $i$ and $j$ that $SC(i, j)$ will be approximately 2. In order to make the difference between two different states more visible, we standardize the transition matrix by excluding the diagnal when constructing the transition matrix. Figure 2 shows the standardized transition matrix that reflects changes between states. Having diagnal as 0, we can better observe the difference of the transition probability between two different states. 
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=10}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=10, fig.height= 6}
 #standardized transition matrix
 tmatrix.standardize.df <- as.data.frame(transition_matrix_standardize)
 
@@ -192,23 +192,23 @@ $$\text{Fig 2. State Transition Matrix}$$
 
 
 ### Clustering
-We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 7 types of sequences, which are identified as clusters according to the sequence analysis. As shown in Figure 3, Cluster 1, 2, 3 are mainly composed of veterans in job zone 4. Specifically, veterans in Cluster 1 had many years' of traerans in Cluster 2 worked for a short period of time in job zone 4 and retired. Veterans in Cluster 3 worked in job zone 4-jobs for 10 years post-military. 
+We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 7 types of sequences identified as clusters according to the sequence analysis. As shown in Figure 3, Cluster 1, 2, 3 are mainly composed of veterans in job zone 4. Specifically, veterans in Cluster 1 had many years' of traerans in Cluster 2 worked for a short period of time in job zone 4 and retired. Veterans in Cluster 3 worked in job zone 4-jobs for 10 years post-military. 
 
 
-![](/findings/results-section-clustering_files/Fig3.png){width=100% height=900px}
+![](/findings/results-section-clustering_files/Fig3.png){width=80% height=800px}
 $$\text{Fig 3. Clusters Most Common in Job Zone 4}$$
 
 
-As shown in Fig 4, we observe for the majority of the veterans in Cluster 4 had a career promotion where they started with job zone 3 and went into job zone 4. We do recognize a small proportion of the veterans in this cluster had a demotion from job zone 5 to job zone 4.
+As shown in Figure 4, we observed that the majority of the veterans in Cluster 4 had a career promotion where they started in Zone 3 and went into Zone 4. We recognize some veterans in Cluster 4 experienced the Military Transitional Unemployment before their Zone-3 jobs. We also recognize a small proportion of these veterans had a demotion from job zone 5 to job zone 4.
 
-![](/findings/results-section-clustering_files/Fig4.png){width=100% height=300px}
+![](/findings/results-section-clustering_files/Fig4.png){width=80% height=250px}
 $$\text{Fig 4. Career Promotion Cluster}$$
 
 
-As shown in Fig 5, Cluster 5, 6, 7 do no exibit a change in post-military career. Cluster 5, 6, 7 are composed of jobs in job zone 5, job zone 2, and job zone 3 respectively.
+As shown in Figure 5, Clusters 5, 6, 7 do no exibit changes in post-military career. Clusters 5, 6, 7 are composed of jobs in Zone 5, Zone 2, and Zone 3 respectively. In Cluster 5, we also observed a short period of unemployment or jobs with a lower job zone before the Zone-5 jobs. In Cluster 6, we also observed veterans having Military Transitional Unemployment before their Zone-2 jobs and veterans retiring after their Zone-2 jobs. In Cluster 7, we are observing shorter period of Military Transitional Unemployment before their Zone-3 jobs and less retirement after their Zone-3 jobs.
 
 
-![](/findings/results-section-clustering_files/Fig5.png){width=100% height=900px}
+![](/findings/results-section-clustering_files/Fig5.png){width=80% height=800px}
 
 
 $$\text{Fig 5. Clusters Most Common in Job Zone 2, 3, 5}$$
@@ -299,13 +299,13 @@ cluster8 <- factor(cluster8, labels = c("Type 1",  "Type 2", "Type 3", "Type 4",
 <br>
 <br>
 
-### Do veterans' education background influence their career trajectory?
+### Is veterans' education background associated with their career trajectory?
 
 To understand how veterans developed different career trajectories, we investigated whether gender and highest degree earned are associated with the career clusters.
 
-First, let's take a look at a frequency plot shown in Figure 6. Here we are showing the number of veterans with different degrees in each of these 8 clusters. Since the majority of our veteran sample had highest degree as bachelor's and master's degree, here we present the percentage of veterans in each of the eight clusters for each highest degree earned. Thus each row adds up to 1. 
+First, let's take a look at a frequency plot shown in Figure 6. Here we are showing the number of veterans with different degrees in each of these 7 clusters. Since the majority of our veteran sample had highest degree as bachelor's and master's degree, here we present the percentage of veterans in each of the eight clusters for each highest degree earned. Thus each row adds up to 1. 
 
-![](/findings/results-section-clustering_files/Fig6.png){width=100% height=500px}
+![](/findings/results-section-clustering_files/Fig6.png){width=100% height=430px}
 
 $$\text{Fig 6. Cluster Distribution by Different Levels of Education}$$
 
@@ -398,8 +398,8 @@ ggplot(degree, aes(cluster, degree_highest, fill= perc)) +
 <br>
 <br>
 
-###Statistical significance test
-To test whether the differences we observed before are statistically significant, we performed Pearson's $\chi^2$-test and Fisher's exact test. Fisher's exact test is used when at least a 20% of the expected cell counts are small (< 5). These are formal test of association between two categorical variables. First, we constructed a two-way freqency table as shown in Table 2. For example, there are 44 veterans who had a high school's degree as their highest degree earned and were categorized in Cluster 2. The expected count is 34 assuming cluster and highest degree earned are independent. We are testing our hypothesis $$H_0: \text{Odds Ratio} =1$$ $$H_A: \text{Odds Ratio} \neq 1$$ 
+###Association test
+To test whether the differences we observed before are statistically significant, we performed Pearson's $\chi^2$-test and Fisher's exact test. These are formal test of association between two categorical variables. Specifically, Fisher's exact test is used when at least a 20% of the expected cell counts are small ($\leq$ 5). First, we constructed a two-way freqency table as shown in Table 2. For example, there are 44 veterans who had a high school's degree as their highest degree earned and were categorized in Cluster 2. The expected count is 34 assuming cluster and highest degree earned are independent. We are testing our hypothesis $$H_0: \text{Odds Ratio} =1$$ $$H_A: \text{Odds Ratio} \neq 1$$ 
 
 
 ```{r two-way-table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -425,7 +425,7 @@ vet_df$cluster <- as.factor(vet_df$cluster)
 #i=2
 table <- table(vet_df$cluster, vet_df$degree_highest)
 m<- as.data.frame(matrix(c('44 [34]', '64 [74]', '889 [899]', '1958 [1948]'), 2, 2))
-colnames(m) <- c("cluster 2", "not cluster 2")
+colnames(m) <- c("Cluster 2", "not Cluster 2")
 rownames(m) <- c("High School's degree", "others")
 
 m%>%
@@ -480,7 +480,11 @@ colnames(degree_p_df) <- c("cluster", "degree", "value")
 
 degree_p_df <- degree_p_df%>%
   filter(cluster != "cluster8")
+```
 
+We conducted 49 hypothesis test in total, having 7 different highest degree earned types and 7 clusters. Since we are conducting multiple hypothesis tests, a small p-value (<0.05) might happen by chance, which increase the chance of Type I errors (false positives), rejecting the true null hypothesis. Therefore, we introduced two methods for multiple-test correction.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 ggplot(data = degree_p_df, aes(x = cluster, y = factor(degree, levels = rev(state)), fill = value)) + 
   geom_tile() +    
   geom_text(aes(label=round(value,3))) +  
@@ -500,8 +504,9 @@ ggplot(data = degree_p_df, aes(x = cluster, y = factor(degree, levels = rev(stat
 $$\text{Fig 7. P-values from the Association Tests Before Correction for Multiple Tests}$$
 
 ###Bonferroni correction
+First, we introduce a conservative approach for multiple tests correction.The Bonferroni correction for multiple comparisons is a single-step procedure that uses $\alpha' = \frac{\alpha}{m}$, for $\alpha = 0.05$ being the original significance level, $\alpha'$ being the adjusted significance level, and $m = 49$ being the total number of hypothesis tests, since we conducted 49 hypothesis tests, having 7 different highest degree earned types and 7 clusters. 
 
-After Bonferroni correction for multiple testings, we are still observing some highest degree earned within cluster 5, 6, and 7 being statistically different from others. Specifially, we are observing veterans with master's or doctor's degree are more likely to be in Cluster 5, which is composed of mostly level-5 jobs 10-years post-military. Veterans with high school's, associate's, or master's are more likely to be in Cluster 6, which is composed of mostly level-2 jobs with some military transitional unemployment and retirement 10-years post-military. We are also observing veterans with high school's degree are more likely to be in Cluster 7, which is mostly composed of level-3 jobs.
+We calculated the adjusted p-value for each test using Bonferroni correction, as shown in Figure 8. We are still observing some highest degree earned within cluster 5, 6, and 7 being statistically different from others. Specifially, we are observing veterans with master's or doctor's degree are more likely to be in Cluster 5, which is composed of mostly level-5 jobs 10-years post-military. Veterans with high school's, associate's, or master's are more likely to be in Cluster 6, which is composed of mostly level-2 jobs with some military transitional unemployment and retirement 10-years post-military. We are also observing veterans with high school's degree are more likely to be in Cluster 7, which is mostly composed of level-3 jobs.
 
 
 
@@ -518,7 +523,7 @@ degree_p_adjusted_df$cluster <- c("cluster1", "cluster2", "cluster3", "cluster4"
 
 degree_p_adjusted_df <- melt(degree_p_adjusted_df, "cluster")
 colnames(degree_p_adjusted_df) <- c("cluster", "degree", "value")                  
-degree_p_df <- degree_p_df%>%
+degree_p_adjusted_df <- degree_p_adjusted_df%>%
   filter(cluster != "cluster8")
 
 ggplot(data = degree_p_adjusted_df, aes(x = cluster, y = factor(degree, levels = rev(state)), fill = value)) + 
@@ -535,10 +540,12 @@ ggplot(data = degree_p_adjusted_df, aes(x = cluster, y = factor(degree, levels =
   theme(plot.title = element_text(size=10))
 
 ```
-$$\text{Fig 8. P-values from the Association Tests With Bonferroni Correction}$$
+$$\text{Fig 8. P-values from the Association Tests with Bonferroni Correction}$$
 
 
 ###Benjamini & Hochberg correction
+Next, we introduce Benjamini & Hochberg correction which is a less strict approach for multiple tests.
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p_adjusted <- p.adjust(degree_p_matrix, method = "BH")
 degree_p_adjusted_matrix<- matrix(p_adjusted, nrow = 8,ncol = 7)
@@ -552,7 +559,7 @@ degree_p_adjusted_df$cluster <- c("cluster1", "cluster2", "cluster3", "cluster4"
 
 degree_p_adjusted_df <- melt(degree_p_adjusted_df, "cluster")
 colnames(degree_p_adjusted_df) <- c("cluster", "degree", "value")                  
-degree_p_df <- degree_p_df%>%
+degree_p_adjusted_df <- degree_p_adjusted_df%>%
   filter(cluster != "cluster8")
 
 ggplot(data = degree_p_adjusted_df, aes(x = cluster, y = factor(degree, levels = rev(state)), fill = value)) + 
@@ -571,7 +578,7 @@ title = "P-values for Chi-squared Test/Fisher's Exact Test",
 ```
 
 
-$$\text{Fig 9. P-values from the Association Tests With Benjamini & Hochberg Correction}$$
+$$\text{Fig 9. P-values from the Association Tests with Benjamini & Hochberg Correction}$$
 
 <br>
 <br>
@@ -579,7 +586,7 @@ $$\text{Fig 9. P-values from the Association Tests With Benjamini & Hochberg Cor
 
 
 ### Do Female and Male Veterans have different career trajectory?
-In our sample, we have 15.9% (N=824) female veterans, 84.1% (N=3666) male veterans. We conducted $\chi^2$ test. Using 0.05 as the critical value, we conclude that female is statistically different from male only in cluster 2 (p < 0.001) after using Bonferroni correction. Cluster 2 identified veterans who retired after exiting military. According to our correlation test, we conclude that female veterans are more likely to retire or exiting worke force post-military. 
+In our sample, we have 15.9% (N=824) female veterans, 84.1% (N=3666) male veterans. We conducted $\chi^2$ test. Using 0.05 as the critical value, we conclude that female is statistically different from male only in cluster 2 (p < 0.001) after using Bonferroni correction. Cluster 2 identified veterans who retired after exiting military. According to our correlation test, we conclude that female veterans are more likely to retire or to exit the work force after the conclusion of their military career. 
 
 ![](/findings/results-section-clustering_files/Fig10.png){width=100% height=500px}
 
@@ -668,7 +675,7 @@ for (i in 1: nrow(table)){
 gender_p_adjusted <- p.adjust(gender_p_vector, method = "bonferroni")
 #gender_p_vector <= 0.05
 #gender_p_adjusted <= 0.05
-m <- matrix (c(316,1077, 508, 2589), 2,2)
+m <- matrix (c(316,1077, 508, 2589), 2, 2)
 
 colnames(m) <- c("Cluster 2", "Not cluster 2")
 rownames(m) <- c("Female", "Male")
@@ -684,7 +691,7 @@ OR
 ```
 
 $$\text{Fig 10. Cluster Distribution by Gender}$$
-### References 
+
 
 
 

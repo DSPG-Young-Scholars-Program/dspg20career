@@ -239,37 +239,37 @@ $(document).ready(function(){
 </div>
 <div id="clustering" class="section level3">
 <h3>Clustering</h3>
-<p>We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 7 types of sequences, which are identified as clusters according to the sequence analysis. As shown in Figure 3, Cluster 1, 2, 3 are mainly composed of veterans in job zone 4. Specifically, veterans in Cluster 1 had many years' of traerans in Cluster 2 worked for a short period of time in job zone 4 and retired. Veterans in Cluster 3 worked in job zone 4-jobs for 10 years post-military.</p>
-<p><img src="../../findings/results-section-clustering_files/Fig3.png" style="width:100.0%" height="900" /> <span class="math display">\[\text{Fig 3. Clusters Most Common in Job Zone 4}\]</span></p>
-<p>As shown in Fig 4, we observe for the majority of the veterans in Cluster 4 had a career promotion where they started with job zone 3 and went into job zone 4. We do recognize a small proportion of the veterans in this cluster had a demotion from job zone 5 to job zone 4.</p>
-<p><img src="../../findings/results-section-clustering_files/Fig4.png" style="width:100.0%" height="300" /> <span class="math display">\[\text{Fig 4. Career Promotion Cluster}\]</span></p>
-<p>As shown in Fig 5, Cluster 5, 6, 7 do no exibit a change in post-military career. Cluster 5, 6, 7 are composed of jobs in job zone 5, job zone 2, and job zone 3 respectively.</p>
+<p>We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 7 types of sequences identified as clusters according to the sequence analysis. As shown in Figure 3, Cluster 1, 2, 3 are mainly composed of veterans in job zone 4. Specifically, veterans in Cluster 1 had many years' of traerans in Cluster 2 worked for a short period of time in job zone 4 and retired. Veterans in Cluster 3 worked in job zone 4-jobs for 10 years post-military.</p>
+<p><img src="../../findings/results-section-clustering_files/Fig3.png" style="width:80.0%" height="800" /> <span class="math display">\[\text{Fig 3. Clusters Most Common in Job Zone 4}\]</span></p>
+<p>As shown in Figure 4, we observed that the majority of the veterans in Cluster 4 had a career promotion where they started in Zone 3 and went into Zone 4. We recognize some veterans in Cluster 4 experienced the Military Transitional Unemployment before their Zone-3 jobs. We also recognize a small proportion of these veterans had a demotion from job zone 5 to job zone 4.</p>
+<p><img src="../../findings/results-section-clustering_files/Fig4.png" style="width:80.0%" height="250" /> <span class="math display">\[\text{Fig 4. Career Promotion Cluster}\]</span></p>
+<p>As shown in Figure 5, Clusters 5, 6, 7 do no exibit changes in post-military career. Clusters 5, 6, 7 are composed of jobs in Zone 5, Zone 2, and Zone 3 respectively. In Cluster 5, we also observed a short period of unemployment or jobs with a lower job zone before the Zone-5 jobs. In Cluster 6, we also observed veterans having Military Transitional Unemployment before their Zone-2 jobs and veterans retiring after their Zone-2 jobs. In Cluster 7, we are observing shorter period of Military Transitional Unemployment before their Zone-3 jobs and less retirement after their Zone-3 jobs.</p>
 <div class="figure">
-<img src="../../findings/results-section-clustering_files/Fig5.png" style="width:100.0%" height="900" />
+<img src="../../findings/results-section-clustering_files/Fig5.png" style="width:80.0%" height="800" />
 
 </div>
 <p><span class="math display">\[\text{Fig 5. Clusters Most Common in Job Zone 2, 3, 5}\]</span></p>
 <p><br> <br> <br> <br> <br> <br></p>
 </div>
-<div id="do-veterans-education-background-influence-their-career-trajectory" class="section level3">
-<h3>Do veterans' education background influence their career trajectory?</h3>
+<div id="is-veterans-education-background-associated-with-their-career-trajectory" class="section level3">
+<h3>Is veterans' education background associated with their career trajectory?</h3>
 <p>To understand how veterans developed different career trajectories, we investigated whether gender and highest degree earned are associated with the career clusters.</p>
-<p>First, let's take a look at a frequency plot shown in Figure 6. Here we are showing the number of veterans with different degrees in each of these 8 clusters. Since the majority of our veteran sample had highest degree as bachelor's and master's degree, here we present the percentage of veterans in each of the eight clusters for each highest degree earned. Thus each row adds up to 1.</p>
+<p>First, let's take a look at a frequency plot shown in Figure 6. Here we are showing the number of veterans with different degrees in each of these 7 clusters. Since the majority of our veteran sample had highest degree as bachelor's and master's degree, here we present the percentage of veterans in each of the eight clusters for each highest degree earned. Thus each row adds up to 1.</p>
 <div class="figure">
-<img src="../../findings/results-section-clustering_files/Fig6.png" style="width:100.0%" height="500" />
+<img src="../../findings/results-section-clustering_files/Fig6.png" style="width:100.0%" height="430" />
 
 </div>
 <p><span class="math display">\[\text{Fig 6. Cluster Distribution by Different Levels of Education}\]</span></p>
 <p><br> <br></p>
 </div>
-<div id="statistical-significance-test" class="section level3">
-<h3>Statistical significance test</h3>
-<p>To test whether the differences we observed before are statistically significant, we performed Pearson's <span class="math inline">\(\chi^2\)</span>-test and Fisher's exact test. Fisher's exact test is used when at least a 20% of the expected cell counts are small (&lt; 5). These are formal test of association between two categorical variables. First, we constructed a two-way freqency table as shown in Table 2. For example, there are 44 veterans who had a high school's degree as their highest degree earned and were categorized in Cluster 2. The expected count is 34 assuming cluster and highest degree earned are independent. We are testing our hypothesis <span class="math display">\[H_0: \text{Odds Ratio} =1\]</span> <span class="math display">\[H_A: \text{Odds Ratio} \neq 1\]</span></p>
+<div id="association-test" class="section level3">
+<h3>Association test</h3>
+<p>To test whether the differences we observed before are statistically significant, we performed Pearson's <span class="math inline">\(\chi^2\)</span>-test and Fisher's exact test. These are formal test of association between two categorical variables. Specifically, Fisher's exact test is used when at least a 20% of the expected cell counts are small (<span class="math inline">\(\leq\)</span> 5). First, we constructed a two-way freqency table as shown in Table 2. For example, there are 44 veterans who had a high school's degree as their highest degree earned and were categorized in Cluster 2. The expected count is 34 assuming cluster and highest degree earned are independent. We are testing our hypothesis <span class="math display">\[H_0: \text{Odds Ratio} =1\]</span> <span class="math display">\[H_A: \text{Odds Ratio} \neq 1\]</span></p>
 <p><style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#mxrlwdhmcm .gt_table {
+#fuvzdhnymh .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -292,7 +292,7 @@ $(document).ready(function(){
   border-left-color: #D3D3D3;
 }
 
-#mxrlwdhmcm .gt_heading {
+#fuvzdhnymh .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -304,7 +304,7 @@ $(document).ready(function(){
   border-right-color: #D3D3D3;
 }
 
-#mxrlwdhmcm .gt_title {
+#fuvzdhnymh .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -314,7 +314,7 @@ $(document).ready(function(){
   border-bottom-width: 0;
 }
 
-#mxrlwdhmcm .gt_subtitle {
+#fuvzdhnymh .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -324,13 +324,13 @@ $(document).ready(function(){
   border-top-width: 0;
 }
 
-#mxrlwdhmcm .gt_bottom_border {
+#fuvzdhnymh .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#mxrlwdhmcm .gt_col_headings {
+#fuvzdhnymh .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -345,7 +345,7 @@ $(document).ready(function(){
   border-right-color: #D3D3D3;
 }
 
-#mxrlwdhmcm .gt_col_heading {
+#fuvzdhnymh .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -365,7 +365,7 @@ $(document).ready(function(){
   overflow-x: hidden;
 }
 
-#mxrlwdhmcm .gt_column_spanner_outer {
+#fuvzdhnymh .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -377,15 +377,15 @@ $(document).ready(function(){
   padding-right: 4px;
 }
 
-#mxrlwdhmcm .gt_column_spanner_outer:first-child {
+#fuvzdhnymh .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#mxrlwdhmcm .gt_column_spanner_outer:last-child {
+#fuvzdhnymh .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#mxrlwdhmcm .gt_column_spanner {
+#fuvzdhnymh .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -397,7 +397,7 @@ $(document).ready(function(){
   width: 100%;
 }
 
-#mxrlwdhmcm .gt_group_heading {
+#fuvzdhnymh .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -419,7 +419,7 @@ $(document).ready(function(){
   vertical-align: middle;
 }
 
-#mxrlwdhmcm .gt_empty_group_heading {
+#fuvzdhnymh .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -434,19 +434,19 @@ $(document).ready(function(){
   vertical-align: middle;
 }
 
-#mxrlwdhmcm .gt_striped {
+#fuvzdhnymh .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#mxrlwdhmcm .gt_from_md > :first-child {
+#fuvzdhnymh .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#mxrlwdhmcm .gt_from_md > :last-child {
+#fuvzdhnymh .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#mxrlwdhmcm .gt_row {
+#fuvzdhnymh .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -465,7 +465,7 @@ $(document).ready(function(){
   overflow-x: hidden;
 }
 
-#mxrlwdhmcm .gt_stub {
+#fuvzdhnymh .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -477,7 +477,7 @@ $(document).ready(function(){
   padding-left: 12px;
 }
 
-#mxrlwdhmcm .gt_summary_row {
+#fuvzdhnymh .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -487,7 +487,7 @@ $(document).ready(function(){
   padding-right: 5px;
 }
 
-#mxrlwdhmcm .gt_first_summary_row {
+#fuvzdhnymh .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -497,7 +497,7 @@ $(document).ready(function(){
   border-top-color: #D3D3D3;
 }
 
-#mxrlwdhmcm .gt_grand_summary_row {
+#fuvzdhnymh .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -507,7 +507,7 @@ $(document).ready(function(){
   padding-right: 5px;
 }
 
-#mxrlwdhmcm .gt_first_grand_summary_row {
+#fuvzdhnymh .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -517,7 +517,7 @@ $(document).ready(function(){
   border-top-color: #D3D3D3;
 }
 
-#mxrlwdhmcm .gt_table_body {
+#fuvzdhnymh .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -526,7 +526,7 @@ $(document).ready(function(){
   border-bottom-color: #D3D3D3;
 }
 
-#mxrlwdhmcm .gt_footnotes {
+#fuvzdhnymh .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -540,13 +540,13 @@ $(document).ready(function(){
   border-right-color: #D3D3D3;
 }
 
-#mxrlwdhmcm .gt_footnote {
+#fuvzdhnymh .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#mxrlwdhmcm .gt_sourcenotes {
+#fuvzdhnymh .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -560,46 +560,46 @@ $(document).ready(function(){
   border-right-color: #D3D3D3;
 }
 
-#mxrlwdhmcm .gt_sourcenote {
+#fuvzdhnymh .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#mxrlwdhmcm .gt_left {
+#fuvzdhnymh .gt_left {
   text-align: left;
 }
 
-#mxrlwdhmcm .gt_center {
+#fuvzdhnymh .gt_center {
   text-align: center;
 }
 
-#mxrlwdhmcm .gt_right {
+#fuvzdhnymh .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#mxrlwdhmcm .gt_font_normal {
+#fuvzdhnymh .gt_font_normal {
   font-weight: normal;
 }
 
-#mxrlwdhmcm .gt_font_bold {
+#fuvzdhnymh .gt_font_bold {
   font-weight: bold;
 }
 
-#mxrlwdhmcm .gt_font_italic {
+#fuvzdhnymh .gt_font_italic {
   font-style: italic;
 }
 
-#mxrlwdhmcm .gt_super {
+#fuvzdhnymh .gt_super {
   font-size: 65%;
 }
 
-#mxrlwdhmcm .gt_footnote_marks {
+#fuvzdhnymh .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
-<div id="mxrlwdhmcm" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+<div id="fuvzdhnymh" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
   <thead class="gt_header">
     <tr>
       <th colspan="3" class="gt_heading gt_title gt_font_normal" style>Two-way Frequency Table</th>
@@ -611,8 +611,8 @@ $(document).ready(function(){
   <thead class="gt_col_headings">
     <tr>
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1"></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">cluster 2</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">not cluster 2</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">Cluster 2</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1">not Cluster 2</th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
@@ -629,27 +629,31 @@ $(document).ready(function(){
   </tbody>
   
   
-</table></div> <span class="math display">\[\text{Table 2. Two-way Frequency Table}\]</span> <img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-9-1.png" width="672" /> <span class="math display">\[\text{Fig 7. P-values from the Association Tests Before Correction for Multiple Tests}\]</span></p>
+</table></div> <span class="math display">\[\text{Table 2. Two-way Frequency Table}\]</span></p>
+<p>We conducted 49 hypothesis test in total, having 7 different highest degree earned types and 7 clusters. Since we are conducting multiple hypothesis tests, a small p-value (&lt;0.05) might happen by chance, which increase the chance of Type I errors (false positives), rejecting the true null hypothesis. Therefore, we introduced two methods for multiple-test correction.</p>
+<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-10-1.png" width="672" /> <span class="math display">\[\text{Fig 7. P-values from the Association Tests Before Correction for Multiple Tests}\]</span></p>
 </div>
 <div id="bonferroni-correction" class="section level3">
 <h3>Bonferroni correction</h3>
-<p>After Bonferroni correction for multiple testings, we are still observing some highest degree earned within cluster 5, 6, and 7 being statistically different from others. Specifially, we are observing veterans with master's or doctor's degree are more likely to be in Cluster 5, which is composed of mostly level-5 jobs 10-years post-military. Veterans with high school's, associate's, or master's are more likely to be in Cluster 6, which is composed of mostly level-2 jobs with some military transitional unemployment and retirement 10-years post-military. We are also observing veterans with high school's degree are more likely to be in Cluster 7, which is mostly composed of level-3 jobs.</p>
-<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-10-1.png" width="672" /> <span class="math display">\[\text{Fig 8. P-values from the Association Tests With Bonferroni Correction}\]</span></p>
+<p>First, we introduce a conservative approach for multiple tests correction.The Bonferroni correction for multiple comparisons is a single-step procedure that uses <span class="math inline">\(\alpha&#39; = \frac{\alpha}{m}\)</span>, for <span class="math inline">\(\alpha = 0.05\)</span> being the original significance level, <span class="math inline">\(\alpha&#39;\)</span> being the adjusted significance level, and <span class="math inline">\(m = 49\)</span> being the total number of hypothesis tests, since we conducted 49 hypothesis tests, having 7 different highest degree earned types and 7 clusters.</p>
+<p>We calculated the adjusted p-value for each test using Bonferroni correction, as shown in Figure 8. We are still observing some highest degree earned within cluster 5, 6, and 7 being statistically different from others. Specifially, we are observing veterans with master's or doctor's degree are more likely to be in Cluster 5, which is composed of mostly level-5 jobs 10-years post-military. Veterans with high school's, associate's, or master's are more likely to be in Cluster 6, which is composed of mostly level-2 jobs with some military transitional unemployment and retirement 10-years post-military. We are also observing veterans with high school's degree are more likely to be in Cluster 7, which is mostly composed of level-3 jobs.</p>
+<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-11-1.png" width="672" /> <span class="math display">\[\text{Fig 8. P-values from the Association Tests with Bonferroni Correction}\]</span></p>
 </div>
 <div id="benjamini-hochberg-correction" class="section level3">
 <h3>Benjamini &amp; Hochberg correction</h3>
-<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
-<p><span class="math display">\[\text{Fig 9. P-values from the Association Tests With Benjamini &amp; Hochberg Correction}\]</span></p>
+<p>Next, we introduce Benjamini &amp; Hochberg correction which is a less strict approach for multiple tests.</p>
+<p><img src="../../findings/results-section-clustering_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p><span class="math display">\[\text{Fig 9. P-values from the Association Tests with Benjamini &amp; Hochberg Correction}\]</span></p>
 <p><br> <br> <br></p>
 </div>
 <div id="do-female-and-male-veterans-have-different-career-trajectory" class="section level3">
 <h3>Do Female and Male Veterans have different career trajectory?</h3>
-<p>In our sample, we have 15.9% (N=824) female veterans, 84.1% (N=3666) male veterans. We conducted <span class="math inline">\(\chi^2\)</span> test. Using 0.05 as the critical value, we conclude that female is statistically different from male only in cluster 2 (p &lt; 0.001) after using Bonferroni correction. Cluster 2 identified veterans who retired after exiting military. According to our correlation test, we conclude that female veterans are more likely to retire or exiting worke force post-military.</p>
+<p>In our sample, we have 15.9% (N=824) female veterans, 84.1% (N=3666) male veterans. We conducted <span class="math inline">\(\chi^2\)</span> test. Using 0.05 as the critical value, we conclude that female is statistically different from male only in cluster 2 (p &lt; 0.001) after using Bonferroni correction. Cluster 2 identified veterans who retired after exiting military. According to our correlation test, we conclude that female veterans are more likely to retire or to exit the work force after the conclusion of their military career.</p>
 <div class="figure">
 <img src="../../findings/results-section-clustering_files/Fig10.png" style="width:100.0%" height="500" />
 
 </div>
-<p><span class="math display">\[\text{Fig 10. Cluster Distribution by Gender}\]</span> ### References</p>
+<p><span class="math display">\[\text{Fig 10. Cluster Distribution by Gender}\]</span></p>
 </div>
 </div>
 
