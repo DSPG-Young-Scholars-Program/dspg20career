@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en-us">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title></title>
+        <link rel="canonical" href="../methods.utf8/">
+        <style>
+
+    html body {
+        font-family: 'Oxygen', sans-serif;
+        background-color: #FFFFFF;
+    }
+
+    :root {
+        --accent: #232D4B;
+        --border-width:  0 ;
+    }
+
+</style>
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oxygen">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=VT323">
+
+
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/ascetic.min.css"> 
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.0/css/all.css" integrity="sha384-Mmxa0mLqhmOeaE8vgOSbKacftZcsNYDjQzuCOm6D02luYSzBG8vpaOykv9lFQ51Y" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="../css/main.css">
+
+
+
+
+ 
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+    
+
+    <script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+
+<script>$(document).on('click', function() { $('.collapse').collapse('hide'); })</script>
+
+
+<script>
+$(document).ready(function(){
+    
+  var input = $('#night-mode-toggle');
+  var container = $('#bigbody');
+  var stat = $('#button-status');
+  
+  container.toggleClass(localStorage.toggled);
+  stat.bootstrapToggle(localStorage.button).change();
+  
+  input.on('click', function() {
+      if (localStorage.toggled != "-nightmode" ) {
+          container.toggleClass("-nightmode", true );
+          localStorage.toggled = "-nightmode";
+          localStorage.button = "on";
+       } else {
+          container.toggleClass("-nightmode", false );
+          localStorage.toggled = "";
+          localStorage.button = "off"
+       }
+  })
+});
+</script>
+ <meta name="generator" content="Hugo 0.74.3" />
+        <link href="" rel="alternate" type="application/rss+xml" title="UVA Biocomplexity Institute" />
+        <link href="" rel="feed" type="application/rss+xml" title="UVA Biocomplexity Institute" />
+        
+
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <link rel="mask-icon" href="../img/favicon/safari-pinned-tab.svg" color="#000000">
+    <link rel="shortcut icon" href="../img/favicon/favicon.ico">
+    <meta name="msapplication-TileColor" content="#2b5797">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+    
+    
+    
+    <meta property="og:title" content="">
+    <meta property="og:type" content="article">
+      
+      <meta name="twitter:card" content="summary">
+      <meta name="twitter:image" content="/favicon/uva-dspg-logo.jpg" >
+      
+    <meta property="description" content="">
+    <meta property="og:description" content="">
+    
+    <meta name="twitter:creator" content="">
+    <meta name="twitter:site" content="">
+    
+    </head>
+
+    
+    
+    <script type="text/javascript" async
+      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    
+
+    <body id = "bigbody">
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <a class="navbar-brand visible-xs" href="#"></a>
+                    <button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse">
+                    
+                        <ul class="nav navbar-nav">
+                            
+                                <li><a href="../">Home</a></li>
+                            
+                                <li><a href="../overview/">Overview</a></li>
+                            
+                                <li><a href="../data/">Data</a></li>
+                            
+                                <li><a href="../methods/">Methods</a></li>
+                            
+                                <li><a href="../findings/">Findings</a></li>
+                            
+                                <li><a href="../team/">Team</a></li>
+                            
+                        </ul>
+                    
+                    
+                        <ul class="nav navbar-nav navbar-right">
+                            
+                                <li class="navbar-icon"><a href="https://biocomplexity.virginia.edu/social-decision-analytics/dspg-program"><i class="fas fa-globe-americas"></i></a></li>
+                            
+                                <li class="navbar-icon"><a href="https://github.com/DSPG-Young-Scholars-Program/dspg20career"><i class="fab fa-github"></i></a></li>
+                            
+                                <li class="navbar-icon"><a href="mailto:josh.goldstein@virginia.edu"><i class="far fa-envelope"></i></a></li>
+                            
+                            
+                        </ul>
+                    
+                </div>
+            </div>
+        </nav>
+
+
+<main>
+
+    <div class="item">
+
+    
+    
+    
+
+    
+    
+      
+    
+
+    <h4><a href="../methods.utf8/"></a></h4>
+    
+    <h5></h5>
+
+    
+    
+
+</div>
+
+
+    <br> <div class="text-justify"><h3 style="text-align:center" id="2020-veteran-career-pathways-summer-project">2020 Veteran Career Pathways Summer Project</h3>
+<h3 style="text-align:center" id="methodology">Methodology</h3>
+<h4 style="text-align:center" id="sequence-analysis">Sequence Analysis</h4>
+<p>Sequence analysis refers to a method of longitudinal analysis where linear data is defined as an entire sequence. A sequence orders events and their associated states along a linear axis - in our case, time (Halpin 2016). It can be implemented with the <code>TraMineR</code> package in R, which enables both the analysis and visualization of sequences (Gabadinho et al. 2011). For the purposes of our sequence analysis, we define our &ldquo;states&rdquo; to be job zones or unemployment types and our &ldquo;events&rdquo; to be a transitition between jobs. A table describing the different types of states that are possible is included below; these states are explained further in the Sequence Exploration section.</p>
+<p>Sequences can be represented in several ways, as <code>TraMineR</code> is able to convert between them (Gabadinho et al. 2010, p. 28). However, all formats of the data require a start and end point for a state as well as the state itself. In order to compare careers meaningfully, we lined up our sequences to all start at t=0 and progress annually, rather than including the actual years of a job. We particularly focused on sequences of careers that occurred after the last military job an individual held, as we are interested in their career pathways as veterans. We also explored both the full careers of veterans and also the 10-year period after they first exit the military.</p>
+<section>
+    <a id="readgraphs">
+ <h5 style="text-align:center;"> Reading Sequence Graphs</h5>
+    </a>
+</section>
+<h4 style="text-align:center" id="clustering-sequences">Clustering Sequences</h4>
+<p>Clustering is an unsupervised machine learning method that explores data by grouping it based on its distance from other data. Once these groups are determined, we can analyze similarities and differences between groups, and look for patterns in how the data is classified. Different methods of clustering calculate this distance differently. One such method, hierarchical clustering, does not require the number of clusters to be pre-specified, because it calculates the clusters obtained for each possible number of clusters (James et al. 2013, p. 386). These clusters can be visualized on a &ldquo;dendogram&rdquo;, a tree-based diagram. These diagrams provide information not just about the optimal number of clusters for gaining information about a dataset, but which clusters are closer or farther away from another.</p>
+<p>To implement hierarachical clustering on our sequences, we used Ward&rsquo;s method, which calculates the merging cost of combining two clusters. Ward&rsquo;s method is easily implemented with TraMineR, which has several methods for calculating distances between sequences (Studer &amp; Ritschard, 2016). We present some of these calculations in our Clustering results section. As hierarchical clustering does not require the number of clusters to be pre-specified, it is also necessary to determine the optimal number of clusters for analysis. We did this by using the dendogram (<em>BELOW</em>), which depicts the amount of additional information gained by including another level of clusters. Based on this dendogram, we decided to choose eight clusters of sequences for analysis.</p>
+<p><em>INSERT DENDOGRAM</em></p>
+<h4 style="text-align:center" id="tournament-theory">Tournament Theory</h4>
+<p>There are two ways of thinking about career mobility: a &ldquo;path-independent&rdquo; model, and a &ldquo;path dependent&rdquo; model. In the path-independent model, an individual&rsquo;s career history can be considered independent from their current position. However, this assumption of independence may not hold in a career context, as previous job history could conceivably have a great impact on the current position an individual holds. Rosenbaum (1979) used an assumption of path dependence to develop a tournament mobility model. In this model, individuals compete for jobs in &ldquo;rounds&rdquo; of a tournament, and the results of each round (the &ldquo;winners&rdquo; and &ldquo;losers&rdquo;) have great influence on the chances of mobility in subsequent rounds (Rosenbaum 1979, p. 223). This model further hypothesizes that individuals have a limited number of career paths open to them, and that promotion in early rounds of the tournament improves the chances of being further promoted, attaining management levels, and reaching higher levels overall (Rosenbaum 1979, p. 226).</p>
+<p>Given that our analysis is concerned with the career mobility of veterans, Rosenbaum&rsquo;s tournament mobility model makes sense to explore further. Job zones do not make a perfect proxy for promotion and demotion in a tournament concept, since they represent the education needed for a position rather than its seniority. However, they still represent a type of mobility. Additionally, our data includes different types of unemployment: transitional unemployment (unemployment when a veteran is transitioning from a military to civilian career) and civilian unemployment (unemployment in the more traditional sense, after a civilian career has been established). We hypothesized that results in early rounds of the tournament, such as transitional unemployment or early promotion, would have different results later in the career.</p>
+<p>To test hypotheses about path dependence in the context of promotions, demotions, and unemployment in our data, we grouped the data into variables that could indicate different promotion or unemployment styles - for example, sequences where an individual was promoted (increased in job zone) after the first period (two years). We performed chi squared tests on these variables to test for a statistical association using the <code>MASS</code>package (Venables and Ripley, 2002), testing five hypotheses about career mobility.</p>
+<h4 style="text-align:center" id="references">References</h4>
+<p>Gabadinho, A., G. Ritschard, M. Studer and N. S. Muller. Mining sequence data in R with the TraMineR package: A user’s guide. University of Geneva, 2010. (<a href="http://mephisto.unige.ch/traminer">http://mephisto.unige.ch/traminer</a>)</p>
+<p>Gabadinho, A., Ritschard, G., Müller, N. S., &amp; Studer, M. (2011). Analyzing and Visualizing State Sequences in R with TraMineR. Journal of Statistical Software, 40(4), 1-37. DOI <a href="http://dx.doi.org/10.18637/jss.v040.i04">http://dx.doi.org/10.18637/jss.v040.i04</a>.</p>
+<p>James, G., Witten, D., Hastie, T., &amp; Tibshirani, R. (2013). An Introduction to Statistical Learning with Applications in R . New York, NY: Springer New York.</p>
+<p>Rosenbaum, J. E. (1979). Tournament mobility: Career patterns in a corporation. Administrative science quarterly, 220-241.</p>
+<p>Studer, M. &amp; Ritschard, G. (2016). What matters in differences between life trajectories: A comparative review of sequence dissimilarity measures, Journal of the Royal Statistical Society, Series A, 179(2), 481-511. DOI <a href="http://dx.doi.org/10.1111/rssa.12125">http://dx.doi.org/10.1111/rssa.12125</a></p>
+<p>Venables, W. N. &amp; Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0</p>
+</div>
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+</main>
+
+        <footer id = "bigfooter">
+            <div style = "padding:15px;">
+                <p>Powered by <a href="https://gohugo.io">Hugo</a>. Themed by <a href="https://github.com/nathancday/min_night">min_night_dspg</a>. <a href="https://biocomplexity.virginia.edu/social-decision-analytics">Website by University of Virginia Biocomplexity Institute.</a>
+                </p>
+                <a rel="license" href="https://creativecommons.org/licenses/by/4.0/"
+                title="Creative Commons Attribution 4.0 International license">
+                <i class="fab fa-creative-commons" aria-hidden="true"></i> Attribution 4.0 International license
+                </a>
+            </div>
+        </footer>
+        
+        <script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments)};
+          gtag('js', new Date());
+          gtag('config', '');
+        </script>
+       
+    </body>
+
+</html>
+

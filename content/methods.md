@@ -19,7 +19,54 @@ Sequence analysis refers to a method of longitudinal analysis where linear data 
 
 Sequences can be represented in several ways, as `TraMineR` is able to convert between them (Gabadinho et al. 2010, p. 28). However, all formats of the data require a start and end point for a state as well as the state itself. In order to compare careers meaningfully, we lined up our sequences to all start at t=0 and progress annually, rather than including the actual years of a job. We particularly focused on sequences of careers that occurred after the last military job an individual held, as we are interested in their career pathways as veterans. We also explored both the full careers of veterans and also the 10-year period after they first exit the military.
 
+
 ### Clustering Sequences {style=text-align:center}
+
+<section>
+    <a id="readgraphs">
+    </a>
+</section>
+
+#### Interpreting Sequence Graphs {style=text-align:center}
+
+As previously mentioned, `TraMineR` has several built-in functions to produce sequence visualizations. A few of the most common plots are described below to aid in interpretation of our findings.
+
+##### Sequence frequency plot {style=text-align:center}
+A sequence frequency plot presents a view of sequence frequencies with barwidths proportional to the frequency. By default, the top ten most frequent states are shown. 
+
+<center>
+<figure>
+<img src = "../methods/example_frequency.png" width = "600"/>
+<figcaption> Figure 1. An example sequence frequency plot with two groups (Gabadinho et al. 2010, p. 28). </figcaption>
+</figure>
+</center>
+
+Figure 1 is a grouped sequence frequency plot. Each of these graphs depict the top ten most frequent sequences in each group. Larger barwidth correspond to greater frequency, which is the unit on the y-axis. Here, as in most sequence plots, states are represented by color and time runs along the x-axis. 
+
+##### State mean time plot {style=text-align:center}
+A state mean time plot shows the non-consecutive mean time spent in each state for a sequence object.
+
+<center>
+<figure>
+<img src = "../methods/example_meantime.png" width = "600"/>
+<figcaption> Figure 2. An example state mean time plot with two groups (Gabadinho et al. 2010, p. 30). </figcaption>
+</figure>
+</center>
+
+Figure 2 is a grouped state mean time plot. Again, each state is represented by color. Bar heights correspond to the mean time spent in each state, which is shown on the y-axis. 
+
+##### State distribution plot {style=text-align:center}
+
+<center>
+<figure>
+<img src = "../methods/example_distribution.png" width = "600"/>
+<figcaption> Figure 3. An example state distribution plot with two groups (Gabadinho et al. 2010, p. 35). </figcaption>
+</figure>
+</center>
+
+Figure 3 is a grouped state distribution plot. Here, states, again represented by colors, are shown over time, running along the x-axis. In a state distribution plot, the y-axis depicts the state frequency as a proportion of all sequences at each unit of time.
+
+#### Clustering Sequences {style=text-align:center}
 
 Clustering is an unsupervised machine learning method that explores data by grouping it based on its distance from other data. Once these groups are determined, we can analyze similarities and differences between groups, and look for patterns in how the data is classified. Different methods of clustering calculate this distance differently. One such method, hierarchical clustering, does not require the number of clusters to be pre-specified, because it calculates the clusters obtained for each possible number of clusters (James et al. 2013, p. 386). These clusters can be visualized on a "dendogram", a tree-based diagram. These diagrams provide information not just about the optimal number of clusters for gaining information about a dataset, but which clusters are closer or farther away from another. 
 

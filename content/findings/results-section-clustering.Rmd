@@ -7,7 +7,7 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
- 
+
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 knitr::opts_chunk$set(error = TRUE)
@@ -51,14 +51,14 @@ sts_vet <- sts_vet[, 1:10]
 names(sts_vet) <- paste0("y", 1:ncol(sts_vet))
 ```
 
-### Transition Matrix
+### Transition Matrix Normalization
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #create sequence object
 #assign left NA as transitional unemployment, gaps as unemployment, and right NA as unemployment or exit
 #assign colors to different categories
 
 vet.seq <- seqdef(sts_vet, 
-                  left="Transitional Unemployment", gaps="Unemployment", right="Unemployment or Exit", 
+                  left="Military Transitional Unemployment", gaps="Civilian Unemployment", right="Retirement", 
                   cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5", "#CBBEB5","#CBBEB5")
                   )
 
@@ -103,21 +103,30 @@ diag(cost_matrix_standardized) = 0
 
 There are nine levels of job state: job zone (level) 1, job zone (level) 2, job zone (level) 3, job zone (level) 4, job zone (level) 5, transitional unemployment, unemployment, unemployment or retirement, and unknown job zone. 
 
-[Here comes a table that explains the job levels.]
+
+```{r}
+library(DT)
+library(readxl)
+DT <- read_excel("~/git/dspg20career/src/burningglass/states_table.xlsx")
+datatable(DT, rownames = FALSE, caption = "Table 1. Overview of sequence states.", options = list(scrollY = "500px", dom = 't'))
+
+```
 
 In our sequence analysis, we want to categorize sequential pattern of the job levels. One approach for categorizing sequences is to compute the distance between two sequences. For example, we have two job state sequences and each sequence is composed of three states:
 $$S_1 = \{ \text{zone 1, zone 2, zone 3} \}$$
 $$S_2 = \{ \text{zone 1, zone 1, zone 3} \}$$
 The difference between $S_1$ and $S_2$ is at the second state where $S_1$ has zone 2 while $S_2$ has zone 1. To transform $S_1$ to $S_2$, we substitude zone 2 with zone 1 at state 2. We use the minimum number of substitution that is required to transform one sequence to another sequence to reflect the distance between these two sequences. This is known as "indels". However not all substitutions are the same: substitute zone 1 with zone 5 is way more costly than substituting with zone 2. Therefore, we use transition rate to estimate the cost to transform from one state to another state. 
 
+Transition matrix is composed of transition rates between each pair of states. Transition matrix has dimension $k \times k$, k being the number of job states, Since we have 9 job states, our transition matrix has dimension $9 \times 9$. 
 
-We constructed transition matrix $T$ with dimension $k \times k$, k being the number of job states. The transition matrix is composed of transition rates between each pair of states. $T(i,j)$ represents the probability of a sample to convert from the current job state $i$ to the next job state $j$, for $i \in [1,9], j \in [1,9]$. Thus the sum of each row is 1. Figure 1 shows the transition matrix.
 
-Darker the color, higher the transition probability between two states. The job states on the diagnal of the transition matrix have the darkest color, meaning that our sample has a higher probability to stay in the same job state. 
+Darker the color, higher the transition probability between two states. Before standardization, the diagnal, meaning no change in state, have the highest probability. 
+
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=10}
-#
 state <- c("unknown \n zone", "zone1", "zone2", "zone3", "zone4", "zone5", "military \n transitional \n unemployment \n", "civilian \n unemployment", "retirement")
+
 #original transitional matrix 
 tmatrix.df <- as.data.frame(transition_matrix)
 #tmatrix.df$startState <- row.names(tmatrix.df)
@@ -128,15 +137,14 @@ tmatrix.df <- melt(tmatrix.df, "startState")
 
 #colnames(tmatrix.df)[colnames(tmatrix.df) == "variable"] <- "endState"
 colnames(tmatrix.df) <- c("startState", "endState", "value")                                      
-ggplot(data = tmatrix.df, aes(x = endState, y = factor(startState, levels = rev(state)), fill = value)) + 
+heatmap_tmatrix <- ggplot(data = tmatrix.df, aes(x = endState, y = factor(startState, levels = rev(state)), fill = value)) + 
   geom_tile() +    
   geom_text(aes(label=round(value,3))) +  
   scale_x_discrete(position = "top") +  
   scale_fill_gradient(low = "white", high = "#E57200") +
-  theme(legend.position="bottom", panel.background = element_blank(),        
-        plot.title = element_text(face = "bold")) +  
+  theme(legend.position="bottom", panel.background = element_blank(),         plot.title = element_text(face = "bold")) +  
   labs(fill = "Transition Probability",        
-       title = "Original Transition Matrix",     
+       title = "Year-to-Year Transition Matrix",     
        y = "Current Job",       
        x = "Next Job")+
   theme(axis.text.x = element_text(size = 9, hjust = .5, vjust = .5),
@@ -146,7 +154,7 @@ ggplot(data = tmatrix.df, aes(x = endState, y = factor(startState, levels = rev(
         legend.title=element_text(size=14),
         legend.text = element_text(size=9))
 ```
-$$\text{Fig 1. Original Transition Matrix}$$
+$$\text{Fig 1. Year-to-Year Transition Matrix}$$
 
 ### Transition Matrix standardization
 For sequence clustering, our next step is to construct a substitution-cost matrix $SC$ using the formula 
@@ -158,7 +166,7 @@ $$SC(i, j) = \begin{cases}
 0, & i=j
 \end{cases}$$
 
-The consequence for the diagnal to have large transition probability is the consistent cost between job state $i$ and $j$ that $SC(i, j)$ will be approximately 2. In order to make the difference between two different states more visible, we standardize the transition matrix by excluding the diagnal when constructing the transition matrix. Figure 2 shows the standardized transition matrix. Having diagnal as 0, we can better observe the difference of the transition probability between two different states. 
+The consequence for the diagnal to have large transition probability is the consistent cost between job state $i$ and $j$ that $SC(i, j)$ will be approximately 2. In order to make the difference between two different states more visible, we standardize the transition matrix by excluding the diagnal when constructing the transition matrix. Figure 2 shows the standardized transition matrix that reflects changes between states. Having diagnal as 0, we can better observe the difference of the transition probability between two different states. 
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.width=10}
@@ -170,53 +178,107 @@ tmatrix.standardize.df$startState <- state
 tmatrix.standardize.df <- melt(tmatrix.standardize.df, "startState")
 
 colnames(tmatrix.standardize.df) <- c("startState", "endState", "value")                                                                         
-ggplot(data = tmatrix.standardize.df, aes(x = endState, y = factor(startState, levels = rev(state)), fill = value)) + 
+heatmap_tmatrix_standardize <- ggplot(data = tmatrix.standardize.df, aes(x = endState, y = factor(startState, levels = rev(state)), fill = value)) + 
   geom_tile() +    
   geom_text(aes(label=round(value,3))) +  
   scale_x_discrete(position = "top") +  
   scale_fill_gradient(low = "white", high = "#E57200") +
-  theme(legend.position="bottom", panel.background = element_blank(),         
-        plot.title = element_text(face = "bold")) +  
+  theme(legend.position="bottom", panel.background = element_blank(),         plot.title = element_text(face = "bold")) +  
   labs(fill = "Transition Probability",        
-       title = "Standardized Transition Matrix",     
+       title = "State Transition Matrix",     
        y = "Current Job",       
-       x = "Next Job")+
-  theme(axis.text.x = element_text(size = 9, hjust = .5, vjust = .5),
-        axis.text.y = element_text(size = 9, hjust = .5, vjust = .5),  
-        axis.title.x = element_text(size = 14, hjust = .5, vjust = .5),
-        axis.title.y = element_text(size = 14, hjust = .5, vjust = .5),
-        legend.title=element_text(size=14),
-        legend.text = element_text(size=9))
-```
-$$\text{Fig 2. Standardized Transition Matrix}$$
+       x = "Next Job")
 
+#par(mfrow=c(1,2))
+heatmap_tmatrix
+heatmap_tmatrix_standardize
+```
+
+$$\text{Fig 2. State Transition Matrix}$$
 
 
 ### Clustering
-We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 8 types of clusterings. We have type 1, 5, 6 clusters mainly composed of veterans in job zone 4. Specifically, veterans in type 1 cluster had few years' of transitional unemployment after exiting military before their job-zone-level 4 jobs. 
+We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 7 types of sequences, which are identified as clusters according to the sequence analysis. As shown in Figure 3, Cluster 1, 2, 3 are mainly composed of veterans in job zone 4. Specifically, veterans in Cluster 1 had many years' of traerans in Cluster 2 worked for a short period of time in job zone 4 and retired. Veterans in Cluster 3 worked in job zone 4-jobs for 10 years post-military. 
 
-![](/findings/results-section-clustering_files/Fig3.png){width=100% height=800px}
-$$\text{Fig 3. Type 1 Clusters}$$
 
+![](/findings/results-section-clustering_files/Fig3.png){width=100% height=900px}
+$$\text{Fig 3. Clusters Most Common in Job Zone 4}$$
+
+
+As shown in Fig 4, we observe for the majority of the veterans in Cluster 4 had a career promotion where they started with job zone 3 and went into job zone 4. We do recognize a small proportion of the veterans in this cluster had a demotion from job zone 5 to job zone 4.
+
+![](/findings/results-section-clustering_files/Fig4.png){width=100% height=300px}
+$$\text{Fig 4. Career Promotion Cluster}$$
+
+
+As shown in Fig 5, Cluster 5, 6, 7 do no exibit a change in post-military career. Cluster 5, 6, 7 are composed of jobs in job zone 5, job zone 2, and job zone 3 respectively.
+
+
+![](/findings/results-section-clustering_files/Fig5.png){width=100% height=900px}
+
+
+$$\text{Fig 5. Clusters Most Common in Job Zone 2, 3, 5}$$
+
+Substitution-Cost matrix reflects the cost for substituting each job state with another. We used transition rate to construct substitution-cost matrix using the formula for i being the current job level, and j being the next job level:
+$$SC(i,j) = cval -P(i,j) -P(j,i)$$
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+state <- c("unknown to", "level1 to", "level2 to", "level3 to", "level4 to", "level5 to", "transitional UE to", "UE to", "UE/retire to")
+#original transitional matrix 
+cmatrix.df <- as.data.frame(cost_matrix)
+#tmatrix.df$startState <- row.names(tmatrix.df)
+colnames(cmatrix.df) <- state
+cmatrix.df$startState <- state
+
+cmatrix.df <- melt(cmatrix.df, "startState")
+#colnames(tmatrix.df)[colnames(tmatrix.df) == "variable"] <- "endState"
+colnames(cmatrix.df) <- c("startState", "endState", "value")                                      
+heatmap_cmatrix <- ggplot(data = cmatrix.df, aes(x = endState, y = factor(startState, levels = rev(state)), fill = value)) + 
+  geom_tile() +    
+  geom_text(aes(label=round(value,3))) +  
+  scale_x_discrete(position = "top") +  
+  scale_fill_gradient(low = "white", high = "#E57200") +
+  theme(legend.position="bottom", panel.background = element_blank(),         plot.title = element_text(face = "bold")) +  
+  labs(fill = "Cost value",        
+       title = "Original Cost Matrix",     
+       y = "Current Job",     
+       x = "Next Job")
+
+#standardized transition matrix
+cmatrix.standardize.df <- as.data.frame(cost_matrix_standardized)
+colnames(cmatrix.standardize.df) <- state
+cmatrix.standardize.df$startState <- state
+
+cmatrix.standardize.df <- melt(cmatrix.standardize.df, "startState")
+colnames(cmatrix.standardize.df) <- c("startState", "endState", "value")                                                                         
+heatmap_cmatrix_standardize <- ggplot(data = cmatrix.standardize.df, aes(x = endState, y = factor(startState, levels = rev(state)), fill = value)) + 
+  geom_tile() +    
+  geom_text(aes(label=round(value,3))) +  
+  scale_x_discrete(position = "top") +  
+  scale_fill_gradient(low = "white", high = "#E57200") +
+  theme(legend.position="bottom", panel.background = element_blank(),         plot.title = element_text(face = "bold")) +  
+  labs(fill = "Cost value",        
+       title = "Standardized Cost Matrix",     
+       y = "Current Job",       
+       x = "Next Job")
+
+#par(mfrow=c(1,2))
+heatmap_cmatrix
+heatmap_cmatrix_standardize
+```
+
+### Clustering
+There are 5185 sequences among our sample, and there are 2113 (440.8%) distinct sequences. We identified 8 types of clusterings. We have type 1, 4, 5, 6 clusters mainly composed of veterans in job zone 4. Specifically, veterans in type 1 cluster had few years' of transitional unemployment after exiting military before their job-zone-level 4 jobs. 
 
 We do observe a career promotion among veterans in type 2 cluster where they started with job zone 3 and went into job zone 4.
 
-![](/findings/results-section-clustering_files/Fig4.png){width=80% height=300px}
-$$\text{Fig 4. Type 2 Clusters}$$
-
 The remaining type 3, 7, 8 do no exibit a change in post-military career. Type 3 cluster is composed of jobs in job zone 5. Type 7 cluster is composed of jobs in job zone 1. And type 8 cluster is composed of jobs in job zone 3. 
  
-![](/findings/results-section-clustering_files/Fig5.png){width=100% height=850px; margin-left: 50px; margin-right: 50px}
-$$\text{Fig 5. Type 3 Clusters}$$
 
-![](/findings/results-section-clustering_files/Fig6.png){width=80% height=300px}
-$$\text{Fig 6. Type 4 Clusters}$$
-
-
-```{r fig.height=17, fig.width=8, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, fig.height = 17, fig.width= 10}
 # vet.seq.OM <- seqdist(vet.seq, method = "OM", indel = 3, sm = cost_matrix_standardized, with.missing = TRUE)
 # clusterward <- agnes(vet.seq.OM, diss = TRUE, method = "ward")
-# saveRDS(clusterward, file = "data/clusterward_onet55_10yrs_standardized_matrix.rds")
+# saveRDS(clusterward, file = "data/clusterward_onet55_10yrs_normalized_matrix.rds")
 
 clusterward <- readRDS(file = "~/git/dspg20career/data/clusterward_onet55_10yrs_normalized_matrix.rds")
 
@@ -226,7 +288,7 @@ clusterward <- readRDS(file = "~/git/dspg20career/data/clusterward_onet55_10yrs_
 # abline(h=90, col="red")
 cluster8 <- cutree(clusterward, k=8)
 cluster8 <- factor(cluster8, labels = c("Type 1",  "Type 2", "Type 3", "Type 4", "Type 5", "Type 6", "Type 7", "Type 8"))
-table(cluster8)
+#table(cluster8)
 
 #longitudinal plot
 seqfplot(vet.seq, group = cluster8, pbarw = T)
@@ -237,16 +299,26 @@ seqmtplot(vet.seq, group = cluster8)
 
 
 
+<br>
+<br>
+<br>
+
+### Do veterans' education background influence their career trajectory?
+
+To understand how veterans developed different career trajectories, we investigated whether gender and highest degree earned are associated with the career clusters.
+
+First, let's take a look at a frequency plot shown in Figure 6. Here we are showing the number of veterans with different degrees in each of these 8 clusters. Since the majority of our veteran sample had highest degree as bachelor's and master's degree, here we present the percentage of veterans in each of the eight clusters for each highest degree earned. Thus each row adds up to 1. 
+
+![](/findings/results-section-clustering_files/Fig6.png){width=100% height=500px}
+$$\text{Fig 6. Cluster Distribution for Different Levels of Education}$$
+
+
 To understand how veterans developed different career trajectories, we investigated the relationship between gender, highest degree level and the career trajectory cluster they were associated with. 
 
 ### Do veterans' education background influence their career trajectory?
 
-Here we are showing how many veterans with different degrees fall into each of these 8 clusters. Since the majority of our veteran sample had highest degree as bachelor's and master's degree, here we show the percentage of veterans fall into each of the eight clusters for each highest degree earned. Thus each row adds up to 1. 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
-![](/findings/results-section-clustering_files/Fig7.png){width=100% height=500px}
-$$\text{Fig 7. Cluster Distribution for Different Levels of Education}$$
-
-```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 bg_vet_demographic <-read_csv("~/git/dspg20career/data/02_bg_vet_demographic.csv")
 vet <- unique(bg_vet_job_seq$id)
 vet_df <- as.data.frame(cbind(vet, cluster8))
@@ -259,12 +331,18 @@ degree <- vet_df %>%
   summarize(count=n())%>%
   group_by(degree_highest)%>%
   mutate(sum = sum(count))%>%
-  mutate(perc = count/sum)%>%
-  filter(degree_highest != "others")
+  mutate(perc = count/sum * 100)%>%
+  filter(degree_highest != "others")%>%
+  mutate(cluster = if_else(cluster == 2, 4,
+                  if_else(cluster == 3, 5,
+                  if_else(cluster == 4, 8,
+                  if_else(cluster == 5, 2,
+                  if_else(cluster == 6, 3,
+                  if_else(cluster == 7, 6,
+                  if_else(cluster == 8, 7, cluster))))))))
 
-degree$cluster <- as.factor(degree$cluster)
-degree$degree_highest <- factor(degree$degree_highest, levels = c("certificate","highschool", "associate", "bachelor", "master", "doctor"))
 #degree$count[is.na(degree$count)] <- 0
+
 #cluster distribution
 cluster_count <- degree%>%
   group_by(cluster)%>%
@@ -272,7 +350,7 @@ cluster_count <- degree%>%
 
 ggplot(cluster_count, aes(x = cluster, y = N, fill = N))+
   geom_bar(stat = "identity")+ 
-  scale_fill_continuous(low = "white", high=uva_color_palette[9])+
+  scale_fill_continuous(low = uva_color_palette[9], high=uva_color_palette[9])+
   theme_classic()+
   theme(axis.text.x = element_text(size = 11, hjust = .5, vjust = .5),
         axis.text.y = element_text(size = 11, hjust = .5, vjust = .5),  
@@ -300,45 +378,88 @@ ggplot(degree_count, aes(x = degree_highest, y = N, fill = N))+
 degree$cluster <- as.factor(degree$cluster)
 degree$degree_highest <- factor(degree$degree_highest, levels = c("certificate","highschool", "associate", "bachelor", "master", "doctor"))
 degree <- as.data.frame(degree)
+# ggplot(degree, aes(cluster, degree_highest, fill= count)) + 
+#   geom_tile()+
+#   scale_fill_gradient(low="white", high="blue")+
+#   theme_classic()+
+#   labs(title = "Clustering X Degree --before normalization")
 
-#saved the figure to local file
-ggplot(degree, aes(cluster, degree_highest, fill= perc)) +
+ggplot(degree, aes(cluster, degree_highest, fill= perc)) + 
   geom_tile()+
   scale_fill_gradient(low="white", high=uva_color_palette[9])+
   theme_classic()+
   labs(title = "Degree Distribution among Clusters", y="Highest Degree Earned", x = "Cluster")+
-  guides(fill=guide_legend(title = "Percent"))+
+  guides(fill=guide_legend(title = "Percent(%)"))+
   theme(axis.text.x = element_text(size = 11, hjust = .5, vjust = .5),
         axis.text.y = element_text(size = 11, hjust = .5, vjust = .5),
         axis.title.x = element_text(size = 14, hjust = .5, vjust = .5),
         axis.title.y = element_text(size = 14, hjust = .5, vjust = .5),
         legend.title=element_text(size=13),
         legend.text = element_text(size=11))
+  theme_classic()+ 
+  labs(title = "Degree Distribution among Clusters", y="degree")
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+<br>
+<br>
+
+###Statistical significance test
+To test whether the differences we observed before are statistically significant, we performed Pearson's $\chi^2$-test and Fisher's exact test. Fisher's exact test is used when at least a 20% of the expected cell counts are small (< 5). These are formal test of association between two categorical variables. First, we constructed a two-way freqency table as shown in Table 1. For example, there are 44 veterans who had a high school's degree as their highest degree earned and were categorized in Cluster 2. The expected count is 34 assuming cluster and highest degree earned are independent. We are testing our hypothesis $$H_0: \text{Odds Ratio} =1$$ $$H_A: \text{Odds Ratio} \neq 1$$ 
+
+
+```{r two-way-table, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # contingency table
 vet <- unique(bg_vet_job_seq$id)
 vet_df <- as.data.frame(cbind(vet, cluster8))
 colnames(vet_df) <- c("id", "cluster")
-vet_df$cluster <- as.factor(vet_df$cluster)
 
 vet_df <- vet_df %>%
   left_join(bg_vet_demographic, by = "id")%>%
-  filter(!is.na(degree_highest))
+  filter(!is.na(degree_highest))%>%
+  mutate(cluster = if_else(cluster == 2, 4,
+                  if_else(cluster == 3, 5,
+                  if_else(cluster == 4, 8,
+                  if_else(cluster == 5, 2,
+                  if_else(cluster == 6, 3,
+                  if_else(cluster == 7, 6,
+                  if_else(cluster == 8, 7, cluster))))))))
 
+vet_df$cluster <- as.factor(vet_df$cluster)
+
+#degree = 5
+#i=2
 table <- table(vet_df$cluster, vet_df$degree_highest)
+m<- as.data.frame(matrix(c('44 [34]', '64 [74]', '889 [899]', '1958 [1948]'), 2, 2))
+colnames(m) <- c("cluster 2", "not cluster 2")
+rownames(m) <- c("High School's degree", "others")
 
+m%>%
+  as.data.frame()%>%
+  gt(rownames_to_stub = T)%>%
+  tab_header(
+    title = "Two-way Frequency Table"
+  )
+
+
+```
+$$\text{Table 1. Two-way Frequency Table}$$
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 degree_p_matrix <- c()
 for (degree in 1: ncol(table)){ 
   degree_p_vector_i <- c()
   for (i in 1:nrow(table)){ #cluster 1-8
     tb_i <- matrix(NA, nrow = 2, ncol = 2)
-    tb_i[1,1] <- table[i,1]
-    tb_i[2,1] <- sum(table[,1])-table[i,1]
-    tb_i[1,2] <- sum(table[1,])-table[i,1]
+    tb_i[1,1] <- table[i,degree]
+    tb_i[2,1] <- sum(table[,degree])-table[i,degree]
+    tb_i[1,2] <- sum(table[i,])-table[i,degree]
     tb_i[2,2] <- sum(table)-tb_i[1,1] - tb_i[2,1] -tb_i[1,2] 
-    degree_p_vector_i[i] <- fisher.test(tb_i)$p.value
+    if (tb_i[1,1] < 5 | tb_i[1,1]<5 | tb_i[1,2] < 5 | tb_i[2,2]<5){
+      degree_p_vector_i[i] <- fisher.test(tb_i)$p.value
+      message("E(i,j) < 5, perform Fisher's Exact Test")
+    }else{
+    degree_p_vector_i[i] <- chisq.test(tb_i)$p.value
+      message("E(i,j) >= 5, perform Chi-squared Test")
+    }
   }
   degree_p_matrix <- cbind(degree_p_matrix, degree_p_vector_i)
 }
@@ -346,39 +467,132 @@ for (degree in 1: ncol(table)){
 colnames(degree_p_matrix) <- c("associate","bachelor","certificate", "doctor", "highschool", "master", "others")
 degree_p_matrix <- degree_p_matrix[,c("others","certificate","highschool", "associate", "bachelor", "master", "doctor")]
 
+#degree_p_matrix
+#degree_p_matrix <= 0.05
+#table(degree_p_matrix <= 0.05)
+#round(degree_p_matrix,2)
+
+
 state <- c("others","certificate","highschool", "associate", "bachelor", "master", "doctor")
 #original transitional matrix 
 degree_p_df<- as.data.frame(degree_p_matrix)
+#tmatrix.df$startState <- row.names(tmatrix.df)
 degree_p_df$cluster <- c("cluster1", "cluster2", "cluster3", "cluster4", "cluster5", "cluster6", "cluster7", "cluster8")
 
 degree_p_df <- melt(degree_p_df, "cluster")
+#colnames(tmatrix.df)[colnames(tmatrix.df) == "variable"] <- "endState"
 colnames(degree_p_df) <- c("cluster", "degree", "value")                                      
 ggplot(data = degree_p_df, aes(x = cluster, y = factor(degree, levels = rev(state)), fill = value)) + 
   geom_tile() +    
   geom_text(aes(label=round(value,3))) +  
   scale_x_discrete(position = "top") +  
-  scale_fill_gradient(low = "white", high = "#E57200") +
+  scale_fill_gradient(high = "white", low = "#E57200" ) +
   theme(legend.position="bottom", panel.background = element_blank(),         plot.title = element_text(face = "bold")) +  
-  labs(fill = "Cost value",        
-       title = "P-values for Fisher's Exact Test between Cluster and Degree",     
+  labs(fill = "P-value",        
+       title = "P-values for Chi-squared Test/Fisher's Exact Test",   
+       subtitle = "between cluster and degree",
        y = "Degree",     
+       x = "Cluster")+
+  theme(plot.title = element_text(size=10))
+
+
+#control for multiple testings
+```
+$$\text{Fig 7. P-values from the Association Tests Before Correction for Multiple Tests}$$
+
+###Bonferroni correction
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+p_adjusted <- p.adjust(degree_p_matrix, method = "bonferroni")
+degree_p_adjusted_matrix<- matrix(p_adjusted, nrow = 8,ncol = 7)
+
+colnames(degree_p_adjusted_matrix) <- c("others","certificate","highschool", "associate", "bachelor", "master", "doctor")
+
+state <- c("others","certificate","highschool", "associate", "bachelor", "master", "doctor")
+#original transitional matrix 
+degree_p_adjusted_df<- as.data.frame(degree_p_adjusted_matrix)
+degree_p_adjusted_df$cluster <- c("cluster1", "cluster2", "cluster3", "cluster4", "cluster5", "cluster6", "cluster7", "cluster8")
+
+degree_p_adjusted_df <- melt(degree_p_adjusted_df, "cluster")
+colnames(degree_p_adjusted_df) <- c("cluster", "degree", "value")                                      
+ggplot(data = degree_p_adjusted_df, aes(x = cluster, y = factor(degree, levels = rev(state)), fill = value)) + 
+  geom_tile() +    
+  geom_text(aes(label=round(value,3))) +  
+  scale_x_discrete(position = "top") +  
+  scale_fill_gradient(high = "white", low = "#E57200" ) +
+  theme(legend.position="bottom", panel.background = element_blank(),         plot.title = element_text(face = "bold")) +  
+  labs(fill = "P-value",        
+       title = "P-values for Chi-squared Test/Fisher's Exact Test",   
+       subtitle = "between cluster and degree",   
+       y = "Degree",     
+       x = "Cluster")+
+  theme(plot.title = element_text(size=10))
+
+```
+$$\text{Fig 8. P-values from the Association Tests With Bonferroni Correction}$$
+
+
+###Benjamini & Hochberg correction
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+p_adjusted <- p.adjust(degree_p_matrix, method = "BH")
+degree_p_adjusted_matrix<- matrix(p_adjusted, nrow = 8,ncol = 7)
+
+colnames(degree_p_adjusted_matrix) <- c("others","certificate","highschool", "associate", "bachelor", "master", "doctor")
+
+state <- c("others","certificate","highschool", "associate", "bachelor", "master", "doctor")
+#original transitional matrix 
+degree_p_adjusted_df<- as.data.frame(degree_p_adjusted_matrix)
+degree_p_adjusted_df$cluster <- c("cluster1", "cluster2", "cluster3", "cluster4", "cluster5", "cluster6", "cluster7", "cluster8")
+
+degree_p_adjusted_df <- melt(degree_p_adjusted_df, "cluster")
+colnames(degree_p_adjusted_df) <- c("cluster", "degree", "value")                                      
+ggplot(data = degree_p_adjusted_df, aes(x = cluster, y = factor(degree, levels = rev(state)), fill = value)) + 
+  geom_tile() +    
+  geom_text(aes(label=round(value,3))) +  
+  scale_x_discrete(position = "top") +  
+  scale_fill_gradient(high = "white", low = "#E57200" ) +
+  theme(legend.position="bottom", panel.background = element_blank(),         plot.title = element_text(face = "bold")) +  
+  labs(fill = "P-value",        
+title = "P-values for Chi-squared Test/Fisher's Exact Test",   
+       subtitle = "between cluster and degree",
+      y = "Degree",     
        x = "Cluster")+
   theme(plot.title = element_text(size=10))
 
 ```
 
 
+$$\text{Fig 9. P-values from the Association Tests With Benjamini & Hochberg Correction}$$
+
+<br>
+<br>
+<br>
+
 
 ### Do Female and Male Veterans have different career trajectory?
 In our sample, we have 15.9% (N=824) female veterans, 84.1% (N=3666) male veterans. We conducted $\chi^2$ test. Using 0.05 as the critical value, we conclude that female is statistically different from male in cluster 2 (p=0.0083), 5 (p<0.001), 6 (p=0.017), and 8 (0.042).
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+vet <- unique(bg_vet_job_seq$id)
+vet_df <- as.data.frame(cbind(vet, cluster8))
+colnames(vet_df) <- c("id", "cluster")
+
+vet_df <- vet_df %>%
+  left_join(bg_vet_demographic, by = "id")%>%
+  mutate(cluster = if_else(cluster == 2, 4,
+                  if_else(cluster == 3, 5,
+                  if_else(cluster == 4, 8,
+                  if_else(cluster == 5, 2,
+                  if_else(cluster == 6, 3,
+                  if_else(cluster == 7, 6,
+                  if_else(cluster == 8, 7, cluster))))))))
+
+
 gender <- vet_df %>%
   filter(!is.na(gender))%>%
   group_by(cluster, gender)%>%
   summarize(count=n())%>%
   group_by(gender)%>%
   mutate(sum = sum(count))%>%
-  mutate(perc = count/sum )
+  mutate(perc = count/sum *100)
 
 #degree$count[is.na(degree$count)] <- 0
 
@@ -391,13 +605,14 @@ gender <- as.data.frame(gender)
 #   geom_tile()+
 #   scale_fill_gradient(low="white", high="blue")+
 #   theme_classic()+
-#   labs(title = "Clustering X Gender --before standardization")
+#   labs(title = "Clustering X Gender --before normalization")
 
 ggplot(gender, aes(cluster, gender, fill= perc)) + 
   geom_tile()+
-  scale_fill_gradient(low="white", high="blue")+
+  scale_fill_gradient(low="white", high=uva_color_palette[9])+
   theme_classic()+
-  labs(title = "Gender Distribution among Clusters")
+  labs(title = "Gender Distribution among Clusters")+
+  guides(fill=guide_legend(title = "Percent(%)"))
 
 # contingency table
 vet <- unique(bg_vet_job_seq$id)
