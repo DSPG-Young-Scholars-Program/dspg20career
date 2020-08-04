@@ -1,34 +1,17 @@
 ---
-title: "Data Profiling and Benchmarking"
+title: "Data Benchmarking"
 description: "Using external datasets to learn more about BGT resume data"
 weight: 2
 draft: false
 output: html_document
 ---
 
-```{css, echo=FALSE}
-/* this chunnk of code centers all of the headings */
-h1, h2, h3 {
-  text-align: center;
-}
-```
+In order to better understand the Burning Glass resume data, particularly in the context of veterans in the DC metro area, we wanted to benchmark it against other veteran- and career-related datasets to understand any differences in the populations. For more details about the data sources used here, see the Data section.
 
-### Examples Page
+### VEO-BGT
 
-If you want to add in an image on an Rmd file, use this [link here](https://lcolladotor.github.io/2018/03/07/blogdown-insert-image-addin/). It ends up being a little tricky, but as long as you have created a folder to insert your images, you can just use some markdown code or html to insert images in the format you want. 
+### ACS?
 
-### Centering images  
+### LEHD-LODES - BGT
 
-![](/findings/results-section-one_files/hugo.png){style="width:20%; display: block; margin-left: auto; margin-right: auto;"}
-
-### Placing images side-by-side
-
-<img src="/findings/results-section-one_files/hugo.png" width="150"/> <img src="/findings/results-section-one_files/rmarkdown.png" width="150"/> <img src="/findings/results-section-one_files/min_night.png" width="175"/> <img src="/findings/results-section-one_files/netlify.png" width="175"/>
-
-### Embedding Shiny Apps
-
-```{r, echo=FALSE, fig.fullwidth=TRUE}
-knitr::include_app('https://uva-sdad.shinyapps.io/gates-dashboard/')
-```
-
-### Embedding R code
+### BRFSS-ACS-BGT
