@@ -8,14 +8,18 @@ As part of a larger project with the Army Research institute we seek to develop 
 
 ### Our Approach {style=text-align:center}
 
-We took the following steps towards our project goals:
+Our project process included the following steps:
 
 - *Data Profiling, Benchmarking, and Exploration*
-elaborate
+Exploring the Burning Glass Technologies resume data and benchmarking it with other veteran- and career-specific datasets.
+
 - *Sequence Analysis*
-elaborate
+Treating career pathways as sequences in time for exploration and comparison.
+
+
 - *Clustering of Sequences*
-elaborate
+Performing Ward's hierarchical clustering on careers to explore groupings of sequences.
+
 - *Testing of Tournament Theory Hypotheses*
-elaborate
+Testing for significant relationships between early-career outcomes and later-career outcomes.
 
