@@ -16,8 +16,9 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/findings/general-overview/</guid>
-      <description>While this page is optional, it probably makes sense to have one weighted at the top (see the front matter at the top of this Rmd file) that gives a general overview of the project. This could be something like the final poster while the other pages highlight more in-depth observations. Here is a general schema of what should be covered throughout your website:
-Main Findings [Here you will describe the results and include important visualizations from your project.</description>
+      <description>Main Findings From our research, we have come to several major findings.
+Data profiling, benchmarking, and exploration. 1. BGT resume data overrepresents young and white collar veterans.   
+  Sequence analysis 2. While there is some evidence to support career mobility for veterans over the entire career, there is little evidence to support career mobility for veterans as a group in the first ten years after they exit the military.</description>
     </item>
     
     <item>
@@ -27,7 +28,8 @@ Main Findings [Here you will describe the results and include important visualiz
       
       <guid>/findings/results-section-one/</guid>
       <description>In order to better understand the Burning Glass resume data, particularly in the context of veterans in the DC metro area, we wanted to benchmark it against other veteran- and career-related datasets to understand any differences in the populations. For more details about the data sources used here, see the Data section.
-Veterans Employment Outcomes (VEO) comparison with BGT data The following plot compares the percentage of veterans in a given career for veterans nationally (in the Veterans Employment Outcomes data) and veterans in the BGT data (for the DC Metropolitan Statistical Area).</description>
+&amp;lt;&amp;lt;&amp;lt;&amp;lt;&amp;lt;&amp;lt;&amp;lt; HEAD ### VEO-BGT ======= ### Veterans Employment Outcomes (VEO) comparison with BGT data &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt; c74e95cf16d530281d5733e617cf7885e9d9a7cc
+The following plot compares the percentage of veterans in a given career for veterans nationally (in the Veterans Employment Outcomes data) and veterans in the BGT data (for the DC Metropolitan Statistical Area).</description>
     </item>
     
     <item>
@@ -36,7 +38,7 @@ Veterans Employment Outcomes (VEO) comparison with BGT data The following plot c
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/findings/results-section-two/</guid>
-      <description>Exploring veteran&#39;s whole career sequences After cleaning the BGT data, we created our sequence objects using TraMineR. To begin, we created a sequence object using the whole career of veterans. This yielded 8,068 sequences of varying lengths. When creating the whole career sequence object, we defined eight unique states: Zone 1, Zone 2, Zone 3, Zone 4, Zone 5, Missing zone, Military, and Unemployed.</description>
+      <description>Exploring veteran&#39;s whole career sequences After cleaning the BGT data, we created our sequence objects using TraMineR. To begin, we created a sequence object using the whole career of veterans. This yielded 8,068 sequences of varying lengths. When creating the whole career sequence object, we defined eight unique states: Zone 1, Zone 2, Zone 3, Zone 4, Zone 5, Missing zone, Military, Military transition unemployment, Civilian unemployment, and Retired.</description>
     </item>
     
     <item>
@@ -45,8 +47,8 @@ Veterans Employment Outcomes (VEO) comparison with BGT data The following plot c
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/findings/results-section-clustering/</guid>
-      <description>Transition Matrix There are nine levels of job state: job zone (level) 1, job zone (level) 2, job zone (level) 3, job zone (level) 4, job zone (level) 5, transitional unemployment, unemployment, unemployment or retirement, and unknown job zone.
-library(DT) library(readxl) DT &amp;lt;- read_excel(&amp;quot;~/git/dspg20career/src/burningglass/states_table.xlsx&amp;quot;) ## Error: `path` does not exist: &amp;#39;~/git/dspg20career/src/burningglass/states_table.xlsx&amp;#39; datatable(DT, rownames = FALSE, caption = &amp;quot;Table 1. Overview of sequence states.&amp;quot;, options = list(scrollY = &amp;quot;500px&amp;quot;, dom = &amp;#39;t&amp;#39;)) ## Error in crosstalk::is.</description>
+      <description>In the previous Sequence Exploration, we introduced the following sequence state naming system, shown in Table 1.
+ {&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;data&#34;:[[&#34;Zone 1&#34;,&#34;Zone 2&#34;,&#34;Zone 3&#34;,&#34;Zone 4&#34;,&#34;Zone 5&#34;,&#34;Missing zone&#34;,&#34;Military&#34;,&#34;Unemployed&#34;,&#34;Military transition unemployed&#34;,&#34;Civilian unemployed&#34;,&#34;Retired&#34;],[&#34;Z1&#34;,&#34;Z2&#34;,&#34;Z3&#34;,&#34;Z4&#34;,&#34;Z5&#34;,&#34;MISSING&#34;,&#34;MILITARY&#34;,&#34;UNEMP&#34;,&#34;TR UNEMP&#34;,&#34;CV UNEMP&#34;,&#34;RETIRED&#34;],[&#34;O*NET SOC Code&#34;,&#34;O*NET SOC Code&#34;,&#34;O*NET SOC Code&#34;,&#34;O*NET SOC Code&#34;,&#34;O*NET SOC Code&#34;,&#34;O*NET SOC Code&#34;,&#34;O*NET SOC Code&#34;,&#34;seqdef() gaps =&#34;,&#34;seqdef() left =&#34;,&#34;seqdef() gaps =&#34;,&#34;seqdef() right =&#34;],[&#34;Job Zones group occupations into one of five categories based on levels of education, experience, and training necessary to perform the occupation.</description>
     </item>
     
     <item>
