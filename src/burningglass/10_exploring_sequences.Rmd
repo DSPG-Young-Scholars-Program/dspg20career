@@ -107,15 +107,61 @@ sts_vet_demographic <- seqdef(sts_vet_demographic, 1:100, left="DEL", gaps="unem
 ```
 
 ```{r fig.height=10}
-dist.mostfreq <- seqdist(sts_vet, method = "LCS", refseq = 0)
+clust.labels <- c("Employment", "Higher Education", "Training", "Joblessness")
+mvad.cl4.factor <- factor(mvad.cl4, levels = 1:8)
+
+dist.mostfreq <- seqdist(vet.seq, method = "LCS", refseq = 0)
 
 demo <- bg_vet_demographic %>% filter(id %in% as.numeric(rownames(sts_vet)))
 
-seqIplot(sts_vet, border = NA, group = demo$gender, sortv = dist.mostfreq,
-         xlim = c(0,60))
+seqIplot(vet.seq, border = NA, group = cluster8, sortv = dist.mostfreq,
+         xlim = c(0,10))
 
 seqIplot(sts_vet, border = NA, group = demo$degree_highest, sortv = dist.mostfreq,
          xlim = c(0,60))
+
+vet.seq <- vet.seq %>% rownames_to_column(var = "id")
+vet.seq$cluster <- cluster8
+
+#vetseq_long <- gather(select(vet.seq,id),
+#                    key="Year",value="state",
+                    1:10)
+
+vetseq_long <- vet.seq %>% 
+  #select(id, matches("\\.\\d\\d")) %>% 
+  gather(key = "Year", value = "state", 2:11, -id)
+
+vetseq_long %>% 
+  filter(cluster == "Type 7") %>%
+  ggplot(aes(x = Year, y = id, fill = state)) +
+  geom_tile() +
+  #facet_wrap(~cluster, scales = "free_y", ncol = 2) +
+  theme_bw() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid = element_blank(),
+    text = element_text(size=20)
+  ) +
+  scale_fill_manual(values = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#DCDCDC", "#C0C0C0", "#696969"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military transition unemployed", "Civilian unemployed", "Retired")) +
+  labs(x = "", y = "",
+       title = "Job zone 2 cluster") +
+  scale_x_discrete(name ="Years in career", 
+                    limits=c("y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8", "y9", "y10"),
+                   labels = c(1:10)) +
+  guides(fill = guide_legend(override.aes = list(size = 20)))
+    
+vet.seq$cluster_f = factor(vet.seq$cluster, levels=c("Type 1", "Type 2", "Type 3", "Type 4", "Type 5", "Type 6", "Type 7", "Type 8"))
+
+# 1 = 1
+# 2 = 5
+# 3 = 6 zone 4s
+# 4 = 2 promotion
+# 5 = 3
+# 6 = 
+# 7 = 
+# 8 = 
+
 
 ```
 ```{r}
@@ -220,7 +266,7 @@ v_states <- statd$ValidStates
 v_states <- as.data.frame(v_states)
 v_states <- v_states %>% rownames_to_column(var = "variable")
 
-ggplot() + 
+dall <- ggplot() + 
   geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
   geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/8068),
             size = 2) +
@@ -229,7 +275,7 @@ ggplot() +
   xlim(0,78) +
   scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "red", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military", "Unemployed")) +
   xlab("Year of career") +
-  labs(title = "Visualizing career paths of veterans: Job states over time",
+  labs(title = "Veteran's whole career",
        fill = "Job state") +
   theme_classic() +
   theme(legend.position = "bottom")
@@ -519,6 +565,57 @@ p <- ggplot() +
 
 p +
   scale_x_continuous(breaks = pretty_breaks(4))
+
+library(scales)
+p <- ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+  # geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/5185),
+  #           size = 2) +
+  #scale_y_continuous(name = "Share of careers in a job state") +
+  xlim(0,10) +
+  scale_fill_manual(values = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#DCDCDC", "#C0C0C0", "#696969"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military transition unemployed", "Civilian unemployed", "Retired")) +
+  xlab("Year of career") +
+  labs(title = "First ten years after military exit",
+       fill = "Job state") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+
+dten <- p +
+  scale_x_continuous(breaks = pretty_breaks(4))
+ 
+
+
+s <- ggplot(data = meant, aes(x = state, y = Mean, fill = state)) +
+  geom_col() +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5", "#CBBEB5","#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Transition unemployed", "Unemployed", "Unemployed/Exit")) +
+  scale_x_discrete(name = "Job state", labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military transition unemployed", "Civilian unemployed", "Retired")) +
+  labs(title = "Mean time spent in each state for first ten years after veteran's last military job",
+       fill = "Job state",
+       caption = "Data: BGT Resumes") +
+  ylab("Mean time (years)") +
+  theme_classic() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 40, hjust = 1))
+
+
+dten <- s +
+  scale_y_continuous(breaks = c(0,1,2,3)) +
+  ylim(0,3)
+
+
+library(grid)
+library(gridExtra)
+grid.arrange(
+  dall,
+  dten,
+  nrow = 1,
+  #top = "Comparison of job states over time"
+  top = textGrob(
+    "Comparison of job states over time",
+    gp = gpar(fontface = 1, fontsize = 18)))
 
 ```
 
