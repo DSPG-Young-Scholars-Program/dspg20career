@@ -11,14 +11,13 @@
     
     
     <item>
-      <title>General Project Overview</title>
+      <title>Results Overview</title>
       <link>/findings/general-overview/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/findings/general-overview/</guid>
-      <description>Main Findings From our research, we have come to several major findings.
-Data profiling, benchmarking, and exploration. 1. BGT resume data overrepresents young and white collar veterans.   
-  Sequence analysis 2. While there is some evidence to support career mobility for veterans over the entire career, there is little evidence to support career mobility for veterans as a group in the first ten years after they exit the military.</description>
+      <description>.imgContainer{ float:left; }  Main Findings From our research, we have come to several major findings.
+Data profiling, benchmarking, and exploration. 1. BGT resume data overrepresents young and white collar veterans.    Figure 1. Results from data benchmarking using Behavioral Risk Factor Surveillance System, American Community Survey, Veterans Employment Outcomes, and BGT Resume data. In both graphs, BGT observations are in orange. These findings show BGT over estimates white collar veterans by comparison, for both education and industry variables.</description>
     </item>
     
     <item>
@@ -28,7 +27,7 @@ Data profiling, benchmarking, and exploration. 1. BGT resume data overrepresents
       
       <guid>/findings/results-section-one/</guid>
       <description>In order to better understand the Burning Glass resume data, particularly in the context of veterans in the DC metro area, we wanted to benchmark it against other veteran- and career-related datasets to understand any differences in the populations. For more details about the data sources used here, see the Data section.
-&amp;lt;&amp;lt;&amp;lt;&amp;lt;&amp;lt;&amp;lt;&amp;lt; ### Veterans Employment Outcomes (VEO) comparison with BGT data &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt; The following plot compares the percentage of veterans in a given career for veterans nationally (in the Veterans Employment Outcomes data) and veterans in the BGT data (for the DC Metropolitan Statistical Area).</description>
+Veterans Employment Outcomes (VEO) comparison with BGT data The following plot compares the percentage of veterans in a given career for veterans nationally (in the Veterans Employment Outcomes data) and veterans in the BGT data (for the DC Metropolitan Statistical Area).</description>
     </item>
     
     <item>

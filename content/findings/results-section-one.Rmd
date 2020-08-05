@@ -5,7 +5,6 @@ weight: 2
 draft: false
 output: html_document
 ---
-
 In order to better understand the Burning Glass resume data, particularly in the context of veterans in the DC metro area, we wanted to benchmark it against other veteran- and career-related datasets to understand any differences in the populations. For more details about the data sources used here, see the Data section.
 
 

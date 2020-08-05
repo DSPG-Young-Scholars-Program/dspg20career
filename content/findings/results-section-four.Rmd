@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE
 )
 
-for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster", "MASS")) {
+for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster", "MASS", "kableExtra")) {
   library(pkg, character.only = TRUE)
 }
 
@@ -128,11 +128,8 @@ To test our first hypothesis, we group our sequences by individuals promoted in 
 # promoted first period, promoted second period
 tblA = table(vet.seq.10$promoted_first_period, vet.seq.10$promoted_second_period)
 tblA %>%
-  as.data.frame() %>%
-  gt(rownames_to_stub = T)%>%
-  tab_header(
-    title = "Two-way Frequency Table"
-  )
+  knitr::kable(caption = "Two Way Frequency Table") %>%
+  kable_styling("striped", full_width = FALSE)
 ```
 
 
@@ -153,11 +150,8 @@ To test our second hypothesis, we group sequences by veterans who were promoted 
 # promoted first period, employed full later period
 tblB = table(vet.seq.10$promoted_first_period, vet.seq.10$employed_later_period)
 tblB %>%
-  as.data.frame() %>%
-  gt(rownames_to_stub = T)%>%
-  tab_header(
-    title = "Two-way Frequency Table"
-  )
+  knitr::kable(caption = "Two Way Frequency Table") %>%
+  kable_styling("striped", full_width = FALSE)
 ```
 
 
@@ -178,11 +172,8 @@ To test our third hypothesis, we group sequences by veterans who were unemployed
 # unemployed first period, unemployed later period
 tblC = table(vet.seq.10$unemployed_first_period, vet.seq.10$unemployed_later_period)
 tblC %>%
-  as.data.frame() %>%
-  gt(rownames_to_stub = T)%>%
-  tab_header(
-    title = "Two-way Frequency Table"
-  )
+  knitr::kable(caption = "Two Way Frequency Table") %>%
+  kable_styling("striped", full_width = FALSE)
 ```
 
 
@@ -202,11 +193,8 @@ To test our third hypothesis, we group sequences by veterans who were unemployed
 # unemployed first period, zone 1 or 2 or unemployed at end of 10 years
 tblD = table(vet.seq.10$unemployed_first_period, vet.seq.10$finish_zone_1_2_unemp)
 tblD %>%
-  as.data.frame() %>%
-  gt(rownames_to_stub = T)%>%
-  tab_header(
-    title = "Two-way Frequency Table"
-  )
+  knitr::kable(caption = "Two Way Frequency Table") %>%
+  kable_styling("striped", full_width = FALSE)
 ```
 
 
@@ -227,11 +215,8 @@ To test our final hypothesis, we group veterans by those who were promoted in th
 # promoted first period, zone 4 or 5 at end of 10 years
 tblE = table(vet.seq.10$promoted_first_period, vet.seq.10$finish_zone_4_5)
 tblE %>%
-  as.data.frame() %>%
-  gt(rownames_to_stub = T)%>%
-  tab_header(
-    title = "Two-way Frequency Table"
-  )
+  knitr::kable(caption = "Two Way Frequency Table") %>%
+  kable_styling("striped", full_width = FALSE)
 ```
 
 ```{r echo = FALSE}
