@@ -4,20 +4,20 @@
 
 ### Data Cleaning and Profiling {style=text-align:center}
 
-In order to get the resumes from veterans in the DC Metropolitan Statistical Area (MSA), we first profiled the data to better understand the completeness, potential for duplication, and expected values of the Burning Glass Technologies resume data. In addition to filtering observations to include a reported MSA of 47900 (the code for the DC-VA-MD-WV Metropolitan Statistical Area), we also checked to see if individuals reported living in a zip code that fell in the DC MSA, and ensured that none of the entries were duplicates based on the resume's unique ID.
+In order to get the resumes from veterans in the DC Metropolitan Statistical Area (MSA), we first profiled the data to better understand and address the completeness, potential for duplication, and valid values of the Burning Glass Technologies resume data. In addition to filtering observations to include a reported MSA of 47900 (the code for the DC-VA-MD-WV Metropolitan Statistical Area), we also checked to see if individuals reported living in a zip code that fell in the DC MSA, and ensured that none of the entries were duplicates based on the resume's unique ID.
 
-To clean the education variables, we excluded individuals with no degree type variable listed. Then, we took the highest self-reported degree type variable, and used regular expressions to categorize them by the following levels of education:  certificates, some high school, high school, associate, bachelor, master, and doctor. 
+To clean the education variables, we excluded individuals with no degree type variable listed. Then, we took the highest self-reported degree type variable, and used regular expressions to categorize them by the highest degree earned:  certificate, some high school, high school, associate, bachelor, master, and doctorate. 
 
-Since we require an O\*NET-SOC code to determine if an individual held a military job, and also require a start and end date to determine the chronological order of jobs, we permanently excluded individuals for which this information was missing. We identified individuals with military careers (veterans) based on an O\*NET-SOC code beginning with 55-. This may not capture all the veterans in the data, since these jobs are very military-specific, but there was no other way to guarantee that we were only including veterans in our final sample.
+Since we require an O\*NET-SOC code to determine if an individual held a military job, and also require a start and end date to determine the chronological order of jobs, we permanently excluded individuals for which this information was missing. We identified individuals with military careers (veterans) based on an O\*NET-SOC code beginning with 55-. This may not capture all the veterans in the data, since these jobs are very military-specific, but there was no other way to guarantee that we were only including veterans in our final sample. After cleaning and filtering we were left with 7,704 veterans resumes in the DC MSA.
 
 We also created duration variables calculated from the start date and end date, and excluded individuals for which the duration was negative (implying a job that had ended before it began). For multiple jobs with the same start and end year, we assumed that these jobs lasted for less than one year each and chose the higher of the two job zones to reflect the career level for that year. Not all of the remaining individuals had a listed job zone, so provided that they have a valid start and end date, we categorized these jobs as job zone 0 to distinguish them from unemployment.
 
 
 ### Sequence Analysis {style=text-align:center}
 
-Sequence analysis refers to a method of longitudinal analysis where linear data is defined as an entire sequence. A sequence orders events and their associated states along a linear axis - in our case, time (Halpin 2016). It can be implemented with the `TraMineR` package in R, which enables both the analysis and visualization of sequences (Gabadinho et al. 2011). For the purposes of our sequence analysis, we define our "states" to be job zones or unemployment types and our "events" to be a transitition between jobs. A table describing the different types of states that are possible is included below; these states are explained further in the Sequence Exploration section.
+Sequence analysis refers to a method of longitudinal analysis where linear data is defined as an entire sequence. A sequence orders events and their associated states along a linear axis - in our case, time (Halpin 2016). It can be implemented with the `TraMineR` package in R, which enables both the analysis and visualization of sequences (Gabadinho et al. 2011). For the purposes of our sequence analysis, we define our "states" to be job zones or unemployment types and our "events" to be a transition between jobs. A table describing the different types of states that are possible is included below; these states are explained further in the Sequence Exploration section.
 
-Sequences can be represented in several ways, as `TraMineR` is able to convert between them (Gabadinho et al. 2010, p. 28). However, all formats of the data require a start and end point for a state as well as the state itself. In order to compare careers meaningfully, we lined up our sequences to all start at t=0 and progress annually, rather than including the actual years of a job. We particularly focused on sequences of careers that occurred after the last military job an individual held, as we are interested in their career pathways as veterans. We also explored both the full careers of veterans and also the 10-year period after they first exit the military.
+Sequences can be represented in several ways, as `TraMineR` is able to convert between them (Gabadinho et al. 2010, p. 28). However, all formats of the data require a start and end point for a state as well as the state itself. We explored both the full careers of veterans and also the 10-year period after they first exit the military. When looing at full careers we align sequences by the first date appearing on the resume. When looking at 10-year post military sequences we instead align them by the date that veterans exited the military.
 
 <section>
     <a id="readgraphs">
@@ -29,7 +29,7 @@ Sequences can be represented in several ways, as `TraMineR` is able to convert b
 As previously mentioned, `TraMineR` has several built-in functions to produce sequence visualizations. A few of the most common plots are described below to aid in interpretation of our findings.
 
 ##### Sequence frequency plot {style=text-align:center}
-A sequence frequency plot presents a view of sequence frequencies with barwidths proportional to the frequency. By default, the top ten most frequent states are shown. 
+A sequence frequency plot presents a view of sequence frequencies with widths of the bars proportional to the frequency. By default, the top ten most frequent states are shown. 
 
 <center>
 <figure>
@@ -38,7 +38,7 @@ A sequence frequency plot presents a view of sequence frequencies with barwidths
 </figure>
 </center>
 
-Figure 1 is a grouped sequence frequency plot. Each of these graphs depict the top ten most frequent sequences in each group. Larger barwidth correspond to greater frequency, which is the unit on the y-axis. Here, as in most sequence plots, states are represented by color and time runs along the x-axis. 
+Figure 1 is a grouped sequence frequency plot. Each of these graphs depict the top ten most frequent sequences in each group. Larger barwidths correspond to greater frequency, which is the unit on the y-axis. Here, as in most sequence plots, states are represented by color and time runs along the x-axis. 
 
 ##### State mean time plot {style=text-align:center}
 A state mean time plot shows the non-consecutive mean time spent in each state for a sequence object.
@@ -67,9 +67,7 @@ Figure 3 is a grouped state distribution plot. Here, states, again represented b
 
 Clustering is an unsupervised machine learning method that explores data by grouping it based on its distance from other data. Once these groups are determined, we can analyze similarities and differences between groups, and look for patterns in how the data is classified. Different methods of clustering calculate this distance differently. One such method, hierarchical clustering, does not require the number of clusters to be pre-specified, because it calculates the clusters obtained for each possible number of clusters (James et al. 2013, p. 386). These clusters can be visualized on a "dendogram", a tree-based diagram. These diagrams provide information not just about the optimal number of clusters for gaining information about a dataset, but which clusters are closer or farther away from another. 
 
-To implement hierarachical clustering on our sequences, we used Ward's method, which calculates the merging cost of combining two clusters. Ward's method is easily implemented with TraMineR, which has several methods for calculating distances between sequences (Studer & Ritschard, 2016). We present some of these calculations in our Clustering results section. As hierarchical clustering does not require the number of clusters to be pre-specified, it is also necessary to determine the optimal number of clusters for analysis. We did this by using the dendogram (*BELOW*), which depicts the amount of additional information gained by including another level of clusters. Based on this dendogram, we decided to choose eight clusters of sequences for analysis.
-
-*INSERT DENDOGRAM*
+To implement hierarachical clustering on our sequences, we used Ward's method, which calculates the merging cost of combining two clusters. Ward's method is easily implemented with TraMineR, which has several methods for calculating distances between sequences (Studer & Ritschard, 2016). We present some of these calculations in our Clustering results section. As hierarchical clustering does not require the number of clusters to be pre-specified, it is also necessary to determine the optimal number of clusters for analysis. We tested several numbers of clusters and determined eight clusters to be the optimal number for meaningful results and interpretations.
 
 ### Tournament Theory {style=text-align:center}
 
@@ -77,7 +75,7 @@ There are two ways of thinking about career mobility: a "path-independent" model
 
 Given that our analysis is concerned with the career mobility of veterans, Rosenbaum's tournament mobility model makes sense to explore further. Job zones do not make a perfect proxy for promotion and demotion in a tournament concept, since they represent the education needed for a position rather than its seniority. However, they still represent a type of mobility. Additionally, our data includes different types of unemployment: transitional unemployment (unemployment when a veteran is transitioning from a military to civilian career) and civilian unemployment (unemployment in the more traditional sense, after a civilian career has been established). We hypothesized that results in early rounds of the tournament, such as transitional unemployment or early promotion, would have different results later in the career.
 
-To test hypotheses about path dependence in the context of promotions, demotions, and unemployment in our data, we grouped the data into variables that could indicate different promotion or unemployment styles - for example, sequences where an individual was promoted (increased in job zone) after the first period (two years). We performed chi squared tests on these variables to test for a statistical association using the `MASS`package (Venables and Ripley, 2002), testing five hypotheses about career mobility.
+To test hypotheses about path dependence in the context of promotions, demotions, and unemployment in our data, we grouped the data into variables that could indicate different promotion or unemployment styles - for example, sequences where an individual was promoted (increased in job zone) after the first period (two years). We performed chi squared tests on these variables to test for a statistical association using the `MASS` package (Venables and Ripley, 2002), testing five hypotheses about career mobility.
 
 ### References {style=text-align:center}
 

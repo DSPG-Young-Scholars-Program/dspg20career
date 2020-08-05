@@ -57,7 +57,7 @@ The following plot compares the percentage of veterans in a given career for vet
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/data/</guid>
-      <description>2020 Veteran Career Pathways Summer Project Data Sources Burning Glass Technologies Resume Data Burning Glass Technologies (BGT) provides data on resumes that were collected from publically available sites between 2016 AND 2018. This data includes information about an individual&amp;rsquo;s education, certifications, skills, geographic location, and of course, job history. The information on job history includes its position on a resume, the dates the job was held, and the [O*NET-SOC code] (https://www.</description>
+      <description>2020 Veteran Career Pathways Summer Project Data Sources Burning Glass Technologies Resume Data Burning Glass Technologies (BGT) provides data on resumes that were collected from publically available sites between 2016 and 2018. This data includes information about an individual&amp;rsquo;s education, certifications, skills, geographic location, and of course, job history. The information on job history includes position of each job on the resume, the dates the job was held, and the [O*NET Standard Occupation Classification (SOC) code] (https://www.</description>
     </item>
     
     <item>
@@ -66,7 +66,7 @@ The following plot compares the percentage of veterans in a given career for vet
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/methods/</guid>
-      <description>2020 Veteran Career Pathways Summer Project Methodology Data Cleaning and Profiling In order to get the resumes from veterans in the DC Metropolitan Statistical Area (MSA), we first profiled the data to better understand the completeness, potential for duplication, and expected values of the Burning Glass Technologies resume data. In addition to filtering observations to include a reported MSA of 47900 (the code for the DC-VA-MD-WV Metropolitan Statistical Area), we also checked to see if individuals reported living in a zip code that fell in the DC MSA, and ensured that none of the entries were duplicates based on the resume&amp;rsquo;s unique ID.</description>
+      <description>2020 Veteran Career Pathways Summer Project Methodology Data Cleaning and Profiling In order to get the resumes from veterans in the DC Metropolitan Statistical Area (MSA), we first profiled the data to better understand and address the completeness, potential for duplication, and valid values of the Burning Glass Technologies resume data. In addition to filtering observations to include a reported MSA of 47900 (the code for the DC-VA-MD-WV Metropolitan Statistical Area), we also checked to see if individuals reported living in a zip code that fell in the DC MSA, and ensured that none of the entries were duplicates based on the resume&amp;rsquo;s unique ID.</description>
     </item>
     
     <item>
