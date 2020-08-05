@@ -28,5 +28,3 @@ The following plot compares employment outcomes in the DC MSA to the employment 
 
 ![](/findings/results-section-one_files/lodes-bgt.png){style="display: block; margin-left: auto; margin-right: auto;"}
 
-
-

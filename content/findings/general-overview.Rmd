@@ -6,9 +6,32 @@ draft: false
 output: html_document
 ---
 
-While this page is *optional*, it probably makes sense to have one weighted at the top (see the front matter at the top of this Rmd file) that gives a general overview of the project. This could be something like the final poster while the other pages highlight more in-depth observations. Here is a general schema of what should be covered throughout your website: 
-
 ### Main Findings 
+
+From our research, we have come to several major findings.
+
+#### Data profiling, benchmarking, and exploration.
+##### 1. BGT resume data overrepresents young and white collar veterans.
+
+<br/>
+
+#### Sequence analysis
+##### 2. While there is some evidence to support career mobility for veterans over the entire career, there is little evidence to support career mobility for veterans as a group in the first ten years after they exit the military.
+##### 3. Almost half of veterans are in a state of unemployment in the first and tenth years after they exit the military.
+
+<br>
+
+#### Clustering of sequences
+##### 4. Sequence clusters characterized by a higher average job zone also contain more advanced degree earners.
+##### 5. Sequence clusters characterized by retirement in the first ten years after exiting the military also contain more female veterans.
+
+<br>
+
+#### Tournament theory hypothesis
+##### 6. Promotion in the first two years after military exit affects later employment outcomes, being associated with future employment.
+##### 7. Military transitional unemployment in the first two years after military exit affects later employment outcomes, being associated with future unemployment and finishing in a lower job zone.
+
+#### Future work
 
 [Here you will describe the results and include important visualizations from your project.] 
 
