@@ -43,16 +43,3 @@ From our research, we have come to several major findings.
 #### Tournament theory hypothesis
 ##### 6. Promotion in the first two years after military exit affects later employment outcomes, being associated with future employment.
 ##### 7. Military transitional unemployment in the first two years after military exit affects later employment outcomes, being associated with future unemployment and finishing in a lower job zone.
-
-#### Future work
-
-[Here you will describe the results and include important visualizations from your project.] 
-
-### Conclusion and Policy Implications 
-
-[Here you could highlight the main takeaways and the potential policy implications of your findings.] 
-
-### References 
-
-[List your references here using APA format (or at least standardize all of the references using the same format).]
-
