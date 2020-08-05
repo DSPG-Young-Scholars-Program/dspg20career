@@ -127,7 +127,17 @@ To test our first hypothesis, we group our sequences by individuals promoted in 
 ```{r echo = FALSE}
 # promoted first period, promoted second period
 tblA = table(vet.seq.10$promoted_first_period, vet.seq.10$promoted_second_period)
-tblA %>% knitr::kable()
+tblA %>%
+  as.data.frame() %>%
+  gt(rownames_to_stub = T)%>%
+  tab_header(
+    title = "Two-way Frequency Table"
+  )
+```
+
+
+
+```{r echo = FALSE}
 chisq.test(tblA)
 ```
 
@@ -142,7 +152,17 @@ To test our second hypothesis, we group sequences by veterans who were promoted 
 ```{r echo = FALSE}
 # promoted first period, employed full later period
 tblB = table(vet.seq.10$promoted_first_period, vet.seq.10$employed_later_period)
-tblB %>% knitr::kable()
+tblB %>%
+  as.data.frame() %>%
+  gt(rownames_to_stub = T)%>%
+  tab_header(
+    title = "Two-way Frequency Table"
+  )
+```
+
+
+
+```{r echo = FALSE}
 chisq.test(tblB)
 ```
 
@@ -157,12 +177,21 @@ To test our third hypothesis, we group sequences by veterans who were unemployed
 ```{r echo = FALSE}
 # unemployed first period, unemployed later period
 tblC = table(vet.seq.10$unemployed_first_period, vet.seq.10$unemployed_later_period)
-tblC %>% knitr::kable()
+tblC %>%
+  as.data.frame() %>%
+  gt(rownames_to_stub = T)%>%
+  tab_header(
+    title = "Two-way Frequency Table"
+  )
+```
+
+
+
+```{r echo = FALSE}
 chisq.test(tblC)
 ```
 
 The results of the chi-squared test (above) show a strong statistical association (p < 0.01) between transitional unemployment and unemployment in the later years of a career sequence; in fact, this is the strongest association we present.
-
 
 
 #### **Hypothesis: Transitional unemployment is associated with finishing unemployed or in a lower job zone (job zone 1 or 2)**
@@ -172,7 +201,17 @@ To test our third hypothesis, we group sequences by veterans who were unemployed
 ```{r echo = FALSE}
 # unemployed first period, zone 1 or 2 or unemployed at end of 10 years
 tblD = table(vet.seq.10$unemployed_first_period, vet.seq.10$finish_zone_1_2_unemp)
-tblD %>% knitr::kable()
+tblD %>%
+  as.data.frame() %>%
+  gt(rownames_to_stub = T)%>%
+  tab_header(
+    title = "Two-way Frequency Table"
+  )
+```
+
+
+
+```{r echo = FALSE}
 chisq.test(tblD)
 ```
 
@@ -187,13 +226,19 @@ To test our final hypothesis, we group veterans by those who were promoted in th
 ```{r echo = FALSE}
 # promoted first period, zone 4 or 5 at end of 10 years
 tblE = table(vet.seq.10$promoted_first_period, vet.seq.10$finish_zone_4_5)
-tblE %>% knitr::kable()
+tblE %>%
+  as.data.frame() %>%
+  gt(rownames_to_stub = T)%>%
+  tab_header(
+    title = "Two-way Frequency Table"
+  )
+```
+
+```{r echo = FALSE}
 chisq.test(tblE)
 ```
 
 The results of the chi-squared test (above) show a weak statistical association (p < 0.1, but not < 0.05) between early promotion and a high final job zone. This may again be because our sample of veterans in the DC MSA tends to start out highly trained and educated, so there is not much additional mobility possible once a promotion occurs.
-
-
 
 #### **Policy Implications**
 
