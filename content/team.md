@@ -22,7 +22,7 @@
 <img src="../crystal.jpeg" width = 150 />
 </center>
 
-##### [Crystal Zang, Intern (Smith College, Mathematics, Statistical and Data Science)](https://github.com/czang97) {style=text-align:center}
+##### [Crystal Zang, Intern (University of Pittsburgh Graduate School of Public Health, Biostatistics)](https://github.com/czang97) {style=text-align:center}
 
 ### UVA SDAD Team Members {style=text-align:center}
 
