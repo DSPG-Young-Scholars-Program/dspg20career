@@ -95,7 +95,7 @@ $(document).ready(function(){
   })
 });
 </script>
- <meta name="generator" content="Hugo 0.74.2" />
+ <meta name="generator" content="Hugo 0.74.3" />
         <link href="" rel="alternate" type="application/rss+xml" title="UVA Biocomplexity Institute" />
         <link href="" rel="feed" type="application/rss+xml" title="UVA Biocomplexity Institute" />
         
@@ -212,7 +212,15 @@ $(document).ready(function(){
 <p>We also created duration variables calculated from the start date and end date, and excluded individuals for which the duration was negative (implying a job that had ended before it began). For multiple jobs with the same start and end year, we assumed that these jobs lasted for less than one year each and chose the higher of the two job zones to reflect the career level for that year. Not all of the remaining individuals had a listed job zone, so provided that they have a valid start and end date, we categorized these jobs as job zone 0 to distinguish them from unemployment.</p>
 <h3 style="text-align:center" id="sequence-analysis">Sequence Analysis</h3>
 <p>Sequence analysis refers to a method of longitudinal analysis where linear data is defined as an entire sequence. A sequence orders events and their associated states along a linear axis - in our case, time (Halpin 2016). It can be implemented with the <code>TraMineR</code> package in R, which enables both the analysis and visualization of sequences (Gabadinho et al. 2011). For the purposes of our sequence analysis, we define our &ldquo;states&rdquo; to be job zones or unemployment types and our &ldquo;events&rdquo; to be a transition between jobs. A table describing the different types of states that are possible is included below; these states are explained further in the Sequence Exploration section.</p>
-<p>Sequences can be represented in several ways, as <code>TraMineR</code> is able to convert between them (Gabadinho et al. 2010, p. 28). However, all formats of the data require a start and end point for a state as well as the state itself. We explored both the full careers of veterans and also the 10-year period after they first exit the military. When looking at full careers we align sequences by the first date appearing on the resume. When looking at 10-year post military sequences we instead align them by the date that veterans exited the military.</p>
+
+<p>Sequences can be represented in several ways, as <code>TraMineR</code> is able to convert between them (Gabadinho et al. 2010, p. 28). However, all formats of the data require a start and end point for a state as well as the state itself. We explored both the full careers of veterans and also the 10-year period after they first exit the military. When looing at full careers we align sequences by the first date appearing on the resume. When looking at 10-year post military sequences we instead align them by the date that veterans exited the military.</p>
+<center>
+<figure>
+<img src = "../methods/example_bgt.png" width = "600"/>
+<figcaption> Figure 1. An example of a sequence object created from BGT data. States are defined from O*NET job zones and gaps of unemployment. </figcaption>
+</figure>
+</center>
+
 <section>
     <a id="readgraphs">
     </a>
@@ -224,7 +232,7 @@ $(document).ready(function(){
 <center>
 <figure>
 <img src = "../methods/example_frequency.png" width = "600"/>
-<figcaption> Figure 1. An example sequence frequency plot with two groups (Gabadinho et al. 2010, p. 28). </figcaption>
+<figcaption> Figure 2. An example sequence frequency plot with two groups (Gabadinho et al. 2010, p. 28). </figcaption>
 </figure>
 </center>
 <p>Figure 1 is a grouped sequence frequency plot. Each of these graphs depict the top ten most frequent sequences in each group. Larger barwidths correspond to greater frequency, which is the unit on the y-axis. Here, as in most sequence plots, states are represented by color and time runs along the x-axis.</p>
@@ -233,7 +241,7 @@ $(document).ready(function(){
 <center>
 <figure>
 <img src = "../methods/example_meantime.png" width = "600"/>
-<figcaption> Figure 2. An example state mean time plot with two groups (Gabadinho et al. 2010, p. 30). </figcaption>
+<figcaption> Figure 3. An example state mean time plot with two groups (Gabadinho et al. 2010, p. 30). </figcaption>
 </figure>
 </center>
 <p>Figure 2 is a grouped state mean time plot. Again, each state is represented by color. Bar heights correspond to the mean time spent in each state, which is shown on the y-axis.</p>
@@ -241,13 +249,19 @@ $(document).ready(function(){
 <center>
 <figure>
 <img src = "../methods/example_distribution.png" width = "600"/>
-<figcaption> Figure 3. An example state distribution plot with two groups (Gabadinho et al. 2010, p. 35). </figcaption>
+<figcaption> Figure 4. An example state distribution plot with two groups (Gabadinho et al. 2010, p. 35). </figcaption>
 </figure>
 </center>
 <p>Figure 3 is a grouped state distribution plot. Here, states, again represented by colors, are shown over time, running along the x-axis. In a state distribution plot, the y-axis depicts the state frequency as a proportion of all sequences at each unit of time.</p>
 <h3 style="text-align:center" id="clustering-sequences">Clustering Sequences</h3>
 <p>Clustering is an unsupervised machine learning method that explores data by grouping it based on its distance from other data. Once these groups are determined, we can analyze similarities and differences between groups, and look for patterns in how the data is classified. Different methods of clustering calculate this distance differently. One such method, hierarchical clustering, does not require the number of clusters to be pre-specified, because it calculates the clusters obtained for each possible number of clusters (James et al. 2013, p. 386). These clusters can be visualized on a &ldquo;dendogram&rdquo;, a tree-based diagram. These diagrams provide information not just about the optimal number of clusters for gaining information about a dataset, but which clusters are closer or farther away from another.</p>
 <p>To implement hierarachical clustering on our sequences, we used Ward&rsquo;s method, which calculates the merging cost of combining two clusters. Ward&rsquo;s method is easily implemented with TraMineR, which has several methods for calculating distances between sequences (Studer &amp; Ritschard, 2016). We present some of these calculations in our Clustering results section. As hierarchical clustering does not require the number of clusters to be pre-specified, it is also necessary to determine the optimal number of clusters for analysis. We tested several numbers of clusters and determined eight clusters to be the optimal number for meaningful results and interpretations.</p>
+<center>
+<figure>
+<img src = "../methods/dendrogram.png" width = "600"/>
+<figcaption> Figure 5. Our Ward's hierarchical clustering dendrogram. We used the dendrogram and substantive interpretation to determine the optimal number of clusters, eight. </figcaption>
+</figure>
+</center>
 <h3 style="text-align:center" id="tournament-theory">Tournament Theory</h3>
 <p>There are two ways of thinking about career mobility: a &ldquo;path-independent&rdquo; model, and a &ldquo;path dependent&rdquo; model. In the path-independent model, an individual&rsquo;s career history can be considered independent from their current position. However, this assumption of independence may not hold in a career context, as previous job history could conceivably have a great impact on the current position an individual holds. Rosenbaum (1979) used an assumption of path dependence to develop a tournament mobility model. In this model, individuals compete for jobs in &ldquo;rounds&rdquo; of a tournament, and the results of each round (the &ldquo;winners&rdquo; and &ldquo;losers&rdquo;) have great influence on the chances of mobility in subsequent rounds (Rosenbaum 1979, p. 223). This model further hypothesizes that individuals have a limited number of career paths open to them, and that promotion in early rounds of the tournament improves the chances of being further promoted, attaining management levels, and reaching higher levels overall (Rosenbaum 1979, p. 226).</p>
 <p>Given that our analysis is concerned with the career mobility of veterans, Rosenbaum&rsquo;s tournament mobility model makes sense to explore further. Job zones do not make a perfect proxy for promotion and demotion in a tournament concept, since they represent the education needed for a position rather than its seniority. However, they still represent a type of mobility. Additionally, our data includes different types of unemployment: transitional unemployment (unemployment when a veteran is transitioning from a military to civilian career) and civilian unemployment (unemployment in the more traditional sense, after a civilian career has been established). We hypothesized that results in early rounds of the tournament, such as transitional unemployment or early promotion, would have different results later in the career.</p>

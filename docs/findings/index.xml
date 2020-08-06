@@ -11,14 +11,13 @@
     
     
     <item>
-      <title>General Project Overview</title>
+      <title>Results Overview</title>
       <link>/findings/general-overview/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/findings/general-overview/</guid>
-      <description>Main Findings From our research, we have come to several major findings.
-Data profiling, benchmarking, and exploration. 1. BGT resume data overrepresents young and white collar veterans.   
-  Sequence analysis 2. While there is some evidence to support career mobility for veterans over the entire career, there is little evidence to support career mobility for veterans as a group in the first ten years after they exit the military.</description>
+      <description>.imgContainer{ float:left; }  Main Findings From our research, we have come to several major findings.
+Data profiling, benchmarking, and exploration. 1. BGT resume data overrepresents young and white collar veterans.    Figure 1. Results from data benchmarking using Behavioral Risk Factor Surveillance System, American Community Survey, Veterans Employment Outcomes, and BGT Resume data. In both graphs, BGT observations are in orange. These findings show BGT over estimates white collar veterans by comparison, for both education and industry variables.</description>
     </item>
     
     <item>

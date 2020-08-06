@@ -19,6 +19,14 @@ Sequence analysis refers to a method of longitudinal analysis where linear data 
 
 Sequences can be represented in several ways, as `TraMineR` is able to convert between them (Gabadinho et al. 2010, p. 28). However, all formats of the data require a start and end point for a state as well as the state itself. We explored both the full careers of veterans and also the 10-year period after they first exit the military. When looking at full careers we align sequences by the first date appearing on the resume. When looking at 10-year post military sequences we instead align them by the date that veterans exited the military.
 
+
+<center>
+<figure>
+<img src = "../methods/example_bgt.png" width = "600"/>
+<figcaption> Figure 1. An example of a sequence object created from BGT data. States are defined from O*NET job zones and gaps of unemployment. </figcaption>
+</figure>
+</center>
+
 <section>
     <a id="readgraphs">
     </a>
@@ -34,7 +42,7 @@ A sequence frequency plot presents a view of sequence frequencies with widths of
 <center>
 <figure>
 <img src = "../methods/example_frequency.png" width = "600"/>
-<figcaption> Figure 1. An example sequence frequency plot with two groups (Gabadinho et al. 2010, p. 28). </figcaption>
+<figcaption> Figure 2. An example sequence frequency plot with two groups (Gabadinho et al. 2010, p. 28). </figcaption>
 </figure>
 </center>
 
@@ -46,7 +54,7 @@ A state mean time plot shows the non-consecutive mean time spent in each state f
 <center>
 <figure>
 <img src = "../methods/example_meantime.png" width = "600"/>
-<figcaption> Figure 2. An example state mean time plot with two groups (Gabadinho et al. 2010, p. 30). </figcaption>
+<figcaption> Figure 3. An example state mean time plot with two groups (Gabadinho et al. 2010, p. 30). </figcaption>
 </figure>
 </center>
 
@@ -57,7 +65,7 @@ Figure 2 is a grouped state mean time plot. Again, each state is represented by 
 <center>
 <figure>
 <img src = "../methods/example_distribution.png" width = "600"/>
-<figcaption> Figure 3. An example state distribution plot with two groups (Gabadinho et al. 2010, p. 35). </figcaption>
+<figcaption> Figure 4. An example state distribution plot with two groups (Gabadinho et al. 2010, p. 35). </figcaption>
 </figure>
 </center>
 
@@ -68,6 +76,13 @@ Figure 3 is a grouped state distribution plot. Here, states, again represented b
 Clustering is an unsupervised machine learning method that explores data by grouping it based on its distance from other data. Once these groups are determined, we can analyze similarities and differences between groups, and look for patterns in how the data is classified. Different methods of clustering calculate this distance differently. One such method, hierarchical clustering, does not require the number of clusters to be pre-specified, because it calculates the clusters obtained for each possible number of clusters (James et al. 2013, p. 386). These clusters can be visualized on a "dendogram", a tree-based diagram. These diagrams provide information not just about the optimal number of clusters for gaining information about a dataset, but which clusters are closer or farther away from another. 
 
 To implement hierarachical clustering on our sequences, we used Ward's method, which calculates the merging cost of combining two clusters. Ward's method is easily implemented with TraMineR, which has several methods for calculating distances between sequences (Studer & Ritschard, 2016). We present some of these calculations in our Clustering results section. As hierarchical clustering does not require the number of clusters to be pre-specified, it is also necessary to determine the optimal number of clusters for analysis. We tested several numbers of clusters and determined eight clusters to be the optimal number for meaningful results and interpretations.
+
+<center>
+<figure>
+<img src = "../methods/dendrogram.png" width = "600"/>
+<figcaption> Figure 5. Our Ward's hierarchical clustering dendrogram. We used the dendrogram and substantive interpretation to determine the optimal number of clusters, eight. </figcaption>
+</figure>
+</center>
 
 ### Tournament Theory {style=text-align:center}
 
