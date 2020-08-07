@@ -55,7 +55,7 @@ Veterans Employment Outcomes (VEO) comparison with BGT data The following plot c
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/data/</guid>
-      <description>2020 Veteran Career Pathways Summer Project Data Sources Burning Glass Technologies Resume Data Burning Glass Technologies (BGT) provides data on resumes that were collected from publically available sites between 2016 and 2018. This data includes information about an individual&amp;rsquo;s education, certifications, skills, geographic location, and of course, job history. The information on job history includes position of each job on the resume, the dates the job was held, and the [O*NET Standard Occupation Classification (SOC) code] (https://www.</description>
+      <description>2020 Veteran Career Pathways Summer Project Data Sources Burning Glass Technologies Resume Data Burning Glass Technologies (BGT) provides data on resumes that were collected from publically available sites between 2016 and 2018. This data includes information about an individual&amp;rsquo;s education, certifications, skills, geographic location, and of course, job history. The information on job history includes position of each job on the resume, the dates the job was held, and the Occupational Information Network (O*NET) Standard Occupation Classification (SOC) code of the job.</description>
     </item>
     
     <item>
@@ -74,7 +74,7 @@ Veterans Employment Outcomes (VEO) comparison with BGT data The following plot c
       
       <guid>/overview/</guid>
       <description>2020 Veteran Career Pathways Summer Project This project focuses on exploring the career pathways of Army veterans, observed using Burning Glass Technologies resume data. The team explores modeling techniques including sequence analysis and tournament models to classify resume data into a typology of career trajectories, and identify factors associated with career mobility. Initial modeling efforts are focused on resumes in the Washington Metropolitan area.
-Project Goals As part of a larger project with the Army Research Institute we seek to develop predictve models and metrics to describe the career pathways of veterans and active duty Soldiers.</description>
+Project Goals As part of a larger project with the Army Research Institute we seek to develop predictive models and metrics to describe the career pathways of veterans and active duty Soldiers.</description>
     </item>
     
     <item>

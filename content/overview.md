@@ -4,7 +4,7 @@ This project focuses on exploring the career pathways of Army veterans, observed
 
 ### Project Goals {style=text-align:center}
 
-As part of a larger project with the Army Research Institute we seek to develop predictve models and metrics to describe the career pathways of veterans and active duty Soldiers. This can lead to new quantitative approaches to Army personnel planning and talent management.
+As part of a larger project with the Army Research Institute we seek to develop predictive models and metrics to describe the career pathways of veterans and active duty Soldiers. This can lead to new quantitative approaches to Army personnel planning and talent management.
 
 ### Our Approach {style=text-align:center}
 
