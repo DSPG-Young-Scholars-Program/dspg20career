@@ -1,0 +1,334 @@
+---
+title: "13_expanding_20_and_30_years"
+output: html_document
+author: "Joanna Schroeder"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster", "tools")) {
+  library(pkg, character.only = TRUE)
+}
+
+uva_color_palette <- 
+c("#232D4B", #space cadet
+  "#2C4F6B", #indigo dye
+  "#0E879C", #blue munsell
+  "#60999A", #cadet blue
+  "#D1E0BF", #tea green
+  "#D9E12B", #pear
+  "#E6CE3A", #citrine
+  "#E6A01D", #marigold
+  "#E57200" #princeton orange
+)
+```
+
+## Create the sequence objects
+
+In the previous analysis, we looked at ten years of a career after the last O*NET 55 job.
+    * We filtered out veterans without valid start and end dates (5,185 sample)
+    * We did not filter out retirement/exit of the workforce within the ten years. 
+
+Our definition of retirement/exit of the workforce may not be accurate for everyone in the sample. A more accurate label for this state is "end of resume," so a veteran with two years of a civilian career followed by "retirement" could be retired or they could be looking for a new job. For meaningful analysis for this period of career history, we want to redefine our sample to exclude veterans without ten years of career history after they exit the military. 
+
+Criteria for inclusion:
+    * Include left NAs (military transition unemployment)
+    * Include gaps (civilian unemployment)
+    * Exclude right NAs (this is not meaningful information its just the end of resume)
+    * Complete cases for time span of interest (Complete 10, 20, or 30 year history)
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#import veteran job data
+bg_vet_job <-read_csv("~/git/DSPG2020/career/data/04_bg_vet_job.csv")%>%
+  mutate(year_enter_job_market = year(date_enter_job_market))%>%
+  select(-noofjobs, -sector, -tenure) %>%
+  group_by(id) %>%
+  mutate(years_in_job_market = max(end_year) - (min(start_year)))
+#colnames(bg_vet_job)
+
+#veterans and the date they ended their last ONET 55 job
+vet_endmilitary <- bg_vet_job%>%
+  mutate(date_end_onet55 = if_else(is_onet55==T, enddate, as.Date(NA)))%>%
+  filter(!is.na(date_end_onet55))%>%  #exluce people who don't have valid onet55 code
+  select(id, date_end_onet55) %>%
+  #keep the latest onet55 job
+  group_by(id)%>%   
+  arrange(desc(date_end_onet55))%>%
+  group_by(id)%>%
+  distinct(id, .keep_all = TRUE) 
+
+bg_vet_job  <- inner_join(bg_vet_job, vet_endmilitary, by = "id")
+
+## sequence data
+bg_vet_job_seq <- bg_vet_job %>%
+  select(id, end_year, onet_job_zone, startdate, enddate, job_duration_day, date_end_onet55, year_enter_job_market, years_in_job_market)%>%
+  mutate(year_end_onet55 = year(date_end_onet55))%>%
+  select(-year_enter_job_market)%>%
+  filter(startdate >= date_end_onet55)%>% #find jobs that came after the date ended onet55 job
+  filter(onet_job_zone != 55)  %>%  #filter out 55 jobs that have the same start and end date  
+  mutate(start_year = year(startdate))
+
+
+check <- bg_vet_job_seq%>%
+  mutate(year_until_first_job = start_year- year_end_onet55)%>%
+  group_by(id)%>%
+  summarize(years = min(year_until_first_job))
+
+#ggplot(check, aes(x = years)) + 
+#  geom_histogram(binwidth = 1.4) + 
+#  labs(title = "", x = "years until first job") 
+
+#summary(check$years)
+
+bg_vet_job_seq <- bg_vet_job_seq %>%
+  mutate(years_after_onet55 = max(end_year) - year_end_onet55) %>%
+  mutate(start_year = start_year - year_end_onet55 + 1)%>%  #transform from calender year to year start sequence analysis
+  mutate(end_year = end_year - year_end_onet55 + 1) %>% #transform from calender year to year start sequence analysis
+  select(id, start_year, end_year, onet_job_zone, years_after_onet55)%>%
+  group_by(id)%>%
+  arrange(desc(onet_job_zone))%>%
+  group_by(id)%>%
+  distinct(id, start_year, end_year, .keep_all = TRUE)
+```
+
+```{r}
+#table(bg_vet_job_seq$onet_job_zone)
+#length(unique(bg_vet_job_seq$id))  #confirm sample size match
+
+#min(bg_vet_job_seq$start_year)
+#max(bg_vet_job_seq$start_year)
+```
+
+```{r}
+# object for ten years
+career_sequence <- function(name = "sts_vet_ten", years) {
+sts_vet <- bg_vet_job_seq %>%
+  filter(years_after_onet55 >= years) %>%
+  select(-years_after_onet55)
+
+sts_vet <- as.matrix(sts_vet)
+sts_vet <- as.data.frame(sts_vet)
+  
+sts_vet <- seqformat(sts_vet, from = "SPELL", to = "STS",
+            id = "id",  begin = "start_year", end = "end_year", 
+            status = "onet_job_zone", process = FALSE)
+
+vet.seq <- seqdef(sts_vet, left="Military transition unemployment", gaps="Civilian unemployment", right="DEL", cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5", "#CBBEB5"))
+
+# Filter out veterans who do not have a complete career in time period of interest
+sts_vet <- vet.seq[, 1:years]
+
+assign(name, sts_vet, envir = .GlobalEnv)
+}
+
+career_sequence("sts_vet_ten", 10)
+career_sequence("sts_vet_twenty", 20)
+career_sequence("sts_vet_thirty", 30)
+```
+
+# Sequence graphs and transition matricies
+
+```{r fig.height=8, fig.width=10}
+## Function for creating a transition matrix
+career_sequence_transition <- function(transition_name = "transition_ten", cost_name = "cost_ten", sequence_object) {
+## Computing transition rates
+#counts
+transition_matrix <- seqtrate(sequence_object, weighted=FALSE, count=TRUE)
+round(transition_matrix,2)
+#standardize counts
+
+#make the diagnal 0
+diag(transition_matrix) = 0
+round(transition_matrix,2)
+
+#calculate rowsum
+rowsum <- apply(transition_matrix, 1, sum)
+
+#calculate percent 
+for(i in 1:nrow(transition_matrix)) {
+  for (j in 1:ncol(transition_matrix)){
+    transition_matrix[i,j] = transition_matrix[i,j]/rowsum[i]
+  }
+}
+
+#code NAs as 0
+for(j in 1:ncol(transition_matrix)){
+      transition_matrix[8,j] = transition_matrix[8,j] = 0
+}
+transition_matrix <- round(transition_matrix,2)
+
+
+#convert transition matrix to cost matrix
+cost_matrix <- 2-transition_matrix
+round(cost_matrix,2)
+
+#make the diagnal 0
+diag(cost_matrix) = 0
+cost_matrix <- round(cost_matrix,2)
+
+assign(transition_name, transition_matrix, envir = .GlobalEnv)
+assign(cost_name, cost_matrix, envir = .GlobalEnv)
+}
+
+career_sequence_transition("transition_ten", "cost_ten", sts_vet_ten)
+career_sequence_transition("transition_twenty", "cost_twenty", sts_vet_twenty)
+career_sequence_transition("transition_thirty", "cost_thirty", sts_vet_thirty)
+
+meant <- seqmeant(sts_vet_thirty)
+meant <- as.data.frame(meant)
+meant <- meant %>% rownames_to_column(var = "state")
+
+## Function for creating sequence graphs
+career_sequence_graphs <- function(sequence_object) {
+seqdplot(sequence_object)
+seqmtplot(sequence_object)
+
+}
+
+
+gg_transition_matrix <- function(tr, title) {
+round(tr, 2)
+transition.matrix.df <- as.data.frame(tr)
+transition.matrix.df$startState <- row.names(transition.matrix.df)
+transition.matrix.df <- melt(transition.matrix.df)
+colnames(transition.matrix.df)[colnames(transition.matrix.df) == "variable"] <- "endState"
+                                        
+ggplot(data = transition.matrix.df, aes(x = endState, y = factor(startState,        levels = rev(levels(factor(startState)))), fill = value)) + 
+  geom_tile() +    
+  geom_text(aes(label=round(value,3))) +  
+  scale_x_discrete(position = "top") +  
+  scale_fill_gradient(low = "white", high = "#E57200") +
+  theme(legend.position="bottom", panel.background = element_blank(),         plot.title = element_text(face = "bold")) +  
+  labs(fill = "Transition Probability",        
+       title = title,     
+       y = "Current Job",       
+       x = "Next Job")
+}
+
+career_sequence_graphs(sts_vet_ten)
+tr <- seqtrate(sts_vet_ten)
+gg_transition_matrix(tr, "Ten Years Year to Year Transition Matrix")
+gg_transition_matrix(transition_twenty, "Ten Years Job to Job Transition Matrix")
+
+# Without retirement, unemployment is much less dramatic
+# Career mobility: widening of job zone 4
+# Job to job transition matrix makes me think of education
+
+career_sequence_graphs(sts_vet_twenty)
+tr <- seqtrate(sts_vet_twenty)
+gg_transition_matrix(tr, "Twenty Years Year to Year Transition Matrix")
+gg_transition_matrix(transition_twenty, "Twenty Years Job to Job Transition Matrix")
+
+# 4 and 5 job zone widening is more dramatic
+# leveling off of unemployment rate
+
+career_sequence_graphs(sts_vet_thirty)
+tr <- seqtrate(sts_vet_thirty)
+gg_transition_matrix(tr, "Thirty Years Year to Year Transition Matrix")
+gg_transition_matrix(transition_thirty, "Thirty Years Job to Job Transition Matrix")
+
+# job sone 5 seems to plateau while 4 consistently widens
+# unemployment starts to steadily goes down
+# not sure what is up with transition matrix here
+```
+
+# Clustering
+
+```{r, fig.height=10}
+## Clustering
+#vet.seq.OM <- seqdist(sts_vet_thirty, method = "OM", indel = 3, sm = cost_thirty, with.missing = TRUE)
+#clusterward <- agnes(vet.seq.OM, diss = TRUE, method = "ward")
+#saveRDS(clusterward, file = "~/git/DSPG2020/career/data/clusterward_30yrs_noretirement.rds")
+
+# Looking at clustering
+cluster_ten <- readRDS(file = "~/git/DSPG2020/career/data/clusterward_10yrs_noretirement.rds")
+cluster_ten$ac
+
+cluster_twenty <- readRDS(file = "~/git/DSPG2020/career/data/clusterward_20yrs_noretirement.rds")
+cluster_twenty$ac
+
+cluster_thirty <- readRDS(file = "~/git/DSPG2020/career/data/clusterward_30yrs_noretirement.rds")
+cluster_thirty$ac
+
+plot(cluster_ten, which.plots = 2)
+plot(cluster_twenty, which.plots = 2)
+plot(cluster_thirty, which.plots = 2)
+
+## 10 years , eight clusters
+cluster8 <- cutree(cluster_ten, k=8)
+cluster8 <- factor(cluster8, labels = c("Type 1",  "Type 2", "Type 3", "Type 4", "Type 5", "Type 6", "Type 7", "Type 8"))
+table(cluster8)
+#longitudinal plot
+seqdplot(sts_vet_ten, group = cluster8, pbarw = T)
+#another cluster plot
+seqmtplot(sts_vet_ten, group = cluster8)
+
+# Type 1: military transitional unemployment
+# Type 2: civilian unemployment
+# Types 3 and 6: missing zone
+# Types 4 and 5: unemployment in first two years, then high job zone, (education?)
+
+## 20 years , eight clusters
+cluster8 <- cutree(cluster_twenty, k=8)
+cluster8 <- factor(cluster8, labels = c("Type 1",  "Type 2", "Type 3", "Type 4", "Type 5", "Type 6", "Type 7", "Type 8"))
+table(cluster8)
+#longitudinal plot
+seqdplot(sts_vet_twenty, group = cluster8, pbarw = T)
+#another cluster plot
+seqmtplot(sts_vet_twenty, group = cluster8)
+
+# Type 1: career mobility cluster
+# Type 2: civilian unemployed
+# Type 3: military transition unemployed
+
+## 30 years , eight clusters
+cluster8 <- cutree(cluster_thirty, k=8)
+cluster8 <- factor(cluster8, labels = c("Type 1",  "Type 2", "Type 3", "Type 4", "Type 5", "Type 6", "Type 7", "Type 8"))
+table(cluster8)
+#longitudinal plot
+seqdplot(sts_vet_thirty, group = cluster8, pbarw = T)
+#another cluster plot
+seqmtplot(sts_vet_thirty, group = cluster8)
+
+# Much lower n here
+# Type 7: late career cluster
+
+```
+
+### Education distribution for 30 years, 8 clusters
+
+```{r}
+bg_vet_demographic <-read_csv("~/git/DSPG2020/career/data/02_bg_vet_demographic.csv")
+vet <- unique(bg_vet_job_seq$id)
+vet_df <- as.data.frame(cbind(vet, cluster8))
+colnames(vet_df) <- c("id", "cluster")
+class(vet_df$id)
+vet_df <- left_join(vet_df, bg_vet_demographic, by = "id")
+degree <- vet_df %>%
+  filter(!is.na(degree_highest))%>%
+  group_by(cluster, degree_highest)%>%
+  summarize(count=n())%>%
+  group_by(degree_highest)%>%
+  mutate(sum = sum(count))%>%
+  mutate(perc = count/sum)
+#degree$count[is.na(degree$count)] <- 0
+degree$cluster <- as.factor(degree$cluster)
+degree$degree_highest <- factor(degree$degree_highest, levels = c("others","certificate","highschool", "associate", "bachelor", "master", "doctor"))
+degree <- as.data.frame(degree)
+ggplot(degree, aes(cluster, degree_highest, fill= count)) + 
+  geom_tile()+
+  scale_fill_gradient(low="white", high="blue")+
+  theme_classic()+
+  labs(title = "Clustering X Degree --before normalization")
+ggplot(degree, aes(cluster, degree_highest, fill= perc)) + 
+  geom_tile()+
+  scale_fill_gradient(low="white", high="blue")+
+  theme_classic()+
+  labs(title = "Clustering X Degree --after normalization")
+```
+```
+
