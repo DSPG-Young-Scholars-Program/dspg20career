@@ -1,0 +1,213 @@
+---
+title: "14_nonveteran_sequences"
+author: "Joanna Schroeder"
+date: "9/1/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster", "tools")) {
+  library(pkg, character.only = TRUE)
+}
+
+uva_color_palette <- 
+c("#232D4B", #space cadet
+  "#2C4F6B", #indigo dye
+  "#0E879C", #blue munsell
+  "#60999A", #cadet blue
+  "#D1E0BF", #tea green
+  "#D9E12B", #pear
+  "#E6CE3A", #citrine
+  "#E6A01D", #marigold
+  "#E57200" #princeton orange
+)
+```
+
+```{r}
+#bg_all_job <- read_csv("~/git/DSPG2020/career/data/03_bg_all_job.csv")
+#bg_vet_job <- read_csv("~/git/DSPG2020/career/data/04_bg_vet_job.csv")
+
+#bg_all_job <- bg_all_job %>%
+#  mutate(year_enter_job_market = year(date_enter_job_market))%>%
+#  select(-noofjobs, -sector, -tenure) 
+
+#bg_all_job_seq <- bg_all_job %>%
+#  select(id, end_year, onet_job_zone, startdate, enddate, job_duration_day) %>%
+#  mutate(start_year = year(startdate))
+
+#bg_all_job_seq <- bg_all_job_seq %>%
+#  group_by(id) %>%
+#  mutate(years_in_job_market = max(end_year) - min(start_year)) %>%
+#  mutate(start_year = start_year - year_end_onet55 + 1) %>%  #transform from calender year to year start sequence analysis
+#  mutate(end_year = end_year - year_end_onet55 + 1) %>% #transform from calender year to year start sequence analysis
+#  select(id, start_year, end_year, onet_job_zone, years_in_job_market)%>%
+#  group_by(id)%>%
+#  arrange(desc(onet_job_zone))%>%
+#  group_by(id)%>%
+#  distinct(id, start_year, end_year, .keep_all = TRUE)
+
+
+#sts_all <- bg_all_job_seq %>%
+#  filter(years_in_job_market >= 10) %>%
+#  select(-years_in_job_market) %>%
+#  group_by(id) %>% mutate(veteran = ifelse(any(onet_job_zone == 55), 1, 0)) %>% ungroup() %>%
+#  filter(veteran == 0) %>% group_by(id) %>%
+#  mutate(start_year_a = start_year - min(start_year) + 1) %>%
+#  mutate(end_year_a = end_year - min(start_year) + 1)
+
+#sts_all %>% group_by(id) %>%
+#  spread(start_year, onet_job_zone)
+
+#sts_all <- as.matrix(sts_all)
+#sts_all <- as.data.frame(sts_all)
+  
+#length(unique(sts_all$id))
+
+# manual conversion to sequence format
+#dcast(sts_all, id ~ start_year_a, value.var = "onet_job_zone")
+
+#process <- sts_all %>% group_by(id) %>% mutate(enter = min(start_year)) %>% select(id, enter) %>% distinct()
+
+#sts_all <- seqformat(sts_all, from = "SPELL", to = "STS",
+#            id = "id",  begin = "start_year_a", end = "end_year_a", 
+#            status = "onet_job_zone", process = FALSE)
+
+#all.seq <- seqdef(sts_all, left="DEL", gaps="Civilian unemployment", right="DEL", cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5"))
+
+# Filter out veterans who do not have a complete career in time period of interest
+#sts_all <- all.seq[, 1:10]
+
+#write.csv(sts_all, "~/git/DSPG2020/career/data/sts_all_ten.csv")
+
+sts_nonvet_ten <- read.csv("~/git/DSPG2020/career/data/sts_all_ten.csv", row.names = 1)
+sts_nonvet_twenty <- read.csv("~/git/DSPG2020/career/data/sts_all_twenty.csv", row.names = 1)
+sts_nonvet_thirty <- read.csv("~/git/DSPG2020/career/data/sts_all_thirty.csv", row.names = 1)
+
+sts_nonvet_ten <- seqdef(sts_nonvet_ten, left="DEL", gaps="Civilian unemployment", right="DEL", cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5"))
+sts_nonvet_ten <- sts_nonvet_ten[, 1:10]
+
+sts_nonvet_twenty <- seqdef(sts_nonvet_twenty, left="DEL", gaps="DEL", right="DEL", cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5"))
+
+sts_nonvet_thirty <- seqdef(sts_nonvet_thirty, left="DEL", gaps="Civilian unemployment", right="DEL", cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5"))
+sts_nonvet_thirty <- sts_nonvet_thirty[, 1:30]
+
+```
+
+```{r fig.height=8, fig.width=10}
+## Function for creating a transition matrix
+career_sequence_transition <- function(transition_name = "transition_ten", cost_name = "cost_ten", sequence_object) {
+## Computing transition rates
+#counts
+transition_matrix <- seqtrate(sequence_object, weighted=FALSE, count=TRUE)
+round(transition_matrix,2)
+#standardize counts
+
+#make the diagnal 0
+diag(transition_matrix) = 0
+round(transition_matrix,2)
+
+#calculate rowsum
+rowsum <- apply(transition_matrix, 1, sum)
+
+#calculate percent 
+for(i in 1:nrow(transition_matrix)) {
+  for (j in 1:ncol(transition_matrix)){
+    transition_matrix[i,j] = transition_matrix[i,j]/rowsum[i]
+  }
+}
+
+#code NAs as 0
+for(j in 1:ncol(transition_matrix)){
+      transition_matrix[7,j] = transition_matrix[7,j] = 0
+}
+transition_matrix <- round(transition_matrix,2)
+
+
+#convert transition matrix to cost matrix
+cost_matrix <- 2-transition_matrix
+round(cost_matrix,2)
+
+#make the diagnal 0
+diag(cost_matrix) = 0
+cost_matrix <- round(cost_matrix,2)
+
+assign(transition_name, transition_matrix, envir = .GlobalEnv)
+assign(cost_name, cost_matrix, envir = .GlobalEnv)
+}
+
+gg_transition_matrix <- function(tr, title) {
+round(tr, 2)
+transition.matrix.df <- as.data.frame(tr)
+transition.matrix.df$startState <- row.names(transition.matrix.df)
+transition.matrix.df <- melt(transition.matrix.df)
+colnames(transition.matrix.df)[colnames(transition.matrix.df) == "variable"] <- "endState"
+                                        
+ggplot(data = transition.matrix.df, aes(x = endState, y = factor(startState,        levels = rev(levels(factor(startState)))), fill = value)) + 
+  geom_tile() +    
+  geom_text(aes(label=round(value,3))) +  
+  scale_x_discrete(position = "top") +  
+  scale_fill_gradient(low = "white", high = "#E57200") +
+  theme(legend.position="bottom", panel.background = element_blank(),         plot.title = element_text(face = "bold")) +  
+  labs(fill = "Transition Probability",        
+       title = title,     
+       y = "Current Job",       
+       x = "Next Job")
+}
+
+career_sequence_transition("transition_ten_non", "cost_ten_non", sts_nonvet_ten)
+career_sequence_transition("transition_twenty_non", "cost_twenty_non", sts_nonvet_twenty)
+career_sequence_transition("transition_thirty_non", "cost_thirty_non", sts_nonvet_thirty)
+
+## Function for creating sequence graphs
+career_sequence_graphs <- function(sequence_object) {
+seqdplot(sequence_object)
+seqmtplot(sequence_object)
+}
+
+career_sequence_graphs(sts_nonvet_ten)
+tr <- seqtrate(sts_nonvet_ten)
+gg_transition_matrix(tr, "Ten Years Nonveteran Year to Year Transition Matrix")
+gg_transition_matrix(transition_ten_non, "Ten Years Nonveteran Job to Job Transition Matrix")
+
+career_sequence_graphs(sts_nonvet_twenty)
+tr <- seqtrate(sts_nonvet_twenty)
+gg_transition_matrix(tr, "Twenty Years Nonveteran Year to Year Transition Matrix")
+gg_transition_matrix(transition_twenty_non, "Twenty Years Nonveteran Job to Job Transition Matrix")
+
+career_sequence_graphs(sts_nonvet_thirty)
+tr <- seqtrate(sts_nonvet_thirty)
+gg_transition_matrix(tr, "Thirty Years Nonveteran Year to Year Transition Matrix")
+gg_transition_matrix(transition_thirty_non, "Thirty Years Nonveteran Job to Job Transition Matrix")
+```
+
+# Clustering
+
+```{r, eval = FALSE}
+sts_all_thirty <- read.csv("~/git/DSPG2020/career/data/sts_all_thirty.csv", row.names = 1)
+
+all.seq_thirty <- seqdef(sts_all_thirty, left="DEL", gaps="Civilian unemployment", right="DEL", cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5"))
+
+# Filter out veterans who do not have a complete career in time period of interest
+sts_all_thirty <- all.seq_thirty[, 1:30]
+
+library(WeightedCluster)
+
+agg_sts_all_thirty <- wcAggregateCases(sts_all_thirty)
+print(agg_sts_all_thirty)
+
+unique_sts_all_thirty <- sts_all_thirty[agg_sts_all_thirty$aggIndex,]
+
+nonvet.seq <- seqdef(unique_sts_all_thirty, weights = agg_sts_all_thirty$aggWeights)
+diss <- seqdist(nonvet.seq, method = "OM", indel = "auto", sm = cost_thirty_non, with.missing = TRUE, full.matrix=FALSE)
+#clusterward <- agnes(diss, diss = TRUE, method = "ward")
+clusterward <- hclust(as.dist(diss), method = "ward.D2", members = agg_sts_all_thirty$aggWeights)
+
+saveRDS(clusterward, file = "~/git/DSPG2020/career/data/clusterward_30yrs_noretirement.rds")
+
+```
+
