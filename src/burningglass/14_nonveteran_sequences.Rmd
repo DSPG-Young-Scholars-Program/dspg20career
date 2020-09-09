@@ -197,14 +197,14 @@ sts_all_thirty <- all.seq_thirty[, 1:30]
 
 library(WeightedCluster)
 
-agg_sts_all_thirty <- wcAggregateCases(sts_all_thirty)
+agg_sts_all_thirty <- wcAggregateCases(sts_nonvet_thirty)
 print(agg_sts_all_thirty)
 
-unique_sts_all_thirty <- sts_all_thirty[agg_sts_all_thirty$aggIndex,]
+unique_sts_all_thirty <- sts_nonvet_thirty[agg_sts_all_thirty$aggIndex,]
 
 nonvet.seq <- seqdef(unique_sts_all_thirty, weights = agg_sts_all_thirty$aggWeights)
 diss <- seqdist(nonvet.seq, method = "OM", indel = "auto", sm = cost_thirty_non, with.missing = TRUE, full.matrix=FALSE)
-#clusterward <- agnes(diss, diss = TRUE, method = "ward")
+clusterward <- agnes(diss, diss = TRUE, method = "ward")
 clusterward <- hclust(as.dist(diss), method = "ward.D2", members = agg_sts_all_thirty$aggWeights)
 
 saveRDS(clusterward, file = "~/git/DSPG2020/career/data/clusterward_30yrs_noretirement.rds")
