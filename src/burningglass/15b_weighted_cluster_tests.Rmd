@@ -1,5 +1,5 @@
 ---
-title: "14b_weighted_cluster_tests"
+title: "15b_weighted_cluster_tests"
 author: "Joanna Schroeder"
 date: "9/4/2020"
 output: html_document
@@ -28,7 +28,7 @@ c("#232D4B", #space cadet
 )
 ```
 
-How does time to run steps of a sequence clustering? Two main steps:
+How does time to run steps of a sequence clustering scale? Two main steps:
 
 1. Calculating a distance matrix
 2. Implementing clustering

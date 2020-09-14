@@ -582,6 +582,56 @@ seqmtplot(sts_vet_thirty, group = cluster8)
 
 ```
 
+### Clustering 1964 cohort
+```{r fig.height=10}
+#without norm
+career_sequence_transition("transition", "cost", sts_vet_1964)
+vet.seq.OM <- seqdist(sts_vet_1964, method = "OM", indel = "auto", sm = cost, with.missing = TRUE)
+clusterward <- agnes(vet.seq.OM, diss = TRUE, method = "ward")
+plot(clusterward, which.plots = 2)
+
+cluster7 <- cutree(clusterward, k=7)
+cluster7 <- factor(cluster7, labels = c("Type 1",  "Type 2", "Type 3", "Type 4", "Type 5", "Type 6", "Type 7"))
+table(cluster7)
+#longitudinal plot
+seqdplot(sts_vet_1964, group = cluster7, pbarw = T)
+#another cluster plot
+seqmtplot(sts_vet_1964, group = cluster7)
+#index plot
+seqIplot(sts_vet_1964, group = cluster7)
+
+#with norm
+vet.seq.OM <- seqdist(sts_vet_1964, method = "OM", indel = "auto", sm = cost, with.missing = TRUE, norm = TRUE)
+clusterward <- agnes(vet.seq.OM, diss = TRUE, method = "ward")
+plot(clusterward, which.plots = 2)
+
+cluster7 <- cutree(clusterward, k=7)
+cluster7 <- factor(cluster7, labels = c("Type 1",  "Type 2", "Type 3", "Type 4", "Type 5", "Type 6", "Type 7"))
+table(cluster7)
+#longitudinal plot
+seqdplot(sts_vet_1964, group = cluster7, pbarw = T)
+#another cluster plot
+seqmtplot(sts_vet_1964, group = cluster7)
+#index plot
+seqIplot(sts_vet_1964, group = cluster7)
+
+#pam clustering
+library(WeightedCluster)
+clusterpam <- wcKMedoids(vet.seq.OM, k = 7)
+clusterpam7 <- clusterpam$clustering 
+
+#longitudinal plot
+seqdplot(sts_vet_1964, group = clusterpam7, pbarw = T)
+#another cluster plot
+seqmtplot(sts_vet_1964, group = clusterpam7)
+#index plot
+seqIplot(sts_vet_1964, group = clusterpam7)
+
+
+```
+
+
+
 ### Education distribution for 30 years, 8 clusters
 
 ```{r}
