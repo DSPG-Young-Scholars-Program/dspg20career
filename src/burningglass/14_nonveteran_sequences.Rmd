@@ -29,36 +29,34 @@ c("#232D4B", #space cadet
 ```
 
 ```{r}
-#bg_all_job <- read_csv("~/git/DSPG2020/career/data/03_bg_all_job.csv")
+bg_all_job <- fread("~/git/DSPG2020/career/data/03_bg_all_job.csv")
 #bg_vet_job <- read_csv("~/git/DSPG2020/career/data/04_bg_vet_job.csv")
 
-#bg_all_job <- bg_all_job %>%
-#  mutate(year_enter_job_market = year(date_enter_job_market))%>%
-#  select(-noofjobs, -sector, -tenure) 
+bg_all_job <- bg_all_job %>%
+  mutate(year_enter_job_market = year(date_enter_job_market))%>%
+  select(-noofjobs, -sector, -tenure) 
 
-#bg_all_job_seq <- bg_all_job %>%
-#  select(id, end_year, onet_job_zone, startdate, enddate, job_duration_day) %>%
-#  mutate(start_year = year(startdate))
+bg_all_job_seq <- bg_all_job %>%
+  select(id, end_year, onet_job_zone, startdate, enddate, job_duration_day) %>%
+  mutate(start_year = year(startdate))
 
-#bg_all_job_seq <- bg_all_job_seq %>%
-#  group_by(id) %>%
-#  mutate(years_in_job_market = max(end_year) - min(start_year)) %>%
-#  mutate(start_year = start_year - year_end_onet55 + 1) %>%  #transform from calender year to year start sequence analysis
-#  mutate(end_year = end_year - year_end_onet55 + 1) %>% #transform from calender year to year start sequence analysis
-#  select(id, start_year, end_year, onet_job_zone, years_in_job_market)%>%
-#  group_by(id)%>%
-#  arrange(desc(onet_job_zone))%>%
-#  group_by(id)%>%
-#  distinct(id, start_year, end_year, .keep_all = TRUE)
+bg_all_job_seq <- bg_all_job_seq %>%
+  group_by(id) %>%
+  mutate(years_in_job_market = max(end_year) - min(start_year)) %>%
+  select(id, start_year, end_year, onet_job_zone, years_in_job_market)%>%
+  group_by(id)%>%
+  arrange(desc(onet_job_zone))%>%
+  group_by(id)%>%
+  distinct(id, start_year, end_year, .keep_all = TRUE)
 
 
-#sts_all <- bg_all_job_seq %>%
+sts_all <- bg_all_job_seq %>%
 #  filter(years_in_job_market >= 10) %>%
-#  select(-years_in_job_market) %>%
-#  group_by(id) %>% mutate(veteran = ifelse(any(onet_job_zone == 55), 1, 0)) %>% ungroup() %>%
-#  filter(veteran == 0) %>% group_by(id) %>%
-#  mutate(start_year_a = start_year - min(start_year) + 1) %>%
-#  mutate(end_year_a = end_year - min(start_year) + 1)
+  select(-years_in_job_market) %>%
+  group_by(id) %>% mutate(veteran = ifelse(any(onet_job_zone == 55), 1, 0)) %>% ungroup() %>%
+  filter(veteran == 0) %>% group_by(id) %>%
+  mutate(start_year_a = start_year - min(start_year) + 1) %>%
+  mutate(end_year_a = end_year - min(start_year) + 1)
 
 #sts_all %>% group_by(id) %>%
 #  spread(start_year, onet_job_zone)
@@ -97,6 +95,74 @@ sts_nonvet_thirty <- seqdef(sts_nonvet_thirty, left="DEL", gaps="Civilian unempl
 sts_nonvet_thirty <- sts_nonvet_thirty[, 1:30]
 
 ```
+
+## How many identical sequences are there?
+
+```{r}
+library(WeightedCluster)
+
+career_sequence_exit_year <- function(name = "sts_vet_ten", enter_year, exit_year) {
+sts_vet <- sts_all %>%
+  filter(start_year >= exit_year & start_year <= enter_year) #%>%
+  #select(-years_after_onet55)
+
+sts_vet <- as.matrix(sts_vet)
+sts_vet <- as.data.frame(sts_vet)
+  
+sts_vet <- seqformat(sts_vet, from = "SPELL", to = "STS",
+            id = "id",  begin = "start_year", end = "end_year", 
+            status = "onet_job_zone", process = FALSE)
+
+sts_vet <- seqdef(sts_vet, left="DEL", gaps="Civilian unemployment", right="DEL", cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5"))
+
+names(sts_vet) <- paste0(1:ncol(sts_vet))
+
+assign(name, sts_vet, envir = .GlobalEnv)
+}
+
+career_sequence_exit_year("sts_non_2008", 2017, 2008)
+career_sequence_exit_year("sts_non_1998", 2007, 1998)
+career_sequence_exit_year("sts_non_1988", 1997, 1988)
+career_sequence_exit_year("sts_non_1964", 1987, 1964)
+
+agg_2008 <- wcAggregateCases(sts_non_2008)
+print(agg_2008)
+agg_1998 <- wcAggregateCases(sts_non_1998)
+print(agg_1998)
+agg_1988 <- wcAggregateCases(sts_non_1988)
+print(agg_1988)
+#Number of disaggregated cases:  181889 
+#Number of aggregated cases:  17765 
+#Average aggregated cases:  10.23862 
+#Average (weighted) aggregation:  10.23862 
+agg_1964 <- wcAggregateCases(sts_non_1964)
+print(agg_1964)
+#Number of disaggregated cases:  62534 
+#Number of aggregated cases:  8866 
+#Average aggregated cases:  7.053237 
+#Average (weighted) aggregation:  7.053237 
+
+agg_ten <- wcAggregateCases(sts_nonvet_ten)
+print(agg_ten)
+#Number of disaggregated cases:  387383 
+#Number of aggregated cases:  41151 
+#Average aggregated cases:  9.413696 
+#Average (weighted) aggregation:  9.413696 
+agg_twenty <- wcAggregateCases(sts_nonvet_twenty)
+print(agg_twenty)
+#Number of disaggregated cases:  159609 
+#Number of aggregated cases:  63552 
+#Average aggregated cases:  2.511471 
+#Average (weighted) aggregation:  2.511471 
+agg_thirty <- wcAggregateCases(sts_nonvet_thirty)
+print(agg_thirty)
+#Number of disaggregated cases:  46718 
+#Number of aggregated cases:  29633 
+#Average aggregated cases:  1.576553 
+#Average (weighted) aggregation:  1.576553 
+```
+
+
 
 ```{r fig.height=8, fig.width=10}
 ## Function for creating a transition matrix
@@ -209,5 +275,139 @@ clusterward <- hclust(as.dist(diss), method = "ward.D2", members = agg_sts_all_t
 
 saveRDS(clusterward, file = "~/git/DSPG2020/career/data/clusterward_30yrs_noretirement.rds")
 
+```
+
+## 1964 cohort Comparison
+
+
+```{r fig.height = 10}
+career_sequence_exit_year <- function(name = "sts_vet_ten", enter_year, exit_year) {
+sts_vet <- sts_all %>%
+  filter(start_year >= exit_year & start_year <= enter_year) #%>%
+  #select(-years_after_onet55)
+
+sts_vet <- as.matrix(sts_vet)
+sts_vet <- as.data.frame(sts_vet)
+  
+sts_vet <- seqformat(sts_vet, from = "SPELL", to = "STS",
+            id = "id",  begin = "start_year", end = "end_year", 
+            status = "onet_job_zone", process = FALSE)
+
+sts_vet <- seqdef(sts_vet, left="DEL", gaps="Civilian unemployment", right="DEL", cpal = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5"))
+
+names(sts_vet) <- paste0(1:ncol(sts_vet))
+
+assign(name, sts_vet, envir = .GlobalEnv)
+}
+
+#career_sequence_exit_year("sts_non_1964", 1987, 1964)
+
+statd <- seqstatd(sts_non_1988)
+states <- statd$Frequencies
+states <- as.data.frame(states)
+names(states) <- paste0(1:31)
+states <- states %>% rownames_to_column(var = "state")
+states <- melt(states, id = "state")
+
+v_states <- statd$ValidStates
+v_states <- as.data.frame(v_states)
+v_states <- v_states %>% rownames_to_column(var = "variable")
+
+meant <- seqmeant(sts_non_1988)
+meant <- as.data.frame(meant)
+meant <- meant %>% rownames_to_column(var = "state")
+
+# Plot state frequency over time ---------------
+
+library(scales)
+ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+  geom_line(data = v_states, aes(x = as.numeric(variable), y = v_states/nrow(sts_non_1988)),
+            size = 2) +
+  scale_y_continuous(name = paste0("Share of careers in a job state, (n = ", nrow(sts_non_1988), ")"),
+                     sec.axis = sec_axis(trans = ~.*(nrow(sts_non_1964)), name = "Number of careers in year of career")) +
+  xlim(0,31) +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Civilian unemployed")) +
+  xlab("Year of career") +
+  labs(title = "Veteran career paths after military exit",
+       fill = "Job state") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+# Plot mean time in each state --------------
+
+ggplot(data = meant, aes(x = state, y = Mean, fill = state)) +
+  geom_col() +
+  scale_fill_manual(values = c("#CBBEB5",  uva_color_palette[1], uva_color_palette[2], uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#CBBEB5", "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Civilian unemployed")) +
+  scale_x_discrete(name = "Job state", labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Civilian unemployed")) +
+  labs(title = "Mean time spent in each state for veteran's post-military career",
+       fill = "Job state",
+       caption = "Data: BGT Resumes") +
+  ylab("Mean time (years)") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 40, hjust = 1))
+
+library(WeightedCluster)
+
+#agg <- wcAggregateCases(sts_non_1964)
+#print(agg)
+unique <- sts_non_1964[agg_1964$aggIndex, ]
+#seq <- seqdef(unique, left="DEL", gaps="DEL", right="DEL", weights = agg$aggWeights)
+diss <- seqdist(unique, method = "OM", indel = "auto", sm = cost_matrix, with.missing = TRUE, norm = TRUE)
+
+#seqstatl(seq)
+
+#non.seq.OM <- seqdist(sts_non_1964, method = "OM", indel = "auto", sm = cost_matrix, with.missing = TRUE, norm = TRUE)
+clusterpam <- wcKMedoids(diss, k = 7)
+clusterpam7 <- clusterpam$clustering
+
+clusterpam7_fac <- factor(clusterpam7[agg$disaggIndex], labels = paste("Type", 1:7))
+
+#uniqueCluster7 <- clusterpam[clustering]
+sts_non_1964$cluster7 <- clusterpam[agg$disaggIndex]
+
+#longitudinal plot
+seqdplot(sts_non_1964, group = clusterpam7_fac)
+#another cluster plot
+seqmtplot(sts_non_1964, group = clusterpam7_fac)
+#index plot
+seqIplot(sts_non_1964, group = clusterpam7_fac)
+```
+```{r}
+## Computing transition rates
+#counts
+transition_matrix <- seqtrate(sts_non_1964, weighted=FALSE, count=TRUE)
+round(transition_matrix,2)
+#standardize counts
+
+#make the diagnal 0
+diag(transition_matrix) = 0
+round(transition_matrix,2)
+
+#calculate rowsum
+rowsum <- apply(transition_matrix, 1, sum)
+
+#calculate percent 
+for(i in 1:nrow(transition_matrix)) {
+  for (j in 1:ncol(transition_matrix)){
+    transition_matrix[i,j] = transition_matrix[i,j]/rowsum[i]
+  }
+}
+
+#code NAs as 0
+for(j in 1:ncol(transition_matrix)){
+      transition_matrix[7,j] = transition_matrix[7,j] = 0
+}
+transition_matrix <- round(transition_matrix,2)
+
+
+#convert transition matrix to cost matrix
+cost_matrix <- 2-transition_matrix
+round(cost_matrix,2)
+
+#make the diagnal 0
+diag(cost_matrix) = 0
+cost_matrix <- round(cost_matrix,2)
 ```
 

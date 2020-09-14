@@ -31,12 +31,14 @@ c("#232D4B", #space cadet
 ## Literature Review
 
 Le Goix, R., Giraud, T., Cura, R., Le Corre, T. & Migozzi, J. (2019), "Who sells to whom in the suburbs? Home price inflation and the dynamics of sellers and buyers in the metropolitan region of Paris, 1996-2012", PLoS ONE. Vol. 14(3). e0213169.
-- Ward's clustering
+- Ward's clustering, Chi2 distance
+- No justification for selecting Ward's or for dissimilarity
 
 Mas, J.-F., Nogueira de Vasconcelos, R. & Franca-Rocha, W. (2019), "Analysis of High Temporal Resolution Land Use/Land Cover Trajectories", Land. Vol. 8(2), pp. 30.
 
 - Implements four different distance metrics: LCS, LSP, OM transition rates, and OM features
 - Ward's method for each dissimilarity index
+- Emphasizes choice for metric depends on what types of patterns of change are important: LCP focuses on beginning, OM can cluster based on rare transitions,   
 
 Kim, K. (2018), "Recent Advances in Activity-Based Travel Demand Models for Greater Flexibility". Portland State University PDXScholar. PhD Thesis, Portland, 2018.
 - No clustering
@@ -47,10 +49,55 @@ Riekhoff, A.-J. (2018), "Extended working lives and late-career destabilisation:
 
 Struffolino, E. & Mortelmans, D. (2018), "Lone Mothers in Belgium: Labor Force Attachment and Risk Factors", In Bernardi, L. & Mortelmans, D. (eds) Lone Parenthood in the Life Course. Series: Life Course Research and Social Policies. Volume 8. Cham: Springer.
 - Hamming (higher sensitiveity to small time changes)
-- PAM clustering
+- PAM clustering (maximizes in-group homogeneity and between-group heterogeneity)
 
+Individual sequences were then clustered in order to maximize within-group
+homogeneity and between-groups heterogeneity: to this purpose, we used the partitioning around medoids method. Medoids are representative sequences having the
+smallest dissimilarity to the other sequences of the cluster they belong to
+
+Studer, M., & Ritschard, G. (2016). What matters in differences between life trajectories: A comparative review of sequence dissimilarity measures. Journal of the Royal Statistical Society. A, 179(2), 481-511.
+- Important aspects of sequences:
+  - Timing of states (age norms, state position in life trajectory)
+  - Spell duration
+  - Sequencing (the order in which sequences are experienced)
+  
+- Distances between probability distributions
+  - Distances between state distributions
+  - Distance based on conditional distributions of sequence states (stresses the similarity of sequences that are likely to lead to the same future)
+- Distances based on common attributes
+  - Simple hamming distance
+  - Length of longest common subsequence
+  - Number of matching subsequences
+- Optimal matching
+  - Optimal matching principles and special cases
+  - Substitution costs
+    - Theory based costs
+    - Costs based on state attributes
+    - Data-driven costs
+  - indel costs
+    - Single-indel costs
+    - State-dependent indel costs
+- Variants of optimal matching
+  - Dynamic hamming distance
+  - Localized optimal matching 
+  - Optimal matching sensitive to spell length
+  - Optimal matching between sequences of spells
+  - Optimal matching between sequences of transitions
+"Running cluster analyses with different dissimilarity measures should also allow us to de-termine whether the trajectories are primarily structured by timing, duration or sequencing differences. To achieve this, we compare cluster quality measures such as the average silhouette width of the different partitions that are obtained. In a discrepancy analysis, comparing outcomes that are obtained with different measures may also help to identify which covariates best explain sequencing differences, and which best explain timing and duration differences." (509)
+  - For sequencing:
+    - OMstran (low weight on state of origin), OMspell (low expansion cost e and low weight), 
+  - For timing:
+    - Hamming family
+    - "Using the CHI2- and EUCLID-distances with the number of periods K equal to the sequence length is also a solution. This K-parameter offers the advantage of allowing a smooth relaxation of exact timing alignment...CHI2 is especially interesting when we want to stress the importance of changes involving rare states." (508)
+  - For duration:
+    - CHI2- and EUCLID-distance with K set to 1
+    - If importance of spell lengths should be stressed, OMspell with high expansion cost
+    - LCS and classic OM
+  
 ## Approach
-Multiple dissimilarity metrics and clustering methods should be used to explore the optimal outcome. 
+Multiple dissimilarity metrics and clustering methods should be used to explore and compare outcomes. 
+We have interested in multiple sequence dimensions (sequencing, timing, and duration), so we should implement dissimilarity metrics for coverage in each of these areas.
+
 
 * Our OM ("weighted")
   + Uses substitution costs based normalized transition rates in our dataset, created from observed probabilities of transition from one state to another exluding transitions to the same state ("Job to job transition")
@@ -64,15 +111,14 @@ Multiple dissimilarity metrics and clustering methods should be used to explore 
   + Dissimilarity based on common attributes - Longest common prefix. (We can also compute based on the longest common suffix)
 
 * Ward's
-  + Hierarchical clustering, minimizes median distances between groups.
+  + Agglomerative hierarchical clustering, minimizes median distances between groups.
 * PAM
   + Direct partitioning, faster, number of clusters set before. 
 * Divisive analysis (diana)
-  +
+  + Opposite of agglomerative, hierarchical clustering, better at identifying large than small clusters
 
 Use a sample of around 2,000 for testing for performance
 
-/ More research necessary on why each of these decisions is methodologically sound and makes sense with our dataset and goals (not very well explained in every paper)
 ```{r create-sequence-objects, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # Import veteran job data ------
 bg_vet_job <-read_csv("~/git/DSPG2020/career/data/04_bg_vet_job.csv")%>%
@@ -154,7 +200,7 @@ assign(name, sts_vet, envir = .GlobalEnv)
 career_sequence("sts_vet_ten", 10)
 ```
 
-```{r dissimilarity-metrics}
+```{r weighted-transition, output = FALSE}
 # Our OM (weighted transition)------
 transition_matrix <- seqtrate(sts_vet_ten, weighted=FALSE, count=TRUE)
 round(transition_matrix,2)
@@ -174,30 +220,76 @@ cost_matrix <- 2-transition_matrix
 round(cost_matrix,2)
 diag(cost_matrix) = 0
 cost_matrix <- round(cost_matrix,2)
-weighted <- seqdist(sts_vet_ten, method = "OM", indel = "auto", sm = cost_matrix, with.missing = TRUE)
-
-# OM unweighted transition transition --------
-costs.tr <- seqcost(sts_vet_ten, method = "TRATE",with.missing = FALSE)
-print(costs.tr)
-unweighted <- seqdist(sts_vet_ten, method = "OM",indel = costs.tr$indel, sm = costs.tr$sm,with.missing = F)
-
-# Hamming -------
-hamming <- seqdist(sts_vet_ten, method = "HAM")
-
-# LCS --------
-lcs <- seqdist(sts_vet_ten, method = "LCS")
-
-# LSP---------
-lcp <- seqdist(sts_vet_ten, method = "LCP") 
-
 ```
 
-```{r wards-clustering, fig.height=10}
+```{r dissimilarity-metrics}
+# Sequencing -----------
+# OM Spell, low expansion cost and low weight
+weighted.spell.low <- seqdist(sts_vet_ten, method = "OMspell", indel = "auto", sm = cost_matrix, with.missing = TRUE, otto = 0, expcost = 0)
+
+# Timing ---------------
+# Hamming
+hamming <- seqdist(sts_vet_ten, method = "HAM")
+#CHI2 interval 10 
+chi2.10 <- seqdist(sts_vet_ten, method = "CHI2", step = 10)
+
+# Duration -------------
+
+# LCS 
+lcs <- seqdist(sts_vet_ten, method = "LCS")
+#CHI2 interval 1
+chi2.1 <- seqdist(sts_vet_ten, method = "CHI2", step = 1)
+#spell, high expansion cost 
+weighted.spell.high <- seqdist(sts_vet_ten, method = "OMspell", indel = "auto", sm = cost_matrix, with.missing = TRUE, otto = 0.1, expcost = 1)
+
+# Other ----------------
+
+# Weighted OM trans
+weighted <- seqdist(sts_vet_ten, method = "OMstran", indel = "auto", sm = cost_matrix, with.missing = TRUE, otto = 0.1)
+# OM unweighted transition 
+costs.tr <- seqcost(sts_vet_ten, method = "TRATE",with.missing = FALSE)
+#print(costs.tr)
+unweighted <- seqdist(sts_vet_ten, method = "OMstran", indel = costs.tr$indel, sm = costs.tr$sm,with.missing = F, otto = 0.1)
+# LCP
+lcp <- seqdist(sts_vet_ten, method = "LCP") 
+```
+
+```{r wards-clustering, fig.height=2.5, fig.width = 15}
+# OM Spell, low expansion cost and low weight
+ward.weighted.spell.low <- agnes(weighted.spell.low, diss = TRUE, method = "ward")
+plot(ward.weighted.spell.low, which.plot = 2)
+ward.weighted.spell.low.8 <- cutree(ward.weighted.spell.low, k = 8)
+ward.weighted.spell.low.8.fac <- factor(ward.weighted.spell.low.8, labels = paste("Type", 1:8))
+
+#CHI2 interval 10 
+ward.chi2.10 <- agnes(chi2.10, diss = TRUE, method = "ward")
+plot(ward.chi2.10, which.plot = 2)
+ward.chi2.10.8 <- cutree(ward.chi2.10, k = 8)
+ward.chi2.10.8.fac <- factor(ward.chi2.10.8, labels = paste("Type", 1:8))
+
+#CHI2 interval 1
+ward.chi2.1 <- agnes(chi2.1, diss = TRUE, method = "ward")
+plot(ward.chi2.1, which.plot = 2)
+ward.chi2.1.8 <- cutree(ward.chi2.1, k = 8)
+ward.chi2.1.8.fac <- factor(ward.chi2.1.8, labels = paste("Type", 1:8))
+
+#spell, high expansion cost 
+ward.weighted.spell.high <- agnes(weighted.spell.high, diss = TRUE, method = "ward")
+plot(ward.weighted.spell.high, which.plot = 2)
+ward.weighted.spell.high.8 <- cutree(ward.weighted.spell.high, k = 8)
+ward.weighted.spell.high.8.fac <- factor(ward.weighted.spell.high.8, labels = paste("Type", 1:8))
+
 # Our OM 
 ward.weighted <- agnes(weighted, diss = TRUE, method = "ward")
 plot(ward.weighted, which.plot = 2)
 ward.weighted.8 <- cutree(ward.weighted, k = 8)
 ward.weighted.8.fac <- factor(ward.weighted.8, labels = paste("Type", 1:8))
+
+# Our OM, high origin weight
+ward.weighted.otto <- agnes(weighted.otto, diss = TRUE, method = "ward")
+plot(ward.weighted.otto, which.plot = 2)
+ward.weighted.otto.8 <- cutree(ward.weighted.otto, k = 8)
+ward.weighted.otto.8.fac <- factor(ward.weighted.otto.8, labels = paste("Type", 1:8))
 
 # OM transition
 ward.unweighted <- agnes(unweighted, diss = TRUE, method = "ward")
@@ -223,20 +315,43 @@ plot(ward.lcp, which.plot = 2)
 ward.lcp.8 <- cutree(ward.lcp, k = 8)
 ward.lcp.8.fac <- factor(ward.lcp.8, labels = paste("Type", 1:8))
 
+one <- seqIplot(sts_vet_ten, group = ward.weighted.spell.low.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
+
+two <- seqIplot(sts_vet_ten, group = ward.chi2.10.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
+
+three <- seqIplot(sts_vet_ten, group = ward.chi2.1.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
+
+four <- seqIplot(sts_vet_ten, group = ward.weighted.spell.high.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
+
 #weighted
-ward.weighted.plot <- seqIplot(sts_vet_ten, group = ward.weighted.8.fac)
+ward.weighted.plot <- seqIplot(sts_vet_ten, group = ward.weighted.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 #unweighted
-ward.unweighted.plot <- seqIplot(sts_vet_ten, group = ward.unweighted.8.fac)
+ward.unweighted.plot <- seqIplot(sts_vet_ten, group = ward.unweighted.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 #hamming
-ward.hamming.plot <- seqIplot(sts_vet_ten, group = ward.hamming.8.fac)
+ward.hamming.plot <- seqIplot(sts_vet_ten, group = ward.hamming.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 #lcs
-ward.lcs.plot <- seqIplot(sts_vet_ten, group = ward.lcs.8.fac)
+ward.lcs.plot <- seqIplot(sts_vet_ten, group = ward.lcs.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 #lcp
-ward.lcp.plot <- seqIplot(sts_vet_ten, group = ward.lcp.8.fac)
+ward.lcp.plot <- seqIplot(sts_vet_ten, group = ward.lcp.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 ```
 
-```{r PAM-clustering, fig.height=10}
+```{r PAM-clustering, fig.height=2.5, fig.width = 15}
 library(WeightedCluster)
+# OM Spell, low expansion cost and low weight
+pam.weighted.spell.low <- wcKMedoids(weighted.spell.low, k = 8)
+pam.weighted.spell.low.8 <- pam.weighted.spell.low$clustering 
+
+#CHI2 interval 10
+pam.chi2.10 <- wcKMedoids(chi2.10, k = 8)
+pam.chi2.10.8 <- pam.chi2.10$clustering
+
+#CHI2 interval 1
+pam.chi2.1 <- wcKMedoids(chi2.1, k = 8)
+pam.chi2.1.8 <- pam.chi2.1$clustering
+
+#spell, high expansion cost 
+pam.weighted.spell.high <- wcKMedoids(weighted.spell.high, k = 8)
+pam.weighted.spell.high.8 <- pam.weighted.spell.high$clustering
 
 # weighted --------------
 pam.weighted <- wcKMedoids(weighted, k = 8)
@@ -257,15 +372,45 @@ pam.lcp.8 <- pam.lcp$clustering
 par(mfrow=c(1,1))
 par(mar=c(1,1,1,1))
 
+pam.weighted.spell.low.plot <- seqIplot(sts_vet_ten, group = pam.weighted.spell.low.8, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
+
+pam.chi2.10.plot <- seqIplot(sts_vet_ten, group = pam.chi2.10.8, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
+
+pam.chi2.1.plot <- seqIplot(sts_vet_ten, group = pam.chi2.1.8, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
+
+pam.weighted.spell.high.plot <- seqIplot(sts_vet_ten, group = pam.weighted.spell.high.8, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
+
 #weighted
-ward.weighted.plot <- seqIplot(sts_vet_ten, group = pam.weighted.8)
+pam.weighted.plot <- seqIplot(sts_vet_ten, group = pam.weighted.8, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 #unweighted
-ward.unweighted.plot <- seqIplot(sts_vet_ten, group = pam.unweighted.8)
+pam.unweighted.plot <- seqIplot(sts_vet_ten, group = pam.unweighted.8, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 #hamming
-ward.hamming.plot <- seqIplot(sts_vet_ten, group = pam.hamming.8)
+pam.hamming.plot <- seqIplot(sts_vet_ten, group = pam.hamming.8, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 #lcs
-ward.lcs.plot <- seqIplot(sts_vet_ten, group = pam.lcs.8)
+pam.lcs.plot <- seqIplot(sts_vet_ten, group = pam.lcs.8, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 #lcp
-ward.lcp.plot <- seqIplot(sts_vet_ten, group = pam.lcp.8)
+pam.lcp.plot <- seqIplot(sts_vet_ten, group = pam.lcp.8, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
+
+
+hamming.labels <- c("Zone 5", "Unemployment to Zone 4", "Missing zone", "Zone 4", "Civilian unemployment", "Zone 2", "Zone 3", "Transitional unemployment")
+pam.hamming.8.factor <- factor(pam.hamming.8, levels = c(1254, 167, 2150, 2706, 277, 2926, 3029, 38), labels = hamming.labels)
+
+```
+
+
+
+```{r}
+plot.new()
+hamming2d <- cmdscale(hamming, k = 2)
+plot(hamming2d, type = "n")
+points(hamming2d[pam.hamming.8.factor == "Zone 5", ], pch = 16, col = "red")
+points(hamming2d[pam.hamming.8.factor == "Unemployment to Zone 4", ], pch = 16, col = "blue")
+points(hamming2d[pam.hamming.8.factor == "Missing zone", ], pch = 16, col = "green")
+points(hamming2d[pam.hamming.8.factor == "Zone 4", ], pch = 16, col = "magenta")
+points(hamming2d[pam.hamming.8.factor == "Civilian unemployment", ], pch = 16, col = "orange")
+points(hamming2d[pam.hamming.8.factor == "Zone 2", ], pch = 16, col = "yellow")
+points(hamming2d[pam.hamming.8.factor == "Zone 3", ], pch = 16, col = "black")
+points(hamming2d[pam.hamming.8.factor == "Transitional unemployment", ], pch = 16, col = "pink")
+#legend("bottomright", fill = c("red", "blue", "green", "magenta", "orange", "yellow", "black", "pink"), legend = pam.hamming.8.factor)
 ```
 
