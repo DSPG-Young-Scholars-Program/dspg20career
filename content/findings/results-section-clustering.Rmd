@@ -196,20 +196,20 @@ $$\text{Fig 2. State Transition Matrix}$$
 We identified 5185 post-military sequences, and there are 2113 (40.8%) distinct sequences. We identified 7 types of sequences identified as clusters according to the sequence analysis. As shown in Figure 3, Cluster 1, 2, 3 are mainly composed of veterans in job zone 4. Specifically, veterans in Cluster 1 had many years' of Military Transitional Unemployment. Veterans in Cluster 2 worked for a short period of time in job zone 4 and retired. Veterans in Cluster 3 worked in zone-4 jobs for 10 years post-military. 
 
 
-![](/findings/results-section-clustering_files/Fig3.png){width=80% height=800px}
+![](/dspg20career/findings/results-section-clustering_files/Fig3.png){width=80% height=800px}
 $$\text{Fig 3. Clusters Most Common in Job Zone 4}$$
 
 
 As shown in Figure 4, we observed that the majority of the veterans in Cluster 4 had a career promotion where they started in Zone 3 and went into Zone 4. We recognize some veterans in Cluster 4 experienced the Military Transitional Unemployment before their Zone-3 jobs. We also recognize a small proportion of these veterans had a demotion from job zone 5 to job zone 4.
 
-![](/findings/results-section-clustering_files/Fig4.png){width=80% height=250px}
+![](/dspg20career/findings/results-section-clustering_files/Fig4.png){width=80% height=250px}
 $$\text{Fig 4. Career Promotion Cluster}$$
 
 
 As shown in Figure 5, Clusters 5, 6, 7 do not exibit changes in post-military career. Clusters 5, 6, 7 are composed of jobs in Zone 5, Zone 2, and Zone 3 respectively. In Cluster 5, we also observed a short period of unemployment or jobs with a lower job zone before the Zone-5 jobs. In Cluster 6, we also observed veterans having Military Transitional Unemployment before their Zone-2 jobs and veterans retiring after their Zone-2 jobs. In Cluster 7, we are observing shorter period of Military Transitional Unemployment before their Zone-3 jobs and less retirement after their Zone-3 jobs.
 
 
-![](/findings/results-section-clustering_files/Fig5.png){width=80% height=800px}
+![](/dspg20career/findings/results-section-clustering_files/Fig5.png){width=80% height=800px}
 
 
 $$\text{Fig 5. Clusters Most Common in Job Zone 2, 3, 5}$$
