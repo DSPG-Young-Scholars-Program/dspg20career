@@ -307,7 +307,7 @@ To understand how veterans developed different career trajectories, we investiga
 
 First, let's take a look at a frequency plot shown in Figure 6. Here we are showing the number of veterans with different degrees in each of these 7 clusters. Since the majority of our veteran sample had a bachelor's or a master's degree, here we present the percentage of veterans in each of the eight clusters for each highest degree earned. Thus each row adds up to 1. 
 
-![](/findings/results-section-clustering_files/Fig6.png){width=100% height=430px}
+![](/dspg20career/findings/results-section-clustering_files/Fig6.png){width=100% height=430px}
 
 $$\text{Fig 6. Cluster Distribution by Different Levels of Education}$$
 
@@ -591,7 +591,7 @@ $$\text{Fig 9. P-values from the Association Tests with Benjamini & Hochberg Cor
 ### Do Female and Male Veterans have different career trajectory?
 In our sample, we have 15.9% (N=824) female veterans, 84.1% (N=3666) male veterans. We conducted $\chi^2$ test. Using 0.05 as the critical value, we conclude that female is statistically different from male only in cluster 2 (p < 0.001) after using Bonferroni correction. Cluster 2 identified veterans who retired after exiting the military. According to our correlation test, we conclude that female veterans are more likely to retire or to exit the work force after the conclusion of their military career. 
 
-![](/findings/results-section-clustering_files/Fig10.png){width=100% height=500px}
+![](/dspg20career/findings/results-section-clustering_files/Fig10.png){width=100% height=500px}
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 vet <- unique(bg_vet_job_seq$id)

@@ -13,18 +13,18 @@ In order to better understand the Burning Glass resume data, particularly in the
 
 The following plot compares the percentage of veterans in a given career for veterans nationally (in the Veterans Employment Outcomes data) and veterans in the BGT data (for the DC Metropolitan Statistical Area). This shows that white-collar careers like public administration are represented much more for the BGT veteran subset than for national veteran career outcomes. Additionally, careers like construction are under-represented in the BGT data compared to the national estimates of veteran career outcomes.
 
-![](/findings/results-section-one_files/veo-bgt.png){style="display: block; margin-left: auto; margin-right: auto;"}
+![](/dspg20career/findings/results-section-one_files/veo-bgt.png){style="display: block; margin-left: auto; margin-right: auto;"}
 
 ### Three-Way Education Comparison
 
 The following plot is a three-way comparison between Behavioral Risk Factor Surveillance System (BRFSS), American Community Survey (ACS), and Burning Glass Technologies (BGT) data, for both the veteran and non-veteran population. The BRFSS data is on a national level, while the ACS and BGT data cover the DC MSA. For both the veteran and non-veteran population, BGT data overrepresents individuals with bachelor's degrees and higher compared to the ACS and BRFSS estimates.
 
 
-![](/findings/results-section-one_files/brfss-acs-bgt.png){style="display: block; margin-left: auto; margin-right: auto;"}
+![](/dspg20career/findings/results-section-one_files/brfss-acs-bgt.png){style="display: block; margin-left: auto; margin-right: auto;"}
 
 
 ### LEHD Origin-Destination Employment Statistics (LODES) Comparison with BGT data
 
 The following plot compares employment outcomes in the DC MSA to the employment outcomes in the BGT data (for veterans in the DC MSA). It shows that white collar careers such as public administration are again overrepresented in the BGT data compared to LODES data, while careers such as construction are underrepresented compared to LODES data.
 
-![](/findings/results-section-one_files/lodes-bgt.png){style="display: block; margin-left: auto; margin-right: auto;"}
+![](/dspg20career/findings/results-section-one_files/lodes-bgt.png){style="display: block; margin-left: auto; margin-right: auto;"}

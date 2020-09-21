@@ -21,8 +21,8 @@ From our research, we have come to several major findings.
 
 <center>
 <figure>
-<img src="/findings/general-overview_files/brfss-acs-bgt.png" width="700"/>
-<img src="/findings/general-overview_files/veo-bgt.png" width="700"/>
+<img src="/dspg20career/findings/general-overview_files/brfss-acs-bgt.png" width="700"/>
+<img src="/dspg20career/findings/general-overview_files/veo-bgt.png" width="700"/>
 <figcaption> Figure 1. Results from data benchmarking using Behavioral Risk Factor Surveillance System, American Community Survey, Veterans Employment Outcomes, and BGT Resume data. In both graphs, BGT observations are in orange. These findings show BGT over estimates white collar veterans by comparison, for both education and industry variables. </figcaption>
 </figure>
 </center>
@@ -35,7 +35,7 @@ From our research, we have come to several major findings.
 
 </center>
 <figure>
-<img src="/findings/general-overview_files/dcompare.png" width="700"/>
+<img src="/dspg20career/findings/general-overview_files/dcompare.png" width="700"/>
 <figcaption> Figure 2. Results of exploratory sequence analysis comparing, for veterans overall, whole career pathways and the first ten years after military exit. </figcaption>
 </figure>
 </center>
@@ -52,8 +52,8 @@ Figure 2 also shows high proportions of unemployment for veterans in the first a
 <table>
 <caption> Figure 3. Results of clustering compared with frequencies of highest degree earned. The plot on the right shows sequences in cluster five, which are characterized by a high frequency of job zone 5. Looking to the column for cluster five in the left-hand plot, we can see that there are a large number of veterans with Doctorates in this cluster. </caption>
 <tr>
-<td> <img src="/findings/general-overview_files/Fig6.png" style="width: 400px;"/> </td>
-<td> <img src="/findings/general-overview_files/zone5.png" style="width: 400px;"/> </td>
+<td> <img src="/dspg20career/findings/general-overview_files/Fig6.png" style="width: 400px;"/> </td>
+<td> <img src="/dspg20career/findings/general-overview_files/zone5.png" style="width: 400px;"/> </td>
 </tr></table>
 </center>
 
@@ -63,8 +63,8 @@ Figure 2 also shows high proportions of unemployment for veterans in the first a
 <table>
 <caption> Figure 4. Results of clustering compared with frequencies of gender. The plot on the right shows sequences in cluster two, which are characterized by retirement or exit of the workforce by the end of the sequence. Looking to the column for cluster two in the left-hand plot, we can see that there are a high number of female veterans are in this cluster. </caption>
 <tr>
-<td> <img src="/findings/general-overview_files/Fig10.png" style="width: 400px;"/> </td>
-<td> <img src="/findings/general-overview_files/retiredcluster.png" style="width: 400px;"/> </td>
+<td> <img src="/dspg20career/findings/general-overview_files/Fig10.png" style="width: 400px;"/> </td>
+<td> <img src="/dspg20career/findings/general-overview_files/retiredcluster.png" style="width: 400px;"/> </td>
 </tr></table>
 </center>
 
