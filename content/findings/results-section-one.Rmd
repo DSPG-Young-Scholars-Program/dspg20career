@@ -8,6 +8,7 @@ output: html_document
 In order to better understand the Burning Glass resume data, particularly in the context of veterans in the DC metro area, we wanted to benchmark it against other veteran- and career-related datasets to understand any differences in the populations. For more details about the data sources used here, see the Data section.
 
 
+
 ### Veterans Employment Outcomes (VEO) comparison with BGT data
 
 The following plot compares the percentage of veterans in a given career for veterans nationally (in the Veterans Employment Outcomes data) and veterans in the BGT data (for the DC Metropolitan Statistical Area). This shows that white-collar careers like public administration are represented much more for the BGT veteran subset than for national veteran career outcomes. Additionally, careers like construction are under-represented in the BGT data compared to the national estimates of veteran career outcomes.

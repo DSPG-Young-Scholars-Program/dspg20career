@@ -8,7 +8,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 knitr::opts_chunk$set(error = TRUE)
 
@@ -31,8 +30,8 @@ c("#232D4B", #space cadet
 source("~/git/dspg20career/src/burningglass/clean_post_military_job.R", echo = T, prompt.echo = "", spaced = F)
  
 #read in vet job data
-bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")
- 
+# bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")
+bg_vet_job <- read_csv("../../tmpdata/04_bg_vet_job.csv")
 #perform the cleaning function
 bg_vet_job_seq <- clean_post_military(bg_vet_job)
 
@@ -268,7 +267,8 @@ heatmap_cmatrix_standardize <- ggplot(data = cmatrix.standardize.df, aes(x = end
 # clusterward <- agnes(vet.seq.OM, diss = TRUE, method = "ward")
 # saveRDS(clusterward, file = "data/clusterward_onet55_10yrs_normalized_matrix.rds")
 
-clusterward <- readRDS(file = "~/git/dspg20career/data/clusterward_onet55_10yrs_normalized_matrix.rds")
+# clusterward <- readRDS(file = "~/git/dspg20career/data/clusterward_onet55_10yrs_normalized_matrix.rds")
+clusterward <- readRDS(file = "../../tmpdata/clusterward_onet55_10yrs_normalized_matrix.rds")
 
 #dendrogram 
 # plot(clusterward, which.plots =2)
@@ -313,10 +313,9 @@ $$\text{Fig 6. Cluster Distribution by Different Levels of Education}$$
 
 
 
-
-
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-bg_vet_demographic <-read_csv("~/git/dspg20career/data/02_bg_vet_demographic.csv")
+# bg_vet_demographic <-read_csv("~/git/dspg20career/data/02_bg_vet_demographic.csv")
+bg_vet_demographic <-read_csv("../../tmpdata/02_bg_vet_demographic.csv")
 vet <- unique(bg_vet_job_seq$id)
 vet_df <- as.data.frame(cbind(vet, cluster8))
 colnames(vet_df) <- c("id", "cluster")

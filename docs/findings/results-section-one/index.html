@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Data Benchmarking</title>
-        <link rel="canonical" href="/findings/results-section-one/">
+        <link rel="canonical" href="/dspg20career/findings/results-section-one/">
         <style>
 
     html body {
@@ -33,7 +33,7 @@
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.0/css/all.css" integrity="sha384-Mmxa0mLqhmOeaE8vgOSbKacftZcsNYDjQzuCOm6D02luYSzBG8vpaOykv9lFQ51Y" crossorigin="anonymous">
 
 
-<link rel="stylesheet" href="/css/main.css">
+<link rel="stylesheet" href="/dspg20career/css/main.css">
 
 
 
@@ -117,7 +117,7 @@ $(document).ready(function(){
     <meta property="og:type" content="article">
       
       <meta name="twitter:card" content="summary">
-      <meta name="twitter:image" content="/favicon/uva-dspg-logo.jpg" >
+      <meta name="twitter:image" content="/dspg20career/favicon/uva-dspg-logo.jpg" >
       
     <meta property="description" content="Using external datasets to learn more about BGT resume data">
     <meta property="og:description" content="Using external datasets to learn more about BGT resume data">
@@ -165,17 +165,17 @@ $(document).ready(function(){
                     
                         <ul class="nav">
                           <li class="header_img">
-                            <img class="img-responsive" src="/img/AEMLogoGatesColors-11.png" alt="Whoopsies, this is my bad side!" style = "margin: 0 auto; height: 42px"></li>
+                            <img class="img-responsive" src="/dspg20career/img/AEMLogoGatesColors-11.png" alt="Whoopsies, this is my bad side!" style = "margin: 0 auto; height: 42px"></li>
                             
-                                <li><a href="/" style="background-color: transparent;">Overview</a></li>
+                                <li><a href="/dspg20career/" style="background-color: transparent;">Overview</a></li>
                             
-                                <li><a href="/data/" style="background-color: transparent;">Data</a></li>
+                                <li><a href="/dspg20career/data/" style="background-color: transparent;">Data</a></li>
                             
-                                <li><a href="/methods/" style="background-color: transparent;">Methods</a></li>
+                                <li><a href="/dspg20career/methods/" style="background-color: transparent;">Methods</a></li>
                             
-                                <li><a href="/findings/" style="background-color: transparent;">Findings</a></li>
+                                <li><a href="/dspg20career/findings/" style="background-color: transparent;">Findings</a></li>
                             
-                                <li><a href="/team/" style="background-color: transparent;">Team</a></li>
+                                <li><a href="/dspg20career/team/" style="background-color: transparent;">Team</a></li>
                             
                         </ul>
                     
@@ -206,7 +206,7 @@ $(document).ready(function(){
       
     
 
-    <h4><a href="/findings/results-section-one/">Data Benchmarking</a></h4>
+    <h4><a href="/dspg20career/findings/results-section-one/">Data Benchmarking</a></h4>
     
     <h5>Using external datasets to learn more about BGT resume data</h5>
 
@@ -217,32 +217,24 @@ $(document).ready(function(){
 
 
     <br> <div class="text-justify">
+<script src="/dspg20career/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <p>In order to better understand the Burning Glass resume data, particularly in the context of veterans in the DC metro area, we wanted to benchmark it against other veteran- and career-related datasets to understand any differences in the populations. For more details about the data sources used here, see the Data section.</p>
 <div id="veterans-employment-outcomes-veo-comparison-with-bgt-data" class="section level3">
 <h3>Veterans Employment Outcomes (VEO) comparison with BGT data</h3>
 <p>The following plot compares the percentage of veterans in a given career for veterans nationally (in the Veterans Employment Outcomes data) and veterans in the BGT data (for the DC Metropolitan Statistical Area). This shows that white-collar careers like public administration are represented much more for the BGT veteran subset than for national veteran career outcomes. Additionally, careers like construction are under-represented in the BGT data compared to the national estimates of veteran career outcomes.</p>
-<div class="figure">
-<img src="/findings/results-section-one_files/veo-bgt.png" style="display: block; margin-left: auto; margin-right: auto;" />
-
-</div>
+<p><img src="/findings/results-section-one_files/veo-bgt.png" style="display: block; margin-left: auto; margin-right: auto;" /></p>
 </div>
 <div id="three-way-education-comparison" class="section level3">
 <h3>Three-Way Education Comparison</h3>
-<p>The following plot is a three-way comparison between Behavioral Risk Factor Surveillance System (BRFSS), American Community Survey (ACS), and Burning Glass Technologies (BGT) data, for both the veteran and non-veteran population. The BRFSS data is on a national level, while the ACS and BGT data cover the DC MSA. For both the veteran and non-veteran population, BGT data overrepresents individuals with bachelor's degrees and higher compared to the ACS and BRFSS estimates.</p>
-<div class="figure">
-<img src="/findings/results-section-one_files/brfss-acs-bgt.png" style="display: block; margin-left: auto; margin-right: auto;" />
-
-</div>
+<p>The following plot is a three-way comparison between Behavioral Risk Factor Surveillance System (BRFSS), American Community Survey (ACS), and Burning Glass Technologies (BGT) data, for both the veteran and non-veteran population. The BRFSS data is on a national level, while the ACS and BGT data cover the DC MSA. For both the veteran and non-veteran population, BGT data overrepresents individuals with bachelor’s degrees and higher compared to the ACS and BRFSS estimates.</p>
+<p><img src="/findings/results-section-one_files/brfss-acs-bgt.png" style="display: block; margin-left: auto; margin-right: auto;" /></p>
 </div>
 <div id="lehd-origin-destination-employment-statistics-lodes-comparison-with-bgt-data" class="section level3">
 <h3>LEHD Origin-Destination Employment Statistics (LODES) Comparison with BGT data</h3>
 <p>The following plot compares employment outcomes in the DC MSA to the employment outcomes in the BGT data (for veterans in the DC MSA). It shows that white collar careers such as public administration are again overrepresented in the BGT data compared to LODES data, while careers such as construction are underrepresented compared to LODES data.</p>
-<div class="figure">
-<img src="/findings/results-section-one_files/lodes-bgt.png" style="display: block; margin-left: auto; margin-right: auto;" />
-
-</div>
+<p><img src="/findings/results-section-one_files/lodes-bgt.png" style="display: block; margin-left: auto; margin-right: auto;" /></p>
 </div>
 </div>
 
@@ -284,7 +276,7 @@ $(document).ready(function(){
            var x = document.getElementsByClassName('header_img');
            if (n != true) {
              x[0].innerHTML = '<div><a href="https://datascienceforthepublicgood.org/events/symposium2020/poster-sessions">' +
-                              '<img src="\/img/DSPG_white-01.png", alt="DSPG 2020 Symposium Proceedings", style="height:42px; margin-top:5px;">' +
+                              '<img src="/dspg20career/img/DSPG_white-01.png", alt="DSPG 2020 Symposium Proceedings", style="height:42px; margin-top:5px;">' +
                               '</a></div>';
                               
              var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?dspg';
@@ -292,7 +284,7 @@ $(document).ready(function(){
              window.history.pushState({path:newurl},'',newurl);
            } else {
              x[0].innerHTML = '<div><a href="https://datascienceforthepublicgood.org/economic-mobility/community-insights/case-studies">' +
-                              '<img src="\/img/AEMLogoGatesColors-11.png", alt="Gates Economic Mobility Case Studies", style="height:42px; margin-top:5px;">' +
+                              '<img src="/dspg20career/img/AEMLogoGatesColors-11.png", alt="Gates Economic Mobility Case Studies", style="height:42px; margin-top:5px;">' +
                               '</a></div>';
              
              var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?economic';
@@ -301,6 +293,7 @@ $(document).ready(function(){
            }
         </script>
     </body>
+
 
 </html>
 

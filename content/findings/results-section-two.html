@@ -6,23 +6,24 @@ draft: false
 output: html_document
 ---
 
-<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
-<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
-<link href="/rmarkdown-libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
-<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
-<link href="/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
+<script src="/dspg20career/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<script src="/dspg20career/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/dspg20career/rmarkdown-libs/jquery/jquery.min.js"></script>
+<link href="/dspg20career/rmarkdown-libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
+<script src="/dspg20career/rmarkdown-libs/datatables-binding/datatables.js"></script>
+<link href="/dspg20career/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/dspg20career/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="/dspg20career/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+<link href="/dspg20career/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+<script src="/dspg20career/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
 
 
 <div id="exploring-veterans-whole-career-sequences" class="section level3">
-<h3>Exploring veteran's whole career sequences</h3>
+<h3>Exploring veteran’s whole career sequences</h3>
 <p>After cleaning the BGT data, we created our sequence objects using <code>TraMineR</code>. To begin, we created a sequence object using the whole career of veterans. This yielded 8,068 sequences of varying lengths. When creating the whole career sequence object, we defined eight unique states: Zone 1, Zone 2, Zone 3, Zone 4, Zone 5, Missing zone, Military, Military transition unemployment, Civilian unemployment, and Retired. For the preliminary analysis, all unemployment states (Military transition, Civilian, and Retired) are collapsed into one Unemployment state.</p>
 <div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","caption":"<caption>Table 1. Overview of sequence states.<\/caption>","data":[["Zone 1","Zone 2","Zone 3","Zone 4","Zone 5","Missing zone","Military","Military transition unemployed","Civilian unemployed","Retired"],["O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","seqdef() left =","seqdef() gaps =","seqdef() right ="],["Some of these occupations may require a high school diploma or GED certificate. Little or no previous work-related skill, knowledge, or experience is needed for these occupations","These occupations usually require a high school diploma. Some previous work-related skill, knowledge, or experience is usually needed.","Most occupations in this zone require training in vocational schools, related on-the-job experience, or an associate's degree. Previous work-related skill, knowledge, or experience is required for these occupations.","Most of these occupations require a four-year bachelor's degree. A considerable amount of work-related skill, knowledge, or experience is needed for these occupations.","Most of these occupations require graduate school. For example, they may require a master's degree, and some require a Ph.D., M.D., or J.D. (law degree). Extensive skill, knowledge, and experience are needed for these occupations.","A resume item that was missing an O*NET SOC code.","A resume item with O*NET SOC code for Military occupations (those beginning with \"55-\").","Gaps after the last Military job resume item and before civilian jobs begin.","Gaps in between civilian jobs.","Gaps after the last civilian job."]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>State name<\/th>\n      <th>Source<\/th>\n      <th>Definition<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollY":"500px","dom":"t","order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-<p>Among the sequences in the whole careers sequence object, there was a large distribution in sequence length. Differing lengths in sequences makes comparative analysis, including computing distance and clustering, difficult. In our case, clustering based on the preliminary sequence yielded &quot;cohort&quot; clusters, or clusters grouped essentially by sequence length. For our purposes, this does not yield a typology of careers so much as a descriptive grouping of veterans.</p>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","caption":"<caption>Table 1. Overview of sequence states.<\/caption>","data":[["Zone 1","Zone 2","Zone 3","Zone 4","Zone 5","Missing zone","Military","Military transition unemployed","Civilian unemployed","Retired"],["O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","O*NET SOC Code","seqdef() left =","seqdef() gaps =","seqdef() right ="],["Some of these occupations may require a high school diploma or GED certificate. Little or no previous work-related skill, knowledge, or experience is needed for these occupations","These occupations usually require a high school diploma. Some previous work-related skill, knowledge, or experience is usually needed.","Most occupations in this zone require training in vocational schools, related on-the-job experience, or an associate's degree. Previous work-related skill, knowledge, or experience is required for these occupations.","Most of these occupations require a four-year bachelor's degree. A considerable amount of work-related skill, knowledge, or experience is needed for these occupations.","Most of these occupations require graduate school. For example, they may require a master's degree, and some require a Ph.D., M.D., or J.D. (law degree). Extensive skill, knowledge, and experience are needed for these occupations.","A resume item that was missing an O*NET SOC code.","A resume item with O*NET SOC code for Military occupations.","Gaps after the last Military job resume item and before civilian jobs begin.","Gaps in between civilian jobs.","Gaps after the last civilian job."]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>State name<\/th>\n      <th>Source<\/th>\n      <th>Definition<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollY":"500px","dom":"t","order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>Among the sequences in the whole careers sequence object, there was a large distribution in sequence length. Differing lengths in sequences makes comparative analysis, including computing distance and clustering, difficult. In our case, clustering based on the preliminary sequence yielded “cohort” clusters, or clusters grouped essentially by sequence length. For our purposes, this does not yield a typology of careers so much as a descriptive grouping of veterans.</p>
 <center>
 <figure>
 <img src="/findings/results-section-two_files/length_nd.png" width="500"/>
@@ -46,15 +47,15 @@ Figure 2. Mean time spent in each state by veterans over their whole careers. No
 <figure>
 <img src="/findings/results-section-two_files/dall_nd.png" width="600"/>
 <figcaption>
-Figure 3. Distribution of sequence states over the years of veteran's careers. Note: for veterans whole careers the three unemployment states are aggregated.
+Figure 3. Distribution of sequence states over the years of veteran’s careers. Note: for veterans whole careers the three unemployment states are aggregated.
 </figcaption>
 </figure>
 </center>
 <p>Figure 3 shows that there is some degree of career mobility for veterans overall over time. About 45% of the sample begins their career in a military state, with that number dropping steadily over time. Unemployment peaks for veterans around five years and around sixty years, when the sample is much smaller. Looking at the Zone states, Zone 2 and 3 show a similar pattern of peaking at in early career stages and steadily declining. Both Zones 3 and 4 see the opposite effect by steadily widening to greater frequency over time. These preliminary findings suggest veterans do experience some degree of career mobility over time, moving out of unemployment and moving to higher zones.</p>
 </div>
 <div id="exploring-first-ten-years-after-veterans-military-exit-sequences" class="section level3">
-<h3>Exploring first ten years after veteran's military exit sequences</h3>
-<p>To begin answering our research questions about veterans careers, we needed to subset our sample to analyze careers only after veterans exit the military. Additionally, after preliminary analysis and clustering, we decided to subset again to only the first ten years of a veteran's post military career to combat problems associated with differing sequence lengths. Setting these new parameters yielded a sequence object with 5,185 sequences.</p>
+<h3>Exploring first ten years after veteran’s military exit sequences</h3>
+<p>To begin answering our research questions about veterans careers, we needed to subset our sample to analyze careers only after veterans exit the military. Additionally, after preliminary analysis and clustering, we decided to subset again to only the first ten years of a veteran’s post military career to combat problems associated with differing sequence lengths. Setting these new parameters yielded a sequence object with 5,185 sequences.</p>
 <center>
 <figure>
 <img src="/findings/results-section-two_files/mtten_update_nd.png" width="500"/>
@@ -68,7 +69,7 @@ Figure 4. Mean time spent in each state by veterans for the first ten years afte
 <figure>
 <img src="/findings/results-section-two_files/dten_grays_update_nd.png" width="600"/>
 <figcaption>
-Figure 5. Distribution of sequence states over the first ten years after veteran's last military job.
+Figure 5. Distribution of sequence states over the first ten years after veteran’s last military job.
 </figcaption>
 </figure>
 </center>
@@ -76,5 +77,5 @@ Figure 5. Distribution of sequence states over the first ten years after veteran
 </div>
 <div id="conclusions-and-implications" class="section level3">
 <h3>Conclusions and Implications</h3>
-<p>The intital exploration of sequences helped us to define and prioritize our research questions and project scope. By subsetting to the first ten years of a veteran's post military career, we were able to make more meaningful comparisons between sequences, which is necessary for cluster analysis. Preliminary findings suggest that veterans do not experience great career mobility in the first ten years of their career. In subsequent findings sections, we will build on this analysis using clustering and tournament models. With clustering, we will explore creating a typology of careers and the explanatory factors associated with cluster assignment. Through tournament modeling, we will explore the idea of career mobility using the theory of path dependence.</p>
+<p>The intital exploration of sequences helped us to define and prioritize our research questions and project scope. By subsetting to the first ten years of a veteran’s post military career, we were able to make more meaningful comparisons between sequences, which is necessary for cluster analysis. Preliminary findings suggest that veterans do not experience great career mobility in the first ten years of their career. In subsequent findings sections, we will build on this analysis using clustering and tournament models. With clustering, we will explore creating a typology of careers and the explanatory factors associated with cluster assignment. Through tournament modeling, we will explore the idea of career mobility using the theory of path dependence.</p>
 </div>

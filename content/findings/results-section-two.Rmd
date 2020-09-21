@@ -10,7 +10,8 @@ library(tidyverse)
 library(DT)
 library(readxl)
 
-DT <- read_excel("~/git/DSPG2020/career/src/burningglass/states_table.xlsx")
+# DT <- read_excel("~/git/DSPG2020/career/src/burningglass/states_table.xlsx")
+DT <- read_excel("../../src/burningglass/states_table.xlsx")
 ```
 
 ### Exploring veteran's whole career sequences
