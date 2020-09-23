@@ -225,15 +225,36 @@ $(document).ready(function(){
         </script>
        
        <script>
-           var referer = document.referrer;
-           var n = referer.includes('economic');
+           function getUrlVars() {
+                var vars = {};
+                var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+                    vars[key] = value;
+                });
+                return vars;
+            }
+           
+           function getUrlParam(parameter, defaultvalue){
+                var urlparameter = defaultvalue;
+                if(window.location.href.indexOf(parameter) > -1){
+                    urlparameter = getUrlVars()[parameter];
+                    }
+                return urlparameter;
+            }
+            
+            var mytype = getUrlParam('type','Empty');
+            
+       
+           
+           
+           
            var x = document.getElementsByClassName('header_img');
-           if (n != true) {
+           
+           if (mytype != 'economic') {
              x[0].innerHTML = '<div><a href="https://datascienceforthepublicgood.org/events/symposium2020/poster-sessions">' +
                               '<img src="/dspg20career/img/DSPG_white-01.png", alt="DSPG 2020 Symposium Proceedings", style="height:42px; margin-top:5px;">' +
                               '</a></div>';
                               
-             var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?dspg';
+             var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?type=dspg';
              
              window.history.pushState({path:newurl},'',newurl);
            } else {
@@ -241,7 +262,7 @@ $(document).ready(function(){
                               '<img src="/dspg20career/img/AEMLogoGatesColors-11.png", alt="Gates Economic Mobility Case Studies", style="height:42px; margin-top:5px;">' +
                               '</a></div>';
              
-             var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?economic';
+             var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?type=economic';
              
              window.history.pushState({path:newurl},'',newurl);
            }
