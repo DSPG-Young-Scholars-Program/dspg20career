@@ -1,0 +1,107 @@
+---
+title: "17_ed_variables"
+author: "Joanna Schroeder"
+date: "9/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, include=FALSE, paged.print=FALSE}
+# load packages 
+for (pkg in c("tidyverse", "data.table", "stringr", "stringi", "mosaic", "dplyr", "readr","gt")) {
+  library(pkg, character.only = TRUE)
+}
+
+get_db_conn <-
+  function(db_name = "sdad",
+           db_host = "postgis1",
+           db_port = "5432",
+           db_user = Sys.getenv("db_usr"),
+           db_pass = Sys.getenv("db_pwd")) {
+    RPostgreSQL::dbConnect(
+      drv = RPostgreSQL::PostgreSQL(),
+      dbname = db_name,
+      host = db_host,
+      port = db_port,
+      user = db_user,
+      password = db_pass
+    )
+  }
+
+con <- get_db_conn()
+
+
+pers <- DBI::dbGetQuery(con, "
+                        SELECT * FROM bgt_res.pers")
+ed <- DBI::dbGetQuery(con, "
+                        SELECT * FROM bgt_res.ed")
+
+DBI::dbDisconnect(con)
+```
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+# function for data profiling
+data_profiling <- function(df){
+summary_table <- tibble(var = names(df),
+       variable_type = map_chr(.x = df, .f = function(col) class(x = col)),                 
+       num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
+       num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
+  mutate(perc_missing = round(100 * (x = num_missing / nrow(df)), digits = 2L))
+return(summary_table)
+}
+```
+
+## Purpose
+
+We are interested in returning to BGT tables to add covariates to our analysis. We begin by revisiting education variables, which are in the pers and ed tables.
+
+## High-level profiling
+
+Here we profile the entire BGT dataset (not subsetting by any geography)
+
+```{r}
+data_profiling(pers)
+data_profiling(ed)
+```
+
+In the pers table we are interested in the noofschooldegrees variable. Surprisingly, this is one of the most complete variables, with only 0.07% missing.
+
+The variables in the ed table mostly have a high percentage missing. The variable with the lowest missing percentage (besides id and degree position) is the institution variable. The institution, institutioncity, and institutionstate are all character variables.
+
+In our original analysis, the variable used to calculate degree_highest was the degreetype variable, which has 41.37% missing. This is also a character variable.
+
+The completiondateraw variable is potentially very helpful to our analysis, though it has a 56.65% missing. 
+
+The variables that interest me most are the ipeds_unit_id variable, which is a unique identifier for schools (57.76% missing). The majorcipcode is also interesting (68.49%). These variables are likely imputed based off the institution and major variables, so we don't know the exact methods used to determine them. Still, they are potentially useful for our analysis. These codes are produced by the NCES.
+
+```{r}
+ed %>% group_by(ipeds_unit_id) %>% summarise(n = n()) %>% arrange(-n)
+
+ed %>% filter(instituition %like% "William and Mary") %>% summarise(n = n())
+ed %>% filter(ipeds_unit_id == 231624) %>% summarise(n = n())
+
+ed %>% filter(instituition %like% "University of Virginia") %>% summarise(n = n())
+ed %>% filter(ipeds_unit_id == 234076) %>% summarise(n = n())
+```
+
+We would have to find an ipeds crosswalk to make the best use of this variable. The most frequent institutions are University of Phoenix-Utah, University of California-Riverside, California State University Maritime Academy, (202541 is not found), HVAC Technical Institute, University of Wisconsin-Madison, (477011, 199157, 186371 not found). 
+
+Doing a "like" string match finds about 600 more William and Mary graduates than using IPEDS.
+
+University of Virginia has only one match for its IPEDS code! 
+
+```{r}
+ed %>% group_by(majorcipcode) %>% summarise(n = n()) %>% arrange(-n)
+```
+
+The top major is business admininstration and management, general. The second most common major is computer science. The third is psychology.
+
+```{r}
+ed %>% filter(!is.na(completiondateraw)) %>% select(id, completiondateraw) %>% head(20)
+
+ed %>% filter(id == 7028238)
+```
+

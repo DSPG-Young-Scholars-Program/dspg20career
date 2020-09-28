@@ -59,7 +59,7 @@ large <- seqdef(large, left="DEL", gaps="Civilian unemployment", right="DEL", cp
 ```
 Our sample data comes from a sample of nonveterans who have at least ten years of employment history. We will cluster based on the whole sequence and in exploratory plots limit the axis to the first 30 years of employment history.
 
-## 2,000 member clustering
+## 1,000 member clustering
 
 ```{r}
 # Normal clustering
@@ -98,7 +98,7 @@ small_w_time
 ```
 Weighted clustering is slower. This may be because the sample is so small the extra step of aggregation is costly.
 
-## 4,000 member clustering
+## 2,000 member clustering
 ```{r}
 # Normal clustering
 

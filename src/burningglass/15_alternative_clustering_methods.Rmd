@@ -44,19 +44,21 @@ Mas, J.-F., Nogueira de Vasconcelos, R. & Franca-Rocha, W. (2019), "Analysis of 
 * Emphasizes choice for metric depends on what types of patterns of change are important: LCP focuses on beginning, OM can cluster based on rare transitions,   
 
 Kim, K. (2018), "Recent Advances in Activity-Based Travel Demand Models for Greater Flexibility". Portland State University PDXScholar. PhD Thesis, Portland, 2018.
+
 * No clustering
 
 Riekhoff, A.-J. (2018), "Extended working lives and late-career destabilisation: A longitudinal study of Finnish register data", Advances in Life Course Research. Vol. 35, pp. 114-125.
+
 * OM and Hamming for dissimiliary
 * Ward's clustering
 
 Struffolino, E. & Mortelmans, D. (2018), "Lone Mothers in Belgium: Labor Force Attachment and Risk Factors", In Bernardi, L. & Mortelmans, D. (eds) Lone Parenthood in the Life Course. Series: Life Course Research and Social Policies. Volume 8. Cham: Springer.
-* Hamming (higher sensitiveity to small time changes)
-* PAM clustering (maximizes in-group homogeneity and between-group heterogeneity)
 
-Individual sequences were then clustered in order to maximize within-group
+* Hamming (higher sensitivity to small time changes)
+* PAM clustering (maximizes in-group homogeneity and between-group heterogeneity)
+* "Individual sequences were then clustered in order to maximize within-group
 homogeneity and between-groups heterogeneity: to this purpose, we used the partitioning around medoids method. Medoids are representative sequences having the
-smallest dissimilarity to the other sequences of the cluster they belong to
+smallest dissimilarity to the other sequences of the cluster they belong to"
 
 Studer, M., & Ritschard, G. (2016). What matters in differences between life trajectories: A comparative review of sequence dissimilarity measures. Journal of the Royal Statistical Society. A, 179(2), 481-511.
 

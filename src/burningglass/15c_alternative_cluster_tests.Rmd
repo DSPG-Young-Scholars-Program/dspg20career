@@ -81,7 +81,7 @@ Our sample data comes from a sample of nonveterans who have at least ten years o
 
 ```{r 1000-member-clustering}
 reps = 1:10
-diss <- seqdist(small, method = "OM", indel = 1, sm = "TRATE", with.missing = TRUE, norm = TRUE)
+diss <- seqdist(small, method = "OM", indel = 1, sm = "TRATE", with.missing = TRUE)
 
 cluster_times <- for(rep in reps) {
 rep = as.character(rep)
@@ -117,7 +117,7 @@ In small samples PAM is about twice as fast.
 # Normal clustering
 
 reps = 1:5
-diss <- seqdist(medium, method = "OM", indel = 1, sm = "TRATE", with.missing = TRUE, norm = TRUE)
+diss <- seqdist(medium, method = "OM", indel = 1, sm = "TRATE", with.missing = TRUE)
 
 cluster_times <- for(rep in reps) {
 rep = as.character(rep)
@@ -152,7 +152,7 @@ In medium samples PAM is about twice as fast.
 # Normal clustering
 
 reps = 3
-diss <- seqdist(large, method = "OM", indel = 1, sm = "TRATE", with.missing = TRUE, norm = TRUE)
+diss <- seqdist(large, method = "OM", indel = 1, sm = "TRATE", with.missing = TRUE)
 
 cluster_times <- for (rep in reps) {
 rep = as.character(rep)
@@ -282,7 +282,7 @@ properties <- c("state", "spell.age", "spell.dur", "duration", "pattern", "AFpat
 
 for (property in properties) {
 start_prop <- Sys.time()
-clusterprop <- seqpropclust(large, diss = diss, properties = "state", maxcluster = 8)
+clusterprop <- seqpropclust(large, diss = diss, properties = property, maxcluster = 8)
 end_prop <- Sys.time()
 
 clusterprop_8 <- clusterprop$fitted
@@ -335,32 +335,27 @@ These are interesting though maybe not as useful as others. I think Type 3 is re
 
 ## Testing cluster quality
 
-Point Biserial Correlation PBC [−1; 1] Max Measure of the capacity of the clustering to reproduce the distances.
-Hubert’s Gamma HG [−1; 1] Max Measure of the capacity of the clustering to reproduce the distances (order of magnitude).
-Hubert’s Somers’ D HGSD [−1; 1] Max Measure of the capacity of the clustering to reproduce the distances (order of magnitude) taking
-into account ties in distances.
-Hubert’s C HC [0; 1] Min Gap between the partition obtained and the best
-partition theoretically possible with this number
-of groups and these distances.
-Average Silhouette Width ASW [−1; 1] Max Coherence of assignments. High coherence indicates high between-group distances and strong
-within-group homogeneity.
-Average Silhouette Width
-(weighted)
-ASWw [−1; 1] Max As previous, for floating point weights.
-Calinski-Harabasz index CH [0; +∞[ Max Pseudo F computed from the distances.
-Calinski-Harabasz index CHsq [0; +∞[ Max As previous, but using squared distances.
-Pseudo R2 R2 [0; 1] Max Share of the discrepancy explained by the clustering solution (only to compare partitions with
-identical number of groups).
-Pseudo R2 R2sq [0; 1] Max As previous, but using squared distances
+  * Point Biserial Correlation PBC [−1; 1] Max Measure of the capacity of the clustering to reproduce the distances.
+  * Hubert’s Gamma HG [−1; 1] Max Measure of the capacity of the clustering to reproduce the distances (order of magnitude).
+  * Hubert’s Somers’ D HGSD [−1; 1] Max Measure of the capacity of the clustering to reproduce the distances (order of magnitude) taking into account ties in distances.
+  * Hubert’s C HC [0; 1] Min Gap between the partition obtained and the best
+partition theoretically possible with this number of groups and these distances.
+  * Average Silhouette Width ASW [−1; 1] Max Coherence of assignments. High coherence indicates high between-group distances and strong within-group homogeneity. If this
+is weak, it means that the groups are not clearly separated or that the homogeneity of the groups is low.
+  * Average Silhouette Width (weighted) ASWw [−1; 1] Max As previous, for floating point weights.
+  * Calinski-Harabasz index CH [0; +∞[ Max Pseudo F computed from the distances.
+  * Calinski-Harabasz index CHsq [0; +∞[ Max As previous, but using squared distances.
+  * Pseudo R2 R2 [0; 1] Max Share of the discrepancy explained by the clustering solution (only to compare partitions with identical number of groups).
+  * Pseudo R2 R2sq [0; 1] Max As previous, but using squared distances
 
-ASW Interpretation proposed
-0.71 − 1.00 Strong structure identified.
-0.51 − 0.70 Reasonable structure identified.
-0.26 − 0.50 Structure is weak and could be artificial.
-Try other algorithms.
-≤ 0.25 No structure.
+  * ASW Interpretation proposed
+    * 0.71 − 1.00 Strong structure identified.
+    * 0.51 − 0.70 Reasonable structure identified.
+    * 0.26 − 0.50 Structure is weak and could be artificial. Try other algorithms.
+    * ≤ 0.25 No structure.
+  
 
-```{r fig.width = 15, fig.height = 5}
+```{r fig.width = 15, fig.height = 5, eval = FALSE}
 clusterpam_l$stats
 wardRange <- as.clustrange(clusterward_l, diss = diss, ncluster = 20)
 summary(wardRange, max.rank = 2)
@@ -427,3 +422,73 @@ p_plot <- seqIplot(large[,1:30], group = clusterpam_8_fac, border = NA, use.layo
 
 ```
 
+## Normalized clustering
+
+Using norm = TRUE in seqdist() arguments makes the distance insenstitive to differences in sequence length. It is sometimes recommended in the literature (TraMineR User's Guide p. 93, recommended with LCP). 
+
+```{r normalization, fig.width= 15, fig.height = 5}
+# Normal clustering
+
+diss_norm <- seqdist(large, method = "OM", indel = 1, sm = "TRATE", with.missing = TRUE, norm = TRUE)
+diss <- seqdist(large, method = "OM", indel = 1, sm = "TRATE", with.missing = TRUE)
+
+clusterward <- agnes(diss, diss = TRUE, method = "ward")
+clusterpam <- wcKMedoids(diss, k = 8)
+
+clusterward_norm <- agnes(diss_norm, diss = TRUE, method = "ward")
+clusterpam_norm <- wcKMedoids(diss_norm, k = 8)
+
+
+# no normalization
+clusterward_8 <- cutree(clusterward, k = 8)
+clusterward_8_fac <- factor(clusterward_8, labels = paste("Type", 1:8))
+
+clusterpam_8 <- clusterpam$clustering
+clusterpam_8_fac <- factor(clusterpam_8, labels = paste("Type", 1:8))
+
+clusterpam_8_fac <- factor(clusterpam_8_fac, levels = c("Type 2", "Type 8", "Type 3", "Type 7", "Type 4", "Type 5", "Type 1", "Type 6"))
+
+par(mfrow=c(1,3))
+w_plot <- seqIplot(large[,1:30], group = clusterward_8_fac, border = NA, use.layout = TRUE, cols = 8, withlegend = F, sortv = "from.start", main = "wards")
+p_plot <- seqIplot(large[,1:30], group = clusterpam_8_fac, border = NA, use.layout = TRUE, cols = 8, withlegend = F, sortv = "from.start", main = "pam")
+seqlegend(large)
+
+as.data.frame(clusterward_8_fac) %>%
+  group_by(clusterward_8_fac) %>% summarise(n = n())
+
+as.data.frame(clusterpam_8_fac) %>%
+  group_by(clusterpam_8_fac) %>% summarise(n = n()) 
+
+# normalized
+
+clusterward_8 <- cutree(clusterward_norm, k = 8)
+clusterward_8_fac <- factor(clusterward_8, labels = paste("Type", 1:8))
+
+clusterpam_8 <- clusterpam_norm$clustering
+clusterpam_8_fac <- factor(clusterpam_8, labels = paste("Type", 1:8))
+
+clusterpam_8_fac <- factor(clusterpam_8_fac, levels = c("Type 2", "Type 8", "Type 3", "Type 7", "Type 4", "Type 5", "Type 1", "Type 6"))
+
+par(mfrow=c(1,3))
+w_plot <- seqIplot(large[,1:30], group = clusterward_8_fac, border = NA, use.layout = TRUE, cols = 8, withlegend = F, sortv = "from.start", main = "wards_norm")
+p_plot <- seqIplot(large[,1:30], group = clusterpam_8_fac, border = NA, use.layout = TRUE, cols = 8, withlegend = F, sortv = "from.start", main = "pam_norm")
+seqlegend(large)
+
+as.data.frame(clusterward_8_fac) %>%
+  group_by(clusterward_8_fac) %>% summarise(n = n())
+
+as.data.frame(clusterpam_8_fac) %>%
+  group_by(clusterpam_8_fac) %>% summarise(n = n()) 
+
+wardRange <- as.clustrange(clusterward, diss = diss, ncluster = 8)
+summary(wardRange, max.rank = 2)
+wardRange <- as.clustrange(clusterward_norm, diss = diss, ncluster = 8)
+summary(wardRange, max.rank = 2)
+
+clusterpam$stats
+clusterpam_norm$stats
+```
+
+The differences aren't very pronounced in this comparison. Comparing the Ward's there do seem to be some differences in the clusters created, but only for the very low membership clusters. It is possible that normalization only makes a difference when classifying the border/fuzzy sequences. 
+
+The stats for the both the Ward's and PAM cluster solutions indicate that the normalized clusters are a bit lower quality. This makes sense because the normalization parameter inherently introduces clusters with less strong within-group homogeneity. 
