@@ -213,7 +213,7 @@ Cohorts are determined by year of military exit within specific time intervals.
 
 ```{r descriptive-military-cohort}
 # Function to create a career sequence object from bg_vet_job_seq data, choosing military cohorts by constraining years of military exit -------
-career_sequence_exit_year <- function(name = "sts_vet_ten", enter_year, exit_year) {
+career_sequence_exit_year_vet <- function(name = "sts_vet_ten", enter_year, exit_year) {
 sts_vet <- bg_vet_job_seq %>%
   filter(year_end_onet55 >= exit_year & year_end_onet55 <= enter_year) #%>%
   #select(-years_after_onet55)

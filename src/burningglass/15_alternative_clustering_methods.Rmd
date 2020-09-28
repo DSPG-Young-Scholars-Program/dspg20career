@@ -2,7 +2,9 @@
 title: "15_alternative_clustering_methods"
 author: "Joanna Schroeder"
 date: "9/4/2020"
-output: html_document
+output: 
+  html_document:
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
@@ -31,68 +33,72 @@ c("#232D4B", #space cadet
 ## Literature Review
 
 Le Goix, R., Giraud, T., Cura, R., Le Corre, T. & Migozzi, J. (2019), "Who sells to whom in the suburbs? Home price inflation and the dynamics of sellers and buyers in the metropolitan region of Paris, 1996-2012", PLoS ONE. Vol. 14(3). e0213169.
-- Ward's clustering, Chi2 distance
-- No justification for selecting Ward's or for dissimilarity
+
+* Ward's clustering, Chi2 distance
+* No justification for selecting Ward's or for dissimilarity
 
 Mas, J.-F., Nogueira de Vasconcelos, R. & Franca-Rocha, W. (2019), "Analysis of High Temporal Resolution Land Use/Land Cover Trajectories", Land. Vol. 8(2), pp. 30.
 
-- Implements four different distance metrics: LCS, LSP, OM transition rates, and OM features
-- Ward's method for each dissimilarity index
-- Emphasizes choice for metric depends on what types of patterns of change are important: LCP focuses on beginning, OM can cluster based on rare transitions,   
+* Implements four different distance metrics: LCS, LSP, OM transition rates, and OM features
+* Ward's method for each dissimilarity index
+* Emphasizes choice for metric depends on what types of patterns of change are important: LCP focuses on beginning, OM can cluster based on rare transitions,   
 
 Kim, K. (2018), "Recent Advances in Activity-Based Travel Demand Models for Greater Flexibility". Portland State University PDXScholar. PhD Thesis, Portland, 2018.
-- No clustering
+
+* No clustering
 
 Riekhoff, A.-J. (2018), "Extended working lives and late-career destabilisation: A longitudinal study of Finnish register data", Advances in Life Course Research. Vol. 35, pp. 114-125.
-- OM and Hamming for dissimiliary
-- Ward's clustering
+
+* OM and Hamming for dissimiliary
+* Ward's clustering
 
 Struffolino, E. & Mortelmans, D. (2018), "Lone Mothers in Belgium: Labor Force Attachment and Risk Factors", In Bernardi, L. & Mortelmans, D. (eds) Lone Parenthood in the Life Course. Series: Life Course Research and Social Policies. Volume 8. Cham: Springer.
-- Hamming (higher sensitiveity to small time changes)
-- PAM clustering (maximizes in-group homogeneity and between-group heterogeneity)
 
-Individual sequences were then clustered in order to maximize within-group
+* Hamming (higher sensitivity to small time changes)
+* PAM clustering (maximizes in-group homogeneity and between-group heterogeneity)
+* "Individual sequences were then clustered in order to maximize within-group
 homogeneity and between-groups heterogeneity: to this purpose, we used the partitioning around medoids method. Medoids are representative sequences having the
-smallest dissimilarity to the other sequences of the cluster they belong to
+smallest dissimilarity to the other sequences of the cluster they belong to"
 
 Studer, M., & Ritschard, G. (2016). What matters in differences between life trajectories: A comparative review of sequence dissimilarity measures. Journal of the Royal Statistical Society. A, 179(2), 481-511.
-- Important aspects of sequences:
-  - Timing of states (age norms, state position in life trajectory)
-  - Spell duration
-  - Sequencing (the order in which sequences are experienced)
+
+* Important aspects of sequences:
+    - Timing of states (age norms, state position in life trajectory)
+    - Spell duration
+    - Sequencing (the order in which sequences are experienced)
   
-- Distances between probability distributions
-  - Distances between state distributions
-  - Distance based on conditional distributions of sequence states (stresses the similarity of sequences that are likely to lead to the same future)
-- Distances based on common attributes
-  - Simple hamming distance
-  - Length of longest common subsequence
-  - Number of matching subsequences
-- Optimal matching
-  - Optimal matching principles and special cases
-  - Substitution costs
-    - Theory based costs
-    - Costs based on state attributes
-    - Data-driven costs
-  - indel costs
-    - Single-indel costs
-    - State-dependent indel costs
-- Variants of optimal matching
-  - Dynamic hamming distance
-  - Localized optimal matching 
-  - Optimal matching sensitive to spell length
-  - Optimal matching between sequences of spells
-  - Optimal matching between sequences of transitions
-"Running cluster analyses with different dissimilarity measures should also allow us to de-termine whether the trajectories are primarily structured by timing, duration or sequencing differences. To achieve this, we compare cluster quality measures such as the average silhouette width of the different partitions that are obtained. In a discrepancy analysis, comparing outcomes that are obtained with different measures may also help to identify which covariates best explain sequencing differences, and which best explain timing and duration differences." (509)
-  - For sequencing:
-    - OMstran (low weight on state of origin), OMspell (low expansion cost e and low weight), 
-  - For timing:
-    - Hamming family
-    - "Using the CHI2- and EUCLID-distances with the number of periods K equal to the sequence length is also a solution. This K-parameter offers the advantage of allowing a smooth relaxation of exact timing alignment...CHI2 is especially interesting when we want to stress the importance of changes involving rare states." (508)
-  - For duration:
-    - CHI2- and EUCLID-distance with K set to 1
-    - If importance of spell lengths should be stressed, OMspell with high expansion cost
-    - LCS and classic OM
+* Distances between probability distributions
+    - Distances between state distributions
+    - Distance based on conditional distributions of sequence states (stresses the similarity of sequences that are likely to lead to the same future)
+* Distances based on common attributes
+    - Simple hamming distance
+    - Length of longest common subsequence
+    - Number of matching subsequences
+* Optimal matching
+    - Optimal matching principles and special cases
+    - Substitution costs
+        - Theory based costs
+        - Costs based on state attributes
+        - Data-driven costs
+    - indel costs
+        - Single-indel costs
+        - State-dependent indel costs
+    - Variants of optimal matching
+        - Dynamic hamming distance
+        - Localized optimal matching 
+        - Optimal matching sensitive to spell length
+        - Optimal matching between sequences of spells
+        - Optimal matching between sequences of transitions
+* "Running cluster analyses with different dissimilarity measures should also allow us to de-termine whether the trajectories are primarily structured by timing, duration or sequencing differences. To achieve this, we compare cluster quality measures such as the average silhouette width of the different partitions that are obtained. In a discrepancy analysis, comparing outcomes that are obtained with different measures may also help to identify which covariates best explain sequencing differences, and which best explain timing and duration differences." (509)
+    - For sequencing:
+        - OMstran (low weight on state of origin), OMspell (low expansion cost e and low weight), 
+    - For timing:
+        - Hamming family
+        - "Using the CHI2- and EUCLID-distances with the number of periods K equal to the sequence length is also a solution. This K-parameter offers the advantage of allowing a smooth relaxation of exact timing alignment...CHI2 is especially interesting when we want to stress the importance of changes involving rare states." (508)
+    - For duration:
+        - CHI2- and EUCLID-distance with K set to 1
+        - If importance of spell lengths should be stressed, OMspell with high expansion cost
+        - LCS and classic OM
   
 ## Approach
 Multiple dissimilarity metrics and clustering methods should be used to explore and compare outcomes. 
@@ -100,22 +106,22 @@ We have interested in multiple sequence dimensions (sequencing, timing, and dura
 
 
 * Our OM ("weighted")
-  + Uses substitution costs based normalized transition rates in our dataset, created from observed probabilities of transition from one state to another exluding transitions to the same state ("Job to job transition")
+    + Uses substitution costs based normalized transition rates in our dataset, created from observed probabilities of transition from one state to another exluding transitions to the same state ("Job to job transition")
 * OM transition ("unweighted")
-  + Uses substitution costs based on raw transition rates in our dataset, created from observed probabilities of transition from one state to another ("Year to year transition")
+    + Uses substitution costs based on raw transition rates in our dataset, created from observed probabilities of transition from one state to another ("Year to year transition")
 * Hamming
-  + Dissimilarity based on common attributes - simple hamming, or the number of positions at which two sequences of equal length differ.
+    + Dissimilarity based on common attributes - simple hamming, or the number of positions at which two sequences of equal length differ.
 * LCS
-  + Dissimilarity based on common attributes - Longest common subsequence. 
+     + Dissimilarity based on common attributes - Longest common subsequence. 
 * LCP
-  + Dissimilarity based on common attributes - Longest common prefix. (We can also compute based on the longest common suffix)
+     + Dissimilarity based on common attributes - Longest common prefix. (We can also compute based on the longest common suffix)
 
 * Ward's
-  + Agglomerative hierarchical clustering, minimizes median distances between groups.
+      + Agglomerative hierarchical clustering, minimizes median distances between groups.
 * PAM
-  + Direct partitioning, faster, number of clusters set before. 
+      + Direct partitioning, faster, number of clusters set before. 
 * Divisive analysis (diana)
-  + Opposite of agglomerative, hierarchical clustering, better at identifying large than small clusters
+      + Opposite of agglomerative, hierarchical clustering, better at identifying large than small clusters
 
 Use a sample of around 2,000 for testing for performance
 
@@ -254,26 +260,26 @@ unweighted <- seqdist(sts_vet_ten, method = "OMstran", indel = costs.tr$indel, s
 lcp <- seqdist(sts_vet_ten, method = "LCP") 
 ```
 
-```{r wards-clustering, fig.height=2.5, fig.width = 15}
-# OM Spell, low expansion cost and low weight
+```{r wards-clustering, fig.height=10}
+# OM Spell, low expansion cost and low weight (SEQUENCING)
 ward.weighted.spell.low <- agnes(weighted.spell.low, diss = TRUE, method = "ward")
 plot(ward.weighted.spell.low, which.plot = 2)
 ward.weighted.spell.low.8 <- cutree(ward.weighted.spell.low, k = 8)
 ward.weighted.spell.low.8.fac <- factor(ward.weighted.spell.low.8, labels = paste("Type", 1:8))
 
-#CHI2 interval 10 
+#CHI2 interval 10 (TIMING)
 ward.chi2.10 <- agnes(chi2.10, diss = TRUE, method = "ward")
 plot(ward.chi2.10, which.plot = 2)
 ward.chi2.10.8 <- cutree(ward.chi2.10, k = 8)
 ward.chi2.10.8.fac <- factor(ward.chi2.10.8, labels = paste("Type", 1:8))
 
-#CHI2 interval 1
+#CHI2 interval 1 (DURATION)
 ward.chi2.1 <- agnes(chi2.1, diss = TRUE, method = "ward")
 plot(ward.chi2.1, which.plot = 2)
 ward.chi2.1.8 <- cutree(ward.chi2.1, k = 8)
 ward.chi2.1.8.fac <- factor(ward.chi2.1.8, labels = paste("Type", 1:8))
 
-#spell, high expansion cost 
+#spell, high expansion cost (DURATION)
 ward.weighted.spell.high <- agnes(weighted.spell.high, diss = TRUE, method = "ward")
 plot(ward.weighted.spell.high, which.plot = 2)
 ward.weighted.spell.high.8 <- cutree(ward.weighted.spell.high, k = 8)
@@ -286,10 +292,10 @@ ward.weighted.8 <- cutree(ward.weighted, k = 8)
 ward.weighted.8.fac <- factor(ward.weighted.8, labels = paste("Type", 1:8))
 
 # Our OM, high origin weight
-ward.weighted.otto <- agnes(weighted.otto, diss = TRUE, method = "ward")
-plot(ward.weighted.otto, which.plot = 2)
-ward.weighted.otto.8 <- cutree(ward.weighted.otto, k = 8)
-ward.weighted.otto.8.fac <- factor(ward.weighted.otto.8, labels = paste("Type", 1:8))
+#ward.weighted.otto <- agnes(weighted.otto, diss = TRUE, method = "ward")
+#plot(ward.weighted.otto, which.plot = 2)
+#ward.weighted.otto.8 <- cutree(ward.weighted.otto, k = 8)
+#ward.weighted.otto.8.fac <- factor(ward.weighted.otto.8, labels = paste("Type", 1:8))
 
 # OM transition
 ward.unweighted <- agnes(unweighted, diss = TRUE, method = "ward")
@@ -314,13 +320,19 @@ ward.lcp <- agnes(lcp, diss = TRUE, method = "ward")
 plot(ward.lcp, which.plot = 2)
 ward.lcp.8 <- cutree(ward.lcp, k = 8)
 ward.lcp.8.fac <- factor(ward.lcp.8, labels = paste("Type", 1:8))
+```
 
+```{r index-plots, fig.height=5, fig.width = 15}
+# OM Spell, low expansion cost and low weight (SEQUENCING)
 one <- seqIplot(sts_vet_ten, group = ward.weighted.spell.low.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 
+#CHI2 interval 10 (TIMING)
 two <- seqIplot(sts_vet_ten, group = ward.chi2.10.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 
+#CHI2 interval 1 (DURATION)
 three <- seqIplot(sts_vet_ten, group = ward.chi2.1.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 
+#spell, high expansion cost (DURATION)
 four <- seqIplot(sts_vet_ten, group = ward.weighted.spell.high.8.fac, cols = 8, yaxis = FALSE, axes = FALSE, with.legend = FALSE)
 
 #weighted

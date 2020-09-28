@@ -1,0 +1,141 @@
+---
+title: "16_expanding_geography"
+author: "Joanna Schroeder"
+date: "9/17/2020"
+output: html_document
+---
+
+## Purpose
+
+We are interested in expanding the geographic scope of our analysis. Our initial analysis focused on the DC MSA.
+
+* We want to expand to rural areas.
+* We want to expand to other MSAs.
+
+## Rural geographies
+
+### Defining a rural geography
+
+In the pers table, we have four geography variables.
+
+* State name
+* City name
+* MSA
+* Zipcode
+
+Given this, zipcode is probably the best option for identifying rural resumes.
+
+The Census identifies rural geographies as [any geography that is not urban](https://www.census.gov/programs-surveys/geography/guidance/geo-areas/urban-rural/2010-urban-rural.html).
+
+The Federal Office of Rural Health Authority has [information](https://www.hrsa.gov/rural-health/about-us/definition/index.html) on defining rurality by zipcode and published a [dataset](https://www.hrsa.gov/rural-health/about-us/definition/datafiles.html) of rural zips.
+
+* Zip code file does not include Puerto Rico
+* "Because matching geographic areas with different boundaries can never be perfect, there are ZIP codes with urban population included in the list and there are ZIP codes with rural population that are not included."
+* "Any ZIP code where more than 50% of its population resides in either a Non-Metro County and/or a rural Census Tract was included in the list."
+* "The ZIP code files were produced using Census Bureau files that Crosswalk Census Tracts to ZIP Code Tabulation Areas (ZCTAs). The ZIP Code to ZCTA Crosswalk was used to identify individual ZIP codes within the ZCTAs."
+* "This Excel file contains 18,776 ZIPs in numeric order, with only the State where the ZIP is located identified."
+
+The USDA ERS defines [Rural-Urban Communiting Areas](https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes/), which "classify U.S. census tracts using measures of population density, urbanization, and daily commuting." They also have a dataset of RUCA zipcodes based on Census tracks.
+
+To begin our expansion into rural areas, we will start by subsetting the rural resumes in Virginia. 
+
+```{r setup, message=FALSE, include=FALSE, paged.print=FALSE}
+# load packages 
+for (pkg in c("tidyverse", "data.table", "stringr", "stringi", "mosaic", "dplyr", "readr","gt", "dplyr", "ggplot2", "tigris", "viridis")) {
+  library(pkg, character.only = TRUE)
+}
+
+get_db_conn <-
+  function(db_name = "sdad",
+           db_host = "postgis1",
+           db_port = "5432",
+           db_user = Sys.getenv("db_usr"),
+           db_pass = Sys.getenv("db_pwd")) {
+    RPostgreSQL::dbConnect(
+      drv = RPostgreSQL::PostgreSQL(),
+      dbname = db_name,
+      host = db_host,
+      port = db_port,
+      user = db_user,
+      password = db_pass
+    )
+  }
+
+# function for data profiling
+data_profiling <- function(df){
+summary_table <- tibble(var = names(df),
+       variable_type = map_chr(.x = df, .f = function(col) class(x = col)),                 
+       num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
+       num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
+  mutate(perc_missing = round(100 * (x = num_missing / nrow(df)), digits = 2L))
+return(summary_table)
+}
+```
+
+``` {r getting-va-rural}
+con <- get_db_conn()
+pers <- DBI::dbGetQuery(con, "SELECT * FROM bgt_res.pers")
+DBI::dbDisconnect(con)
+
+ruralzips <- readxl::read_xlsx("~/git/DSPG2020/career/src/burningglass/forhp-eligible-zips.xlsx")
+
+varuralzips <- ruralzips %>% filter(STATE == "VA")
+
+varuralzips <- varuralzips$ZIP
+
+ruralres <- pers %>% filter(zipcode %in% varuralzips)
+ids <- ruralres$id
+
+con <- get_db_conn()
+job <- DBI::dbGetQuery(con, paste("SELECT * FROM bgt_res.job WHERE id IN (", paste(ids, collapse = ", "), ")"))
+DBI::dbDisconnect(con)
+```
+
+```{r profiling-va-rural}
+data_profiling(pers)
+# 14 % of zipcodes missing
+
+data_profiling(job)
+
+military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
+#extract unique military id
+military_ids <- job %>% 
+  filter(str_detect(job$onet, military)) %>%
+  distinct(id) 
+
+# Only 446 veterans in rural zipcodes in Virginia
+```
+
+There are very few resumes in rural Virginia and even fewer for veterans.
+
+Let's zoom out and look at the geographic distribution of all resumes.
+
+```{r mapping-resume-zipcodes}
+# Just Virginia zipcodes
+#fw_zips <- zctas(cb = TRUE, starts_with = c("201", "220", "221", "222", "223", "224", "225", "226", "227", "228", "229", "230", "231", "232", "233", "234", "235", "236", "237", "238", "239", "240", "240", "241", "242", "243", "244", "245", "246"))
+#plot(fw_zips)
+
+fw_zips <- zctas()
+
+fw_zips <- fw_zips %>% mutate(rural = ifelse(GEOID10 %in% ruralzips$ZIP, 1, 0))
+
+zips <- pers %>% group_by(zipcode) %>% summarise(count = n())
+  
+data <- left_join(fw_zips, zips, by = c("GEOID10" = "zipcode"))
+
+data %>% filter(rural == 1) %>% summarise(sum = sum(count))
+
+ggplot(data = data, aes(fill = log(count))) +
+  geom_sf(lwd = 0) +
+  scale_fill_viridis() +
+  xlim(-124.7, -67.1) + 
+  ylim(25.2, 49.4)
+
+data %>% filter(rural == 1) %>%
+ggplot(aes(fill = log(count))) +
+  geom_sf(lwd = 0) +
+  scale_fill_viridis() +
+  xlim(-124.7, -67.1) + 
+  ylim(25.2, 49.4)
+```
+
