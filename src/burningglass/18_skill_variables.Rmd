@@ -65,7 +65,7 @@ Here we profile the geographic subset of the BGT data for the DC MSA. The skills
 
 ```{r}
 #remove duplicate id column
-skill <- skill[,-1]
+#skill <- skill[,-1]
 
 data_profiling(skill)
 
@@ -101,14 +101,25 @@ bg_vet_demographic <- read.csv("~/git/DSPG2020/career/data/02_bg_vet_demographic
 
 ids <- bg_vet_demographic$id
 
-skill <- skill %>% mutate(veteran = ifelse(id %in% ids, 1, 0)) 
+skill <- skill %>% mutate(veteran = ifelse(id %in% ids, "veteran", "nonveteran")) 
 
 skill %>% group_by(veteran) %>% mutate(total = n()) %>% group_by(veteran, clusterfamily) %>% mutate(n = n()) %>% mutate(percent = round(n/total * 100, 2)) %>% select(veteran, clusterfamily, percent) %>% distinct() %>%
   ggplot(aes(x = clusterfamily, y = percent, group = veteran, fill = veteran)) +
   geom_col(position = "dodge") +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  scale_fill_discrete()
 
 skill %>% group_by(id) %>% mutate(n = n()) %>% arrange(id) %>% ungroup() %>% group_by(veteran) %>% summarise(mean = mean(n), median = median(n))
+
+skill %>% group_by(veteran) %>% mutate(total = n()) %>% 
+  group_by(veteran, cluster) %>% mutate(n = n()) %>% 
+  mutate(percent = round(n/total * 100, 2)) %>% 
+  select(veteran, cluster, percent) %>% distinct() %>% group_by(veteran) %>%
+  slice_max(percent, n = 10) %>%
+  ggplot(aes(x = cluster, y = percent, group = veteran, fill = veteran)) +
+  geom_col(position = "dodge") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  coord_flip()
 
 ```
 

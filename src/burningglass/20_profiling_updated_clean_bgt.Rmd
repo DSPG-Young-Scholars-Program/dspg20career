@@ -1,0 +1,237 @@
+---
+title: "20_profiling_updated_clean_bgt"
+author: "Joanna Schroeder"
+date: "9/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE
+)
+for (pkg in c("tidyverse",  "data.table", "R.utils", "mosaic", "readr", "maditr", "stringr", "stringi", "dplyr", "ggplot2", "lubridate", "gt", "DataExplorer", "TraMineR", "TraMineRextras", "cluster", "tools", "WeightedCluster", "viridis")) {
+  library(pkg, character.only = TRUE)
+}
+
+uva_color_palette <- 
+c("#232D4B", #space cadet
+  "#2C4F6B", #indigo dye
+  "#0E879C", #blue munsell
+  "#60999A", #cadet blue
+  "#D1E0BF", #tea green
+  "#D9E12B", #pear
+  "#E6CE3A", #citrine
+  "#E6A01D", #marigold
+  "#E57200" #princeton orange
+)
+
+data_profiling <- function(df){
+  nrow = nrow(df)
+  summary_table <- tibble(var = names(df),
+                          variable_type = map_chr(.x = df, .f = function(col) class(x = col)),                 
+                          num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
+                          num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
+    mutate(perc_missing = round(x = 100 * num_missing / nrow, digits = 2L))
+  
+  return(summary_table)
+}
+
+```
+
+```{r clean-data}
+source("~/git/DSPG2020/career/src/burningglass/20_updated_clean_bgt.R")
+source("~/git/DSPG2020/career/src/burningglass/master_functions.R")
+
+bg_cleaned <- get_bgt_data_for_state(states = c("DC", "MD", "VA"))
+
+bg_covariates <- as.data.table(bg_cleaned$bg_covariates)
+bg_job <- as.data.table(bg_cleaned$bg_job)
+all_majors <- as.data.table(bg_cleaned$all_majors)
+all_skills <- as.data.table(bg_cleaned$all_skills)
+highest_degree_majors <- as.data.table(bg_cleaned$highest_degree_majors)
+top_skills <- as.data.table(bg_cleaned$top_skills)
+
+#write.csv(bg_covariates, file= "~/git/DSPG2020/career/data/testing.csv", row.names = F)
+#write.csv(bg_job, file= "~/git/DSPG2020/career/data/bg_job_vadcmd.csv", row.names = F)
+#write.csv(all_majors, file= "~/git/DSPG2020/career/data/all_majors_vadcmd.csv", row.names = F)
+#write.csv(all_skills, file= "~/git/DSPG2020/career/data/all_skills_vadcmd.csv", row.names = F)
+#write.csv(highest_degree_majors, file= "~/git/DSPG2020/career/data/highest_degree_majors_vadcmd.csv", row.names = F)
+#write.csv(top_skills, file= "~/git/DSPG2020/career/data/top_skills_vadcmd.csv", row.names = F)
+
+#bg_covariates <- fread("~/git/DSPG2020/career/data/bg_covariates_vadcmd.csv")
+#bg_job <- fread("~/git/DSPG2020/career/data/bg_job_vadcmd.csv")
+archive_covariates <- fread("~/git/DSPG2020/career/data/02_bg_vet_demographic.csv")
+archive_job <- fread("~/git/DSPG2020/career/data/03_bg_all_job.csv") %>% select(id, onet_job_zone, start_year, end_year)
+```
+
+Just looking at veterans for speed.
+
+```{r profiling-covariates}
+# Four duplicated because of gender
+bg_covariates$id[duplicated(bg_covariates$id)]
+
+# Fifteen not veteran because of imputed 1900 dates of military service
+#bg_covariates %>% filter(veteran == "not veteran")
+
+bg_covariates <- bg_covariates %>% filter(veteran != "not veteran") %>% filter(id != bg_covariates$id[duplicated(bg_covariates$id)])
+
+## Data profiling
+data_profiling(bg_covariates)
+#data_profiling(archive_covariates)
+
+## Gender distribution
+bg_covariates %>% mutate(total = n()) %>% group_by(gender) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(gender, count, percent)
+archive_covariates %>% mutate(total = n()) %>% group_by(gender) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(gender, count, percent)
+
+#bg_covariates %>% mutate(total = n()) %>% group_by(veteran) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(veteran, count, percent)
+#archive_covariates %>% mutate(total = n()) %>% group_by(veteran) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(veteran, count, percent)
+
+## Highest degree distribution
+bg_covariates %>% mutate(total = n()) %>% group_by(highest_degree) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(highest_degree, count, percent) %>% arrange(-percent)
+archive_covariates %>% mutate(total = n()) %>% group_by(degree_highest) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(degree_highest, count, percent) %>% arrange(-percent)
+
+#bg_covariates %>% group_by(veteran) %>% mutate(total = n()) %>% group_by(veteran, highest_degree) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(veteran, highest_degree, count, percent) %>% arrange(veteran, -percent)
+#archive_covariates %>% group_by(veteran) %>% mutate(total = n()) %>% group_by(veteran, degree_highest) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(veteran, degree_highest, count, percent) %>% arrange(veteran, -percent)
+
+## Distribution of year entered civilian workforce
+bg_covariates %>% 
+  ggplot(aes(x = year_entered_civilian_workforce)) +
+  ggtitle("Year entered civilian workforce") +
+  geom_histogram()
+archive_covariates %>% mutate(year = year(date_enter_job_market)) %>%
+  ggplot(aes(x = year)) +
+  ggtitle("(Archived) Year entered civilian workforce") +
+  geom_histogram()
+
+## Distribution of IRR
+bg_covariates %>%
+  ggplot(aes(x = irr)) +
+  geom_histogram()
+
+## Distibution of officer status
+bg_covariates %>% filter(veteran == "veteran") %>% mutate(total = n()) %>% group_by(officer) %>% mutate(count = n(), percent = round(count/total, 2)) %>%
+  distinct(officer, count, percent)
+
+## Distribution of ending military occupation
+bg_covariates %>% mutate(total = n()) %>% group_by(end_onet55) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(end_onet55, count, percent) %>% arrange(-percent)
+
+## Distribution of for profit college attendance
+bg_covariates %>% mutate(total = n()) %>% group_by(forprofit) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(forprofit, count, percent) %>% arrange(-percent)
+
+## Distribution of hbcus 
+bg_covariates %>% mutate(total = n()) %>% group_by(hbcu) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(hbcu, count, percent) %>% arrange(-percent)
+
+## Distribution of tribal colleges and universities
+bg_covariates %>% mutate(total = n()) %>% group_by(tribal) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(tribal, count, percent) %>% arrange(-percent)
+
+## Distribution of number of years in the military
+bg_covariates %>%
+  ggplot(aes(x = years_in_military)) +
+  ggtitle("Number of years in the military") +
+  geom_histogram()
+
+## Distribution of year of military enlist
+bg_covariates %>%
+  ggplot(aes(x = year_military_enlist)) +
+  ggtitle("Year military enlist") +
+  geom_histogram()
+
+## Distribution of year of military exit
+bg_covariates %>%
+  ggplot(aes(x = year_military_exit)) +
+  ggtitle("Year military exit") +
+  geom_histogram()
+
+## Distribution of years of career before military enlist
+bg_covariates %>%
+  ggplot(aes(x = year_career_before_military)) +
+  ggtitle("Years of career before military") +
+  geom_histogram()
+
+
+bg_covariates %>% group_by(forprofit) %>% mutate(total = n()) %>% group_by(officer, forprofit) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(officer, forprofit, count, percent) %>% arrange(forprofit, -percent) %>% drop_na()
+
+bg_covariates %>% group_by(hbcu) %>% mutate(total = n()) %>% group_by(officer, hbcu) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(officer, hbcu, count, percent) %>% arrange(hbcu, -percent) %>% drop_na()
+
+bg_covariates %>% group_by(highest_degree) %>% mutate(total = n()) %>% group_by(officer, highest_degree) %>% mutate(count = n(), percent = round(count/total, 2)) %>% distinct(officer, highest_degree, count, percent) %>% arrange(highest_degree, -percent) %>% drop_na()
+```
+
+```{r profiling-job}
+data_profiling(bg_job)
+
+
+
+bg_job %>% filter(onet_job_zone != 55) %>%
+  ggplot(aes(x = onet_job_zone)) +
+  ggtitle("Count of job zones") +
+  geom_histogram()
+
+archive_job %>% filter(onet_job_zone != 55) %>%
+  ggplot(aes(x = onet_job_zone)) +
+  ggtitle("Count of job zones (archived)") +
+  geom_histogram()
+
+bg_job %>% filter(onet_job_zone != 55) %>% left_join(bg_covariates, by = "id") %>%
+  ggplot(aes(x = onet_job_zone, fill = officer)) +
+  ggtitle("Count of job zones by officer status") +
+  geom_histogram(position = "dodge")
+
+bg_job %>% filter(onet_job_zone != 55) %>% left_join(bg_covariates, by = "id") %>%
+  ggplot(aes(x = onet_job_zone, fill = forprofit)) +
+  ggtitle("Count of job zones by institution type") +
+  geom_histogram(position = "dodge")
+```
+
+```{r rural-map}
+library(tigris)
+fw_zips <- zctas(cb = TRUE) 
+
+dmv_irr_quintiles <- bg_covariates %>% select(zipcode, irr) %>% distinct() %>% mutate(quintile = ntile(irr, 5)) 
+
+data <- inner_join(fw_zips, rural_zips, by = c("GEOID10" = "zipcode"))
+
+data %>% 
+ggplot(aes(fill = "orange")) +
+  geom_sf(lwd = 0.2) +
+  #scale_fill_viridis() +
+  #scale_color_manual(values = c("orange", "white", "white", "white", "blue")) +
+  theme(panel.background = element_rect(fill = "darkgray",
+                                colour = "darkgray"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill="darkgray", 
+                                  size=0.5, linetype="solid")) +
+  labs(title = "IRR Quintiles for DMV")
+
+rural_zips <- bg_covariates %>% mutate(total = n()) %>% mutate(quintile = ntile(irr, 5)) %>% filter(quintile == 5) %>% select(zipcode) %>% distinct()
+
+
+
+
+
+
+```
+
+```{r sequence}
+vet.seq <- create_seq_vet_fixed("vet.seq", 10, left_unemp = TRUE)
+
+statd <- seqstatd(vet.seq)
+states <- statd$Frequencies
+states <- as.data.frame(states)
+names(states) <- paste0(1:ncol(vet.seq))
+states <- states %>% rownames_to_column(var = "state")
+states <- melt(states, id = "state")
+
+library(scales)
+ggplot() + 
+  geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
+  xlim(1,10) +
+  scale_fill_manual(values = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], uva_color_palette[5], "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Education", "Civilian unemployed")) +
+  xlab("Year of career") +
+  labs(title = " Veterans: First ten years after entering job market \n (including education, excluding retirement and military transition unemployment)",
+       fill = "Job state") +
+  theme_classic() +
+  theme(legend.position = "bottom") +
+  guides(fill = guide_legend(ncol = 3))
+```
+
