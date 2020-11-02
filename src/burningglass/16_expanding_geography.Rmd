@@ -72,15 +72,17 @@ return(summary_table)
 }
 ```
 
-``` {r getting-va-rural}
+```{r getting-va-rural}
 con <- get_db_conn()
 pers <- DBI::dbGetQuery(con, "SELECT * FROM bgt_res.pers")
 DBI::dbDisconnect(con)
 
 ruralzips <- readxl::read_xlsx("~/git/DSPG2020/career/src/burningglass/forhp-eligible-zips.xlsx")
+uszips <- fread("~/git/DSPG2020/career/src/burningglass/uszips.csv")
+vazips <- uszips %>% filter(state_id == "VA")
+vazips <- vazips$zip
 
 varuralzips <- ruralzips %>% filter(STATE == "VA")
-
 varuralzips <- varuralzips$ZIP
 
 ruralres <- pers %>% filter(zipcode %in% varuralzips)
@@ -102,6 +104,8 @@ military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
 military_ids <- job %>% 
   filter(str_detect(job$onet, military)) %>%
   distinct(id) 
+
+job %>% mutate(count = n()) %>% mutate(rural = ifelse(id %in% ids, "yes", "no")) %>% group_by(rural) %>% summarise(percent = n()/count * 100) %>% distinct()
 
 # Only 446 veterans in rural zipcodes in Virginia
 ```
@@ -137,5 +141,294 @@ ggplot(aes(fill = log(count))) +
   scale_fill_viridis() +
   xlim(-124.7, -67.1) + 
   ylim(25.2, 49.4)
+```
+
+```{r community-embeddness-zips}
+va_rural_zips <- uszips %>% filter(state_name == "Virginia" & county_name == "Caroline") %>% pull(zip)
+ok_rural_zips <- uszips %>% filter(state_name == "Oklahoma" & county_name == "Comanche") %>% pull(zip)
+
+va_rural_ids <- pers %>% filter(zipcode %in% va_rural_zips) %>% pull(id)
+ok_rural_ids <- pers %>% filter(zipcode %in% ok_rural_zips) %>% pull(id)
+
+con <- get_db_conn()
+rural_va_cert <- DBI::dbGetQuery(con, paste("SELECT * FROM bgt_res.cert WHERE id IN (", paste(va_rural_ids, collapse = ", "), ")"))
+rural_ok_job <- DBI::dbGetQuery(con, paste("SELECT * FROM bgt_res.job WHERE id IN (", paste(ok_rural_ids, collapse = ", "), ")"))
+DBI::dbDisconnect(con)
+
+data_profiling(rural_va_job)
+data_profiling(rural_ok_job)
+
+military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
+
+## 33 veterans
+rural_va_job %>% mutate(military = ifelse(str_detect(onet, military), "military", "nonmilitary")) %>% filter(military == "military") %>% distinct(id)
+## 232 veterans
+rural_ok_job %>% mutate(military = ifelse(str_detect(onet, military), "military", "nonmilitary")) %>% filter(military == "military") %>% distinct(id)
+
+# 1783 overall
+rural_va_job %>% distinct(id)
+# 8479 overall
+rural_ok_job %>% distinct(id)
+
+military_onets <- c("55-1011.00", "55-1012.00", "55-1013.00", "55-1014.00", "55-1015.00", "55-1016.00", "55-1017.00", "55-1019.00", "55-2011.00", "55-2012.00", "55-2013.00", "55-3011.00"," 55-3012.00", "55-3013.00", "55-3014.00", "55-3015.00", "55-3016.00", "55-3017.00", "55-3018.00", "55-3019.00")
+```
+
+
+```{r rural-ruca-definition}
+con <- get_db_conn()
+pers <- DBI::dbGetQuery(con, "SELECT * FROM bgt_res.pers")
+job <- DBI::dbGetQuery(con, paste("SELECT * FROM bgt_res.job WHERE onet LIKE '55-%'"))
+DBI::dbDisconnect(con)
+
+ids <- job %>% distinct(id) %>% pull(id)
+
+rural_zips_usda <- readxl::read_xlsx("~/git/DSPG2020/career/src/burningglass/RUCA2010zipcode.xlsx", sheet = 2) 
+
+# 11% of veterans missing zipcode
+data_profiling(pers %>% filter(id %in% ids))
+veterans <- pers %>% filter(id %in% ids)
+
+urban <- c(1.0, 1.1, 2.0, 2.1, 3.0, 4.1, 5.1, 7.1, 8.1, 10.1)
+
+ruralzips_usda <- rural_zips_usda %>% filter(!(RUCA2 %in% urban)) %>% pull(ZIP_CODE)
+
+data <- rural_zips_usda %>% group_by(RUCA2) %>% summarise(count = n()) %>% mutate(rural = ifelse(RUCA2 %in% urban, "urban", "rural"))
+
+data$RUCA2 <- as.factor(data$RUCA2)
+data %>%
+  ggplot(aes(x = RUCA2, y = count, fill = rural)) +
+  geom_col()
+
+zips_usda <- pers %>% filter(id %in% ids) %>%
+  mutate(zip = str_extract(zipcode, "^[0-9][0-9][0-9][0-9][0-9]")) %>%
+  mutate(rural = ifelse(zip %in% ruralzips_usda, "rural", "urban")) %>% 
+  group_by(zip) %>% mutate(count = n()) %>% select(zip, count, rural) %>%
+  distinct() %>% arrange(-count) %>% group_by(rural) %>% mutate(total = sum(count))
+
+joined_usda <- zips_usda %>% left_join(rural_zips_usda, by = c("zip" = "ZIP_CODE")) 
+
+joined_usda %>% group_by(RUCA2) %>% mutate(num_vet = sum(count)) %>% distinct(RUCA2, num_vet, rural) %>% arrange(-num_vet)
+
+joined_usda %>% filter(rural == "rural") %>% group_by(STATE) %>% mutate(num_vet = sum(count)) %>% distinct(STATE, num_vet) %>% arrange(-num_vet)
+
+joined_usda %>% filter(STATE == "TX") %>% group_by(rural) %>% mutate(num_vet = sum(count)) %>% distinct(STATE, num_vet)
+```
+
+```{r rural-frha-definition}
+rural_zips_frha <- readxl::read_xlsx("~/git/DSPG2020/career/src/burningglass/forhp-eligible-zips.xlsx")
+ruralzips_frha <- rural_zips_frha$ZIP
+
+zips_frha <- pers %>% filter(id %in% ids) %>%
+  mutate(zip = str_extract(zipcode, "^[0-9][0-9][0-9][0-9][0-9]")) %>%
+  mutate(rural = ifelse(zip %in% ruralzips_frha, "rural", "urban")) %>% 
+  group_by(zip) %>% mutate(count = n()) %>% select(zip, count, rural) %>%
+  distinct() %>% arrange(-count) %>% group_by(rural) %>% mutate(total = sum(count))
+  
+joined <- zips_frha %>% filter(rural == "rural") %>% left_join(rural_zips_frha, by = c("zip" = "ZIP"))
+joined %>% group_by(rural) %>% mutate(num_vet = sum(count)) %>% distinct(rural, num_vet, rural) %>% arrange(-num_vet)
+joined %>% group_by(STATE) %>% mutate(num_vet = sum(count)) %>% distinct(STATE, num_vet) %>% arrange(-num_vet)
+
+different <- setdiff(ruralzips_frha, ruralzips_usda)
+different <- as.data.frame(different) %>% rename(ZIP_CODE = different)
+different <- different %>% left_join(rural_zips_usda, by = ("ZIP_CODE")) %>% group_by(RUCA2) %>% summarise(count = n())
+different$RUCA2 <- as.factor(different$RUCA2)
+different %>%
+  ggplot(aes(x = RUCA2, y = count)) +
+  geom_col()
+```
+
+```{r rural-by-population-density}
+uszips <- fread("~/git/DSPG2020/career/src/burningglass/uszips.csv")
+
+ruralzips_pop <- uszips %>% filter(density < 500) %>% pull(zip)
+
+zips_pop <- pers %>% filter(id %in% ids) %>%
+  mutate(zip = str_extract(zipcode, "^[0-9][0-9][0-9][0-9][0-9]")) %>%
+  mutate(rural = ifelse(zip %in% ruralzips_pop, "rural", "urban")) %>% 
+  group_by(zip) %>% mutate(count = n()) %>% select(zip, count, rural) %>%
+  distinct() %>% arrange(-count) %>% group_by(rural) %>% mutate(total = sum(count))
+uszips$zip <- as.character(uszips$zip)
+
+joined_pop <- zips_pop %>% left_join(uszips, by = c("zip")) 
+
+joined_pop %>% filter(rural == "rural") %>% group_by(state_id) %>% mutate(num_vet = sum(count)) %>% distinct(state_id, num_vet) %>% arrange(-num_vet)
+
+joined_pop %>% filter(state_id == "TX") %>% group_by(rural) %>% mutate(num_vet = sum(count)) %>% distinct(state_id, num_vet)
+
+```
+
+```{r mapping}
+library(tigris)
+fw_zips <- zctas(cb = TRUE) 
+cb <- core_based_statistical_areas(cb = TRUE)
+
+data_pop <- left_join(fw_zips, joined_pop, by = c("GEOID10" = "zip"))
+data_usda <- left_join(fw_zips, joined_usda, by = c("GEOID10" = "zip"))
+
+txmsa <- filter(cb, grepl("TX", NAME))
+vamsa <- filter(cb, grepl("VA", NAME))
+
+data_pop %>% filter(state_id == "TX") %>%
+ggplot(aes(fill = count, color = rural)) +
+  geom_sf(lwd = 0.2) +
+  scale_fill_viridis() +
+  scale_color_manual(values = c("orange", "white")) +
+  theme(panel.background = element_rect(fill = "darkgray",
+                                colour = "darkgray"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill="darkgray", 
+                                  size=0.5, linetype="solid")) +
+  labs(title = "Texas rural using pop dens") #+
+  geom_sf(data = txmsa)
+
+data_usda %>% filter(STATE == "TX") %>%
+ggplot(aes(fill = count, color = rural)) +
+  geom_sf(lwd = 0.2) +
+  scale_fill_viridis() +
+  scale_color_manual(values = c("orange", "white")) +
+  theme(panel.background = element_rect(fill = "darkgray",
+                                colour = "darkgray"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill="darkgray", 
+                                  size=0.5, linetype="solid")) +
+  labs(title = "Texas rural using RUCA")
+
+data_pop %>% filter(state_id == "VA") %>%
+ggplot(aes(fill = count, color = rural)) +
+  geom_sf(lwd = 0.2) +
+  scale_fill_viridis() +
+  scale_color_manual(values = c("orange", "white")) +
+  theme(panel.background = element_rect(fill = "darkgray",
+                                colour = "darkgray"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill="darkgray", 
+                                  size=0.5, linetype="solid")) +
+  labs(title = "Virginia rural using pop dens") +
+  geom_sf(data = vamsa, inherit.aes = FALSE, lwd = 0.5, color = "white", 
+          linetype = "dashed", fill = NA)
+
+data_usda %>% filter(STATE == "VA") %>%
+  ggplot(aes(fill = count, color = rural)) +
+  geom_sf(lwd = 0.2) +
+  scale_fill_viridis() +
+  scale_color_manual(values = c("orange", "white")) +
+  theme(panel.background = element_rect(fill = "darkgray",
+                                colour = "darkgray"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill="darkgray", 
+                                  size=0.5, linetype="solid")) +
+  labs(title = "Virginia rural using RUCA") +
+  geom_sf(data = vamsa, inherit.aes = FALSE, lwd = 0.5, color = "white", 
+          linetype = "dashed", fill = NA)
+
+data_pop %>% filter(state_id == "OK") %>%
+ggplot(aes(fill = count, color = rural)) +
+  geom_sf(lwd = 0.2) +
+  scale_fill_viridis() +
+  scale_color_manual(values = c("orange", "white")) +
+  theme(panel.background = element_rect(fill = "darkgray",
+                                colour = "darkgray"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill="darkgray", 
+                                  size=0.5, linetype="solid")) +
+  labs(title = "Oklahoma rural using pop dens")
+
+data_usda %>% filter(STATE == "OK") %>%
+ggplot(aes(fill = count, color = rural)) +
+  geom_sf(lwd = 0.2) +
+  scale_fill_viridis() +
+  scale_color_manual(values = c("orange", "white")) +
+  theme(panel.background = element_rect(fill = "darkgray",
+                                colour = "darkgray"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill="darkgray", 
+                                  size=0.5, linetype="solid")) +
+  labs(title = "Oklahoma rural using RUCA")
+
+
+```
+
+```{r rural-using-purdue}
+# method: split zip code data by county, merge county-level rurality scores, take the average score for a zip code
+
+zips_by_county <- uszips %>% separate_rows(county_weights, sep = "[,]") %>% mutate(FIPS2010 = str_extract(county_weights, "[0-9][0-9][0-9][0-9][0-9]")) %>% mutate(fips_weight = str_extract(county_weights, "(?<=:).*[^}]"))
+zips_by_county$FIPS2010 <- as.numeric(zips_by_county$FIPS2010)
+zips_by_county$fips_weight <- as.numeric(zips_by_county$fips_weight)
+
+zips_by_county$county_fips_all <- as.numeric(zips_by_county$county_fips_all)
+
+irr <- readxl::read_xlsx("~/git/DSPG2020/career/src/burningglass/IRR_2000_2010.xlsx", 
+                         sheet = 2)
+
+rural_zips_irr <- left_join(zips_by_county, irr, by = c("FIPS2010")) %>% group_by(zip) %>% mutate(irr = weighted.mean(IRR2010, fips_weight, na.rm = TRUE)) %>% distinct(zip, irr)
+rural_zips_irr$zip <- as.character(rural_zips_irr$zip)
+
+
+veterans <- pers %>% filter(id %in% ids) %>%
+  mutate(zip = str_extract(zipcode, "^[0-9][0-9][0-9][0-9][0-9]")) %>%
+  left_join(rural_zips_irr, by = c("zipcode" = "zip")) %>%
+  group_by(zipcode) %>% mutate(count = n()) %>% distinct(zipcode, count, irr)
+
+data_irr <- left_join(fw_zips, veterans, by = c("GEOID10" = "zipcode"))
+uszips$zip <- as.character(uszips$zip)
+data_irr <- left_join(data_irr, uszips, by = c("GEOID10" = "zip"))
+
+data_irr %>% filter(state_id == "VA") %>%
+ggplot(aes(fill = count, color = irr)) +
+  geom_sf(lwd = 0.2) +
+  scale_fill_viridis() +
+  scale_color_gradient(low = "white", high = "orange") +
+  theme(panel.background = element_rect(fill = "darkgray",
+                                colour = "darkgray"),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill="darkgray", 
+                                  size=0.5, linetype="solid")) +
+  labs(title = "Virginia rural using irr")
+```
+
+```{r rural-using-not-msa}
+# method: split zip code data by county, merge county-level rurality scores, take the average score for a zip code
+
+dmvzips <- uszips %>% filter(state_id == "VA" | state_id == "DC" | state_id == "MD") %>% pull(zip)
+veterans <- pers %>% filter(id %in% ids, zipcode %in% dmvzips, is.na(msa))
+```
+
+
+```{r}
+zips_usda <- pers %>% filter(id %in% ids) %>% group_by(zipcode) %>%
+  mutate(ztca = str_extract(zipcode, "^[0-9][0-9][0-9]"), 
+         zip = str_extract(zipcode, "^[0-9][0-9][0-9][0-9][0-9]")) %>%
+  mutate(rural = ifelse(zip %in% ruralzips_usda, "rural", "not rural")) %>% 
+  group_by(zip) %>% mutate(count = n()) %>% select(zip, count, rural) %>%
+  distinct() %>% arrange(-count) %>% group_by(rural) %>% mutate(total = sum(count))
+
+joined <- zips_usda %>% filter(rural == "rural") %>% left_join(rural_zips, by = c("zip" = "ZIP_CODE"))
+joined %>% group_by(STATE) %>% mutate(num_vet = sum(count)) %>% distinct(STATE, num_vet) %>% arrange(-num_vet)
+
+
+fw_zips <- zctas()
+data <- left_join(fw_zips, zips_usda, by = c("GEOID10" = "zip"))
+
+library(leaflet)
+library(sf)
+
+
+
+zips_usda <- pers %>% filter(id %in% ids) %>%
+  mutate(zip = str_extract(zipcode, "^[0-9][0-9][0-9][0-9][0-9]")) %>%
+  mutate(rural = ifelse(zip %in% ruralzips_usda, "rural", "not rural")) %>% 
+  group_by(zip) %>% mutate(count = n()) %>% distinct(zip, count, rural) %>% arrange(-count) #%>% group_by(rural) %>% mutate(total = sum(count)) %>% distinct(rural, total)
+
+joined <- zips_usda %>% left_join(rural_zips_usda, by = c("zip" = "ZIP_CODE"))
+joined %>% group_by(rural) %>% mutate(num_vet = sum(count)) %>% distinct(rural, num_vet) %>% ungroup() %>% mutate(check = sum(num_vet))
+
+zips_usda <- pers %>%
+  mutate(zip = str_extract(zipcode, "^[0-9][0-9][0-9][0-9][0-9]")) %>%
+  mutate(rural = ifelse(zip %in% ruralzips_usda, "rural", "not rural")) %>% 
+  group_by(zip) %>% mutate(count = n()) %>% distinct(zip, count, rural) %>% arrange(-count) #%>% group_by(rural) %>% mutate(total = sum(count)) %>% distinct(rural, total)
+
+joined <- zips_usda %>% left_join(rural_zips_usda, by = c("zip" = "ZIP_CODE"))
+testing <- joined %>% group_by(STATE, rural) %>% mutate(num_vet = sum(count)) %>% distinct(STATE, rural, num_vet) %>% arrange(STATE, num_vet)
+  
 ```
 
