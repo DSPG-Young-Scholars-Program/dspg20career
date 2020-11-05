@@ -33,24 +33,22 @@ data_profiling <- function(df){
                           num_unique = map_int(.x = df, .f = function(col) length(x = unique(x = col))),
                           num_missing = map_int(.x = df, .f = function(col) sum(x = is.na(x = col)))) %>%
     mutate(perc_missing = round(x = 100 * num_missing / nrow, digits = 2L))
-  
   return(summary_table)
 }
-
 ```
 
 ```{r clean-data}
 source("~/git/DSPG2020/career/src/burningglass/20_updated_clean_bgt.R")
 source("~/git/DSPG2020/career/src/burningglass/master_functions.R")
 
-bg_cleaned <- get_bgt_data_for_state(states = c("DC", "MD", "VA"))
+#bg_cleaned <- get_bgt_data_for_state(states = c("DC", "MD", "VA"))
 
-bg_covariates <- as.data.table(bg_cleaned$bg_covariates)
-bg_job <- as.data.table(bg_cleaned$bg_job)
-all_majors <- as.data.table(bg_cleaned$all_majors)
-all_skills <- as.data.table(bg_cleaned$all_skills)
-highest_degree_majors <- as.data.table(bg_cleaned$highest_degree_majors)
-top_skills <- as.data.table(bg_cleaned$top_skills)
+#bg_covariates <- as.data.table(bg_cleaned$bg_covariates)
+#bg_job <- as.data.table(bg_cleaned$bg_job)
+#all_majors <- as.data.table(bg_cleaned$all_majors)
+#all_skills <- as.data.table(bg_cleaned$all_skills)
+#highest_degree_majors <- as.data.table(bg_cleaned$highest_degree_majors)
+#top_skills <- as.data.table(bg_cleaned$top_skills)
 
 #write.csv(bg_covariates, file= "~/git/DSPG2020/career/data/testing.csv", row.names = F)
 #write.csv(bg_job, file= "~/git/DSPG2020/career/data/bg_job_vadcmd.csv", row.names = F)
@@ -59,22 +57,77 @@ top_skills <- as.data.table(bg_cleaned$top_skills)
 #write.csv(highest_degree_majors, file= "~/git/DSPG2020/career/data/highest_degree_majors_vadcmd.csv", row.names = F)
 #write.csv(top_skills, file= "~/git/DSPG2020/career/data/top_skills_vadcmd.csv", row.names = F)
 
-#bg_covariates <- fread("~/git/DSPG2020/career/data/bg_covariates_vadcmd.csv")
-#bg_job <- fread("~/git/DSPG2020/career/data/bg_job_vadcmd.csv")
+bg_covariates <- fread("~/git/DSPG2020/career/data/bg_covariates_vadcmd.csv")
+bg_job <- fread("~/git/DSPG2020/career/data/bg_job_vadcmd.csv")
 archive_covariates <- fread("~/git/DSPG2020/career/data/02_bg_vet_demographic.csv")
 archive_job <- fread("~/git/DSPG2020/career/data/03_bg_all_job.csv") %>% select(id, onet_job_zone, start_year, end_year)
 ```
 
-Just looking at veterans for speed.
+```{r fixing-duplicates}
+bg_covariates <- bg_covariates %>%
+  mutate(irr_bin = ntile(irr, 5),
+         years_in_military_bin = case_when(
+        years_in_military >= 1 & years_in_military <= 2 | years_in_military < 0
+~ "1 - 2",
+years_in_military >= 3 & years_in_military <= 4 ~ "3 - 4",
+years_in_military >= 5 & years_in_military <= 10 ~ "5 - 10",
+years_in_military >= 11 & years_in_military <= 20 ~ "11 - 20",
+years_in_military >= 21 & years_in_military <= 30 ~ "21 - 30",
+years_in_military >= 31 ~ "31+"),
+year_military_enlist_bin = case_when(
+year_military_enlist >= 2001 ~ "2001 or later",
+year_military_enlist >= 1990 & year_military_enlist < 2001 ~ "1990 to 2000 (including Persian Gulf War)",
+year_military_enlist >= 1975 & year_military_enlist < 1990 ~ "1975 to 1989",
+year_military_enlist >= 1964 & year_military_enlist < 1975 ~ "Vietnam era (1964 to 1974)",
+year_military_enlist >= 1955 & year_military_enlist < 1964 ~ "1955 to 1963",
+year_military_enlist >= 1950 & year_military_enlist < 1955 ~ "Korean war (1950 to 1954)",
+year_military_enlist >= 1947 & year_military_enlist < 1950 ~ "1947 to 1949",
+year_military_enlist >= 1941 & year_military_enlist < 1947 ~ " World War II (1941 to 1946)",
+year_military_enlist < 1941 ~ "1940 or earlier"),
+year_entered_workforce_bin = case_when(
+aligned_start >= 2017 ~ "Post-Millennial",
+aligned_start >= 2001 & aligned_start < 2017 ~ "Millennial",
+aligned_start >= 1985 & aligned_start < 2001 ~ "Generation X",
+aligned_start >= 1966 & aligned_start < 1985 ~ "Baby Boom",
+aligned_start < 1966 ~ "Silent and Greatest"
+),
+career_before_military_bin = case_when(
+career_before_military == 0 ~ "0",
+career_before_military >= 1 & career_before_military < 5 ~ "1 - 4",
+career_before_military >= 5 & career_before_military < 10 ~ "5 - 10",
+career_before_military >= 11 & career_before_military < 20 ~ "11 - 20",
+career_before_military >= 21 & career_before_military < 30 ~ "21 - 30",
+career_before_military >= 31 ~ "31+")
+)
+duplicates <- bg_covariates$id[duplicated(bg_covariates$id)]
+# Dealing with duplicates
+bg_covariates_nodup <- bg_covariates %>% filter(!(id %in% duplicates))
+fixed_55 <- bg_covariates %>% filter(id %in% bg_covariates$id[duplicated(bg_covariates$id)]) %>%
+mutate(all_other = ifelse(
+(end_onet55 == "55-3019.00" | end_onet55 == "55-1019.00"), "all_other", end_onet55))%>% mutate(end_onet55_score = case_when(
+all_other != "all_other" ~ 1,
+all_other == "all_other" & end_onet55 == "55-1019.00" ~ 2,
+all_other == "all_other" & end_onet55 == "55-3019.00" ~ 3)) %>% group_by(id) %>%
+mutate(end_onet55_true = ifelse(end_onet55_score == max(end_onet55_score), end_onet55, NA)) %>% drop_na(end_onet55_true) %>% mutate(duplicated = ifelse(duplicated(id) == TRUE, TRUE, FALSE)) %>% filter(duplicated == FALSE) %>% distinct() %>% select(-all_other, -end_onet55_score, -end_onet55_true, -duplicated) %>% filter(id %in% c(218335843, 219487198))
+fixed_gender <- bg_covariates %>% filter(id %in% bg_covariates$id[duplicated(bg_covariates$id)]) %>%
+mutate(all_other = ifelse(
+(end_onet55 == "55-3019.00" | end_onet55 == "55-1019.00"), "all_other", end_onet55))%>% mutate(end_onet55_score = case_when(
+all_other != "all_other" ~ 1,
+all_other == "all_other" & end_onet55 == "55-1019.00" ~ 2,
+all_other == "all_other" & end_onet55 == "55-3019.00" ~ 3)) %>% group_by(id) %>%
+mutate(end_onet55_true = ifelse(end_onet55_score == max(end_onet55_score), end_onet55, NA)) %>% drop_na(end_onet55_true) %>% mutate(duplicated = ifelse(duplicated(id) == TRUE, TRUE, FALSE)) %>% filter(duplicated == TRUE) %>% select(-all_other, -end_onet55_score, -end_onet55_true, -duplicated)
+bg_covariates <- rbind(bg_covariates_nodup, fixed_55, fixed_gender) %>% distinct()
+```
+
 
 ```{r profiling-covariates}
 # Four duplicated because of gender
-bg_covariates$id[duplicated(bg_covariates$id)]
+#bg_covariates$id[duplicated(bg_covariates$id)]
 
 # Fifteen not veteran because of imputed 1900 dates of military service
 #bg_covariates %>% filter(veteran == "not veteran")
 
-bg_covariates <- bg_covariates %>% filter(veteran != "not veteran") %>% filter(id != bg_covariates$id[duplicated(bg_covariates$id)])
+#bg_covariates <- bg_covariates %>% filter(veteran != "not veteran") %>% filter(id != bg_covariates$id[duplicated(bg_covariates$id)])
 
 ## Data profiling
 data_profiling(bg_covariates)
@@ -187,14 +240,16 @@ bg_job %>% filter(onet_job_zone != 55) %>% left_join(bg_covariates, by = "id") %
 library(tigris)
 fw_zips <- zctas(cb = TRUE) 
 
-dmv_irr_quintiles <- bg_covariates %>% select(zipcode, irr) %>% distinct() %>% mutate(quintile = ntile(irr, 5)) 
+dmv_irr_quintiles <- bg_covariates %>% select(zipcode, irr_bin) %>% distinct()
+bg_covariates$zipcode <- as.integer(bg_covariates$zipcode)
+fw_zips$GEOID10 <- as.integer(fw_zips$GEOID10)
 
-data <- inner_join(fw_zips, rural_zips, by = c("GEOID10" = "zipcode"))
+data <- inner_join(fw_zips, dmv_irr_quintiles, by = c("GEOID10" = "zipcode"))
 
-data %>% 
-ggplot(aes(fill = "orange")) +
+data %>%
+ggplot(aes(fill = factor(irr_bin))) +
   geom_sf(lwd = 0.2) +
-  #scale_fill_viridis() +
+  scale_fill_viridis(discrete = TRUE) +
   #scale_color_manual(values = c("orange", "white", "white", "white", "blue")) +
   theme(panel.background = element_rect(fill = "darkgray",
                                 colour = "darkgray"),
@@ -202,14 +257,6 @@ ggplot(aes(fill = "orange")) +
         legend.background = element_rect(fill="darkgray", 
                                   size=0.5, linetype="solid")) +
   labs(title = "IRR Quintiles for DMV")
-
-rural_zips <- bg_covariates %>% mutate(total = n()) %>% mutate(quintile = ntile(irr, 5)) %>% filter(quintile == 5) %>% select(zipcode) %>% distinct()
-
-
-
-
-
-
 ```
 
 ```{r sequence}
@@ -233,5 +280,74 @@ ggplot() +
   theme_classic() +
   theme(legend.position = "bottom") +
   guides(fill = guide_legend(ncol = 3))
+```
+
+```{r}
+bg_job <- bg_job %>% filter(id %in% bg_covariates$id)
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(veteran) %>% mutate(total = n()) %>% group_by(highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_zone, veteran, percent) %>% arrange(highest_zone) %>%
+  ggplot(aes(x = factor(veteran), fill = factor(highest_zone), y = percent)) +
+  geom_col(position = "dodge") +
+  scale_fill_viridis(discrete = TRUE) 
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(highest_degree, veteran) %>% mutate(total = n()) %>% group_by(highest_degree, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_degree, highest_zone, veteran, percent) %>% arrange(highest_degree, -highest_zone) %>% filter(!(is.na(highest_degree))) %>%
+  ggplot(aes(x = factor(highest_degree, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd")), fill = factor(highest_zone), y = percent)) +
+  geom_col() +
+  scale_fill_viridis(discrete = TRUE) +
+  facet_wrap(~veteran)
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(forprofit, veteran) %>% mutate(total = n()) %>% group_by(forprofit, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(forprofit, highest_zone, veteran, percent) %>% arrange(forprofit, -highest_zone) %>% filter(!(is.na(forprofit))) %>%
+  ggplot(aes(x = factor(forprofit), fill = factor(highest_zone), y = percent)) +
+  geom_col() +
+  scale_fill_viridis(discrete = TRUE) +
+  facet_wrap(~veteran)
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(irr_bin, veteran) %>% mutate(total = n()) %>% group_by(irr_bin, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(irr_bin, highest_zone, veteran, percent) %>% arrange(irr_bin, -highest_zone) %>% filter(!(is.na(irr_bin))) %>%
+  ggplot(aes(x = factor(irr_bin), fill = factor(highest_zone), y = percent)) +
+  geom_col() +
+  scale_fill_viridis(discrete = TRUE) +
+  facet_wrap(~veteran)
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(hbcu, veteran) %>% mutate(total = n()) %>% group_by(hbcu, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(hbcu, highest_zone, veteran, percent) %>% arrange(hbcu, -highest_zone) %>% filter(!(is.na(hbcu))) %>%
+  ggplot(aes(x = factor(hbcu), fill = factor(highest_zone), y = percent)) +
+  geom_col() +
+  scale_fill_viridis(discrete = TRUE) +
+  facet_wrap(~veteran)
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(tribal, veteran) %>% mutate(total = n()) %>% group_by(tribal, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(tribal, highest_zone, veteran, percent) %>% arrange(tribal, -highest_zone) %>% filter(!(is.na(tribal))) %>%
+  ggplot(aes(x = factor(tribal), fill = factor(highest_zone), y = percent)) +
+  geom_col() +
+  scale_fill_viridis(discrete = TRUE) +
+  facet_wrap(~veteran)
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(year_entered_workforce_bin, veteran) %>% mutate(total = n()) %>% group_by(year_entered_workforce_bin, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(year_entered_workforce_bin, highest_zone, veteran, percent) %>% arrange(year_entered_workforce_bin, -highest_zone) %>% filter(!(is.na(year_entered_workforce_bin))) %>%
+  ggplot(aes(x = factor(year_entered_workforce_bin), fill = factor(highest_zone), y = percent)) +
+  geom_col() +
+  scale_fill_viridis(discrete = TRUE) +
+  facet_wrap(~veteran)
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(years_in_military_bin) %>% mutate(total = n()) %>% group_by(years_in_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(years_in_military_bin, highest_zone, percent) %>% arrange(years_in_military_bin, -highest_zone) %>% filter(!(is.na(years_in_military_bin))) %>%
+  ggplot(aes(x = factor(years_in_military_bin, levels = c("1 - 2", "3 - 4", "5 - 10", "11 - 20", "21 - 30", "31+")), fill = factor(highest_zone), y = percent)) +
+  geom_col() +
+  scale_fill_viridis(discrete = TRUE)
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(year_military_enlist_bin) %>% mutate(total = n()) %>% group_by(year_military_enlist_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(year_military_enlist_bin, highest_zone, percent) %>% arrange(year_military_enlist_bin, -highest_zone) %>% filter(!(is.na(year_military_enlist_bin))) %>%
+  ggplot(aes(x = factor(year_military_enlist_bin), fill = factor(highest_zone), y = percent)) +
+  geom_col() +
+  scale_fill_viridis(discrete = TRUE)
+
+bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(career_before_military_bin) %>% mutate(total = n()) %>% group_by(career_before_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(career_before_military_bin, highest_zone, percent) %>% arrange(career_before_military_bin, -highest_zone) %>% filter(!(is.na(career_before_military_bin))) %>%
+  ggplot(aes(x = factor(career_before_military_bin), fill = factor(highest_zone), y = percent)) +
+  geom_col() +
+  scale_fill_viridis(discrete = TRUE)
+```
+
+```{r sequences}
+## Sequences by covariates ----------------------------
+#duplicated <- bg_covariates$id[duplicated(bg_covariates$id)]
+#groups1 <- bg_covariates %>% filter(id %in% rownames(vet.seq)) %>% select(id, gender) %>% distinct() %>% filter(id %in% duplicated) %>% drop_na(gender)
+#groups <- bg_covariates %>% filter(id %in% rownames(vet.seq)) %>% select(id, gender) %>% distinct() %>% filter(!(id %in% duplicated))
+#groups <- rbind(groups1, groups) %>% distinct()
+#seqdplot(vet.seq, cpal = c(uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], uva_color_palette[5], "#CBBEB5", "dark gray"), with.legend = FALSE, group = groups$gender)
 ```
 
