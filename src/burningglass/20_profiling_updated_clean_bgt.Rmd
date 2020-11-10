@@ -217,8 +217,6 @@ bg_covariates %>% group_by(highest_degree) %>% mutate(total = n()) %>% group_by(
 ```{r profiling-job}
 data_profiling(bg_job)
 
-
-
 bg_job %>% filter(onet_job_zone != 55) %>%
   ggplot(aes(x = onet_job_zone)) +
   ggtitle("Count of job zones") +
@@ -263,7 +261,7 @@ ggplot(aes(fill = factor(irr_bin))) +
   labs(title = "IRR Quintiles for DMV")
 ```
 
-```{r sequence}
+```{r sequence-graph}
 vet.seq <- create_seq_vet_fixed("vet.seq", 10, left_unemp = TRUE)
 
 statd <- seqstatd(vet.seq)
@@ -284,71 +282,111 @@ ggplot() +
   theme_classic() +
   theme(legend.position = "bottom") +
   guides(fill = guide_legend(ncol = 3))
+
+transition_matrix <- seqtrate(vet.seq, weighted=FALSE, count=TRUE)
+round(transition_matrix,2)
+diag(transition_matrix) = 0
+round(transition_matrix,2)
+rowsum <- apply(transition_matrix, 1, sum)
+for(i in 1:nrow(transition_matrix)) {
+  for (j in 1:ncol(transition_matrix)){
+    transition_matrix[i,j] = transition_matrix[i,j]/rowsum[i]
+  }
+}
+for(j in 1:ncol(transition_matrix)){
+      transition_matrix[7,j] = transition_matrix[7,j] = 0
+}
+transition_matrix <- round(transition_matrix,2)
+cost_matrix <- 2-transition_matrix
+round(cost_matrix,2)
+diag(cost_matrix) = 0
+cost_matrix <- round(cost_matrix,2)
+
+sequencing.opt3 <- seqdist(vet.seq, method = "OMstran", indel = 1, sm = cost_matrix, with.missing = TRUE, otto = 0.01)
+
+for (number in numbers) {
+  clusterpam <- wcKMedoids(sequencing.opt3, k = number)
+  assign(paste0("sequencing.pam.opt3.", number), clusterpam, envir = .GlobalEnv)
+  pamstats[[number]] <- clusterpam$stats
+}
+pamstats.opt3 <- dplyr::bind_rows(pamstats)
+
 ```
 
-```{r}
+```{r highest-job-zone}
 bg_job <- bg_job %>% filter(id %in% bg_covariates$id)
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(veteran) %>% mutate(total = n()) %>% group_by(highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_zone, veteran, percent) %>% arrange(highest_zone) %>%
   ggplot(aes(x = factor(veteran), fill = factor(highest_zone), y = percent)) +
   geom_col(position = "dodge") +
-  scale_fill_viridis(discrete = TRUE) 
+  scale_fill_viridis(discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(highest_degree, veteran) %>% mutate(total = n()) %>% group_by(highest_degree, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_degree, highest_zone, veteran, percent) %>% arrange(highest_degree, -highest_zone) %>% filter(!(is.na(highest_degree))) %>%
   ggplot(aes(x = factor(highest_degree, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd")), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
-  facet_wrap(~veteran)
+  facet_wrap(~veteran) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(forprofit, veteran) %>% mutate(total = n()) %>% group_by(forprofit, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(forprofit, highest_zone, veteran, percent) %>% arrange(forprofit, -highest_zone) %>% filter(!(is.na(forprofit))) %>%
   ggplot(aes(x = factor(forprofit), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
-  facet_wrap(~veteran)
+  facet_wrap(~veteran) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(irr_bin, veteran) %>% mutate(total = n()) %>% group_by(irr_bin, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(irr_bin, highest_zone, veteran, percent) %>% arrange(irr_bin, -highest_zone) %>% filter(!(is.na(irr_bin))) %>%
   ggplot(aes(x = factor(irr_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
-  facet_wrap(~veteran)
+  facet_wrap(~veteran) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(hbcu, veteran) %>% mutate(total = n()) %>% group_by(hbcu, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(hbcu, highest_zone, veteran, percent) %>% arrange(hbcu, -highest_zone) %>% filter(!(is.na(hbcu))) %>%
   ggplot(aes(x = factor(hbcu), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
-  facet_wrap(~veteran)
+  facet_wrap(~veteran) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(tribal, veteran) %>% mutate(total = n()) %>% group_by(tribal, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(tribal, highest_zone, veteran, percent) %>% arrange(tribal, -highest_zone) %>% filter(!(is.na(tribal))) %>%
   ggplot(aes(x = factor(tribal), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
-  facet_wrap(~veteran)
+  facet_wrap(~veteran) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(year_entered_workforce_bin, veteran) %>% mutate(total = n()) %>% group_by(year_entered_workforce_bin, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(year_entered_workforce_bin, highest_zone, veteran, percent) %>% arrange(year_entered_workforce_bin, -highest_zone) %>% filter(!(is.na(year_entered_workforce_bin))) %>%
   ggplot(aes(x = factor(year_entered_workforce_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
-  facet_wrap(~veteran)
+  facet_wrap(~veteran) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(years_in_military_bin) %>% mutate(total = n()) %>% group_by(years_in_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(years_in_military_bin, highest_zone, percent) %>% arrange(years_in_military_bin, -highest_zone) %>% filter(!(is.na(years_in_military_bin))) %>%
   ggplot(aes(x = factor(years_in_military_bin, levels = c("1 - 2", "3 - 4", "5 - 10", "11 - 20", "21 - 30", "31+")), fill = factor(highest_zone), y = percent)) +
   geom_col() +
-  scale_fill_viridis(discrete = TRUE)
+  scale_fill_viridis(discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(year_military_enlist_bin) %>% mutate(total = n()) %>% group_by(year_military_enlist_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(year_military_enlist_bin, highest_zone, percent) %>% arrange(year_military_enlist_bin, -highest_zone) %>% filter(!(is.na(year_military_enlist_bin))) %>%
   ggplot(aes(x = factor(year_military_enlist_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
-  scale_fill_viridis(discrete = TRUE)
+  scale_fill_viridis(discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(career_before_military_bin) %>% mutate(total = n()) %>% group_by(career_before_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(career_before_military_bin, highest_zone, percent) %>% arrange(career_before_military_bin, -highest_zone) %>% filter(!(is.na(career_before_military_bin))) %>%
   ggplot(aes(x = factor(career_before_military_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
-  scale_fill_viridis(discrete = TRUE)
+  scale_fill_viridis(discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(career_before_military_bin) %>% mutate(total = n()) %>% group_by(career_before_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(career_before_military_bin, highest_zone, percent) %>% arrange(career_before_military_bin, -highest_zone) %>% filter(!(is.na(career_before_military_bin))) %>%
   ggplot(aes(x = factor(career_before_military_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
-  scale_fill_viridis(discrete = TRUE)
+  scale_fill_viridis(discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 # Looking at all skills
 highest_jobs <- bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% left_join(all_skills, by = "id") %>% filter(veteran == "veteran") %>% rename("information" = "Information Technology", "supply" = "Supply Chain and Logistics", "sales" = "Sales", "business" = "Business", "manufacturing" = "Manufacturing and Production", "environment" = "Environment", "design" = "Design", "administration" = "Administration", "customer" = "Customer and Client Support", "analysis" = "Analysis", "finance" = "Finance", "personal" = "Personal Care and Services", "legal" = "Legal", "education" = "Education and Training", "health" = "Health Care", "science" = "Science and Research", "human" = "Human Resources", "marketing" = "Marketing and Public Relations", "energy" = "Energy and Utilities", "economics" = "Economics, Policy, and Social Studies", "media" = "Media and Writing", "engineering" = "Engineering", "maintenance" = "Maintenance, Repair, and Installation", "agriculture" = "Agriculture, Horticulture, and the Outdoors", "architecture" = "Architecture and Construction", "industry" = "Industry Knowledge", "security" = "Public Safety and National Security", "religion" = "Religion")
@@ -555,7 +593,7 @@ top_majors_highest_jobs %>% filter(if_skill == 1) %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), legend.position = "none")
 ```
 
-```{r sequences}
+```{r making-transition-dataset}
 ## Sequences by covariates ----------------------------
 #duplicated <- bg_covariates$id[duplicated(bg_covariates$id)]
 #groups1 <- bg_covariates %>% filter(id %in% rownames(vet.seq)) %>% select(id, gender) %>% distinct() %>% filter(id %in% duplicated) %>% drop_na(gender)
@@ -619,5 +657,223 @@ vet.tse <- seqformat(vet.seq, from = "STS", to = "TSE", tevent = transition)
 vet.seq.tse <- seqecreate(id = vet.tse$id, timestamp = vet.tse$time, event = vet.tse$event)
 class(vet.seq.tse)
 testing <- TSE_to_STS(vet.tse, id = 1, timestamp = 2, event = 3, stm = stm, tmin=1, tmax=10, firstState="None")
+```
+
+```{r clustering, fig.height=10, fig.width=15}
+vet.seq <- create_seq_vet_fixed("vet.seq", 10, left_unemp = TRUE)
+
+transition_matrix <- seqtrate(vet.seq, weighted=FALSE, count=TRUE)
+round(transition_matrix,2)
+diag(transition_matrix) = 0
+round(transition_matrix,2)
+rowsum <- apply(transition_matrix, 1, sum)
+for(i in 1:nrow(transition_matrix)) {
+  for (j in 1:ncol(transition_matrix)){
+    transition_matrix[i,j] = transition_matrix[i,j]/rowsum[i]
+  }
+}
+for(j in 1:ncol(transition_matrix)){
+      transition_matrix[7,j] = transition_matrix[7,j] = 0
+}
+transition_matrix <- round(transition_matrix,2)
+cost_matrix <- 2-transition_matrix
+round(cost_matrix,2)
+diag(cost_matrix) = 0
+cost_matrix <- round(cost_matrix,2)
+
+# OPTION 1 : OUR OM SPELL, LOW EXPANSION COST AND LOW WEIGHT
+sequencing.opt1 <- seqdist(vet.seq, method = "OMspell", indel = "auto", sm = cost_matrix, with.missing = TRUE, otto = 0, expcost = 0)
+
+# OPTION 2 : OUR OM
+sequencing.opt2 <- seqdist(vet.seq, method = "OMstran", indel = "auto", sm = cost_matrix, with.missing = TRUE, otto = 0.5)
+
+# OPTION 3 : OUR OM, LOW WEIGHT ON ORIGIN
+sequencing.opt3 <- seqdist(vet.seq, method = "OMstran", indel = 1, sm = cost_matrix, with.missing = TRUE, otto = 0.01)
+
+# CLUSTERING
+numbers <- (2:20)
+pamstats <- NULL
+#rownames(pamstats) <- numbers
+pamstats <- NULL
+for (number in numbers) {
+  clusterpam <- wcKMedoids(sequencing.opt1, k = number)
+  assign(paste0("sequencing.pam.opt1.", number), clusterpam, envir = .GlobalEnv)
+  pamstats[[number]] <- clusterpam$stats
+}
+pamstats.opt1 <- dplyr::bind_rows(pamstats)
+pamstats <- NULL
+for (number in numbers) {
+  clusterpam <- wcKMedoids(sequencing.opt2, k = number)
+  assign(paste0("sequencing.pam.opt2.", number), clusterpam, envir = .GlobalEnv)
+  pamstats[[number]] <- clusterpam$stats
+}
+pamstats.opt2 <- dplyr::bind_rows(pamstats)
+for (number in numbers) {
+  clusterpam <- wcKMedoids(sequencing.opt3, k = number)
+  assign(paste0("sequencing.pam.opt3.", number), clusterpam, envir = .GlobalEnv)
+  pamstats[[number]] <- clusterpam$stats
+}
+pamstats.opt3 <- dplyr::bind_rows(pamstats)
+
+# QUALITY METRICS
+rownames(pamstats.opt1) <- numbers
+PAM.ASW.Opt1 <- as.matrix(pamstats.opt1$ASW)
+colnames(PAM.ASW.Opt1) <- c("ASW opt1")
+PAM.ASW.Opt2 <- as.matrix(pamstats.opt2$ASW)
+colnames(PAM.ASW.Opt2) <- c("ASW opt2")
+PAM.ASW.Opt3 <- as.matrix(pamstats.opt3$ASW)
+colnames(PAM.ASW.Opt3) <- c("ASW opt3")
+PAM.ASW <- bind_cols(PAM.ASW.Opt1, PAM.ASW.Opt2, PAM.ASW.Opt3)
+PAM.ASW <- PAM.ASW %>% rownames_to_column() %>% melt() %>% mutate(group = "pam")
+PAM.ASW$rowname <- as.numeric(PAM.ASW$rowname)
+
+rownames(pamstats.opt1) <- numbers
+PAM.HC.Opt1 <- as.matrix(pamstats.opt1$HC)
+colnames(PAM.HC.Opt1) <- c("HC opt1")
+PAM.HC.Opt2 <- as.matrix(pamstats.opt2$HC)
+colnames(PAM.HC.Opt2) <- c("HC opt2")
+PAM.HC.Opt3 <- as.matrix(pamstats.opt3$HC)
+colnames(PAM.HC.Opt3) <- c("HC opt3")
+PAM.HC <- bind_cols(PAM.HC.Opt1, PAM.HC.Opt2, PAM.HC.Opt3)
+PAM.HC <- PAM.HC %>% rownames_to_column() %>% melt() %>% mutate(group = "pam")
+PAM.HC$rowname <- as.numeric(PAM.HC$rowname)
+
+rownames(pamstats.opt1) <- numbers
+PAM.PBC.Opt1 <- as.matrix(pamstats.opt1$PBC)
+colnames(PAM.PBC.Opt1) <- c("PBC opt1")
+PAM.PBC.Opt2 <- as.matrix(pamstats.opt2$PBC)
+colnames(PAM.PBC.Opt2) <- c("PBC opt2")
+PAM.PBC.Opt3 <- as.matrix(pamstats.opt3$PBC)
+colnames(PAM.PBC.Opt3) <- c("PBC opt3")
+PAM.PBC <- bind_cols(PAM.PBC.Opt1, PAM.PBC.Opt2, PAM.PBC.Opt3)
+PAM.PBC <- PAM.PBC %>% rownames_to_column() %>% melt() %>% mutate(group = "pam")
+PAM.PBC$rowname <- as.numeric(PAM.PBC$rowname)
+
+rownames(pamstats.opt1) <- numbers
+PAM.R2.Opt1 <- as.matrix(pamstats.opt1$R2)
+colnames(PAM.R2.Opt1) <- c("R2 opt1")
+PAM.R2.Opt2 <- as.matrix(pamstats.opt2$R2)
+colnames(PAM.R2.Opt2) <- c("R2 opt2")
+PAM.R2.Opt3 <- as.matrix(pamstats.opt3$R2)
+colnames(PAM.R2.Opt3) <- c("R2 opt3")
+PAM.R2 <- bind_cols(PAM.R2.Opt1, PAM.R2.Opt2, PAM.R2.Opt3)
+PAM.R2 <- PAM.R2 %>% rownames_to_column() %>% melt() %>% mutate(group = "pam")
+PAM.R2$rowname <- as.numeric(PAM.R2$rowname)
+
+PAM.ASW %>% mutate(clusters = rowname + 1) %>%
+ggplot(aes(x = variable, y = clusters, fill = value)) +
+  #facet_grid(. ~ group, scales = "free") +
+  geom_tile() +
+  scale_fill_continuous(name = "ASW value", type = "viridis") +
+  labs(title = "Sequencing - ASW (optimal 1)", caption = "Average silhouette width (ASW) is the coherence of assignments, high coherence indicates high between-group distances and strong
+within-group homogeneity \n Dissimiarlity options:\n Option 1: Optimal matching of spell sequences, low expansion cost, low weight, using our custom cost matrix \n Option 2: Optimal matching of transition sequences using our custom cost matrix \n Option 3: Optimal matching of transition sequences, low weight, using our custom cost matrix") +
+  scale_x_discrete(name = "dissimilarity option", labels = c("1", "2", "3")) +
+  ylab("number of clusters") +
+  ylim(1,21) +
+  theme_bw()
+
+PAM.HC %>% mutate(clusters = rowname + 1) %>%
+ggplot(aes(x = variable, y = clusters, fill = value)) +
+  #facet_grid(. ~ group, scales = "free") +
+  geom_tile() +
+  scale_fill_continuous(name = "ASW value", type = "viridis") +
+  labs(title = "Sequencing - ASW (optimal 1)", caption = "Average silhouette width (ASW) is the coherence of assignments, high coherence indicates high between-group distances and strong
+within-group homogeneity \n Dissimiarlity options:\n Option 1: Optimal matching of spell sequences, low expansion cost, low weight, using our custom cost matrix \n Option 2: Optimal matching of transition sequences using our custom cost matrix \n Option 3: Optimal matching of transition sequences, low weight, using our custom cost matrix") +
+  scale_x_discrete(name = "dissimilarity option", labels = c("1", "2", "3")) +
+  ylab("number of clusters") +
+  ylim(1,21) +
+  theme_bw()
+
+PAM.PBC %>% mutate(clusters = rowname + 1) %>%
+ggplot(aes(x = variable, y = clusters, fill = value)) +
+  #facet_grid(. ~ group, scales = "free") +
+  geom_tile() +
+  scale_fill_continuous(name = "ASW value", type = "viridis") +
+  labs(title = "Sequencing - ASW (optimal 1)", caption = "Average silhouette width (ASW) is the coherence of assignments, high coherence indicates high between-group distances and strong
+within-group homogeneity \n Dissimiarlity options:\n Option 1: Optimal matching of spell sequences, low expansion cost, low weight, using our custom cost matrix \n Option 2: Optimal matching of transition sequences using our custom cost matrix \n Option 3: Optimal matching of transition sequences, low weight, using our custom cost matrix") +
+  scale_x_discrete(name = "dissimilarity option", labels = c("1", "2", "3")) +
+  ylab("number of clusters") +
+  ylim(1,21) +
+  theme_bw()
+
+PAM.R2 %>% mutate(clusters = rowname + 1) %>%
+ggplot(aes(x = variable, y = clusters, fill = value)) +
+  #facet_grid(. ~ group, scales = "free") +
+  geom_tile() +
+  scale_fill_continuous(name = "ASW value", type = "viridis") +
+  labs(title = "Sequencing - ASW (optimal 1)", caption = "Average silhouette width (ASW) is the coherence of assignments, high coherence indicates high between-group distances and strong
+within-group homogeneity \n Dissimiarlity options:\n Option 1: Optimal matching of spell sequences, low expansion cost, low weight, using our custom cost matrix \n Option 2: Optimal matching of transition sequences using our custom cost matrix \n Option 3: Optimal matching of transition sequences, low weight, using our custom cost matrix") +
+  scale_x_discrete(name = "dissimilarity option", labels = c("1", "2", "3")) +
+  ylab("number of clusters") +
+  ylim(1,21) +
+  theme_bw()
+
+clusterpam <- wcKMedoids(sequencing.opt2, k = 20)
+clusterpam$stats
+
+clusterpam_20 <- clusterpam$clustering
+clusterpam_20_fac <- factor(clusterpam_20)#, #labels = paste("Type", 1:20))
+
+seqdplot(vet.seq, group = clusterpam_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start",
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5", "dark gray"))
+seqlegend(vet.seq, cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5", "dark gray"))
+
+vet <- rownames(vet.seq)
+
+vet_df <- as.data.frame(cbind(vet, clusterpam_20))
+colnames(vet_df) <- c("id", "cluster")
+bg_covariates$id <- as.character(bg_covariates$id)
+
+vet_df <- left_join(vet_df, bg_covariates, by = "id")
+
+degree <- vet_df %>%
+  filter(!is.na(highest_degree)) %>%
+  group_by(highest_degree) %>%
+  mutate(total = n()) %>%
+  group_by(cluster, highest_degree) %>%
+  mutate(percent = n()/total) %>% distinct(highest_degree, cluster, percent) %>%
+  group_by(highest_degree) %>% mutate(sum = sum(percent))
+
+degree$cluster <- as.factor(degree$cluster)
+degree$highest_degree <- factor(degree$highest_degree, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd"))
+degree <- degree %>% filter(!is.na(highest_degree))
+
+degree <- as.data.frame(degree)
+
+ggplot(degree, aes(cluster, highest_degree, fill= percent)) + 
+  geom_tile()+
+  scale_fill_gradient(low="white", high="blue")+
+  theme_classic()+
+  labs(title = "Clustering X Degree --before normalization")
+
+year_entered_workforce_bin <- vet_df %>%
+  filter(!is.na(year_entered_workforce_bin)) %>%
+  group_by(year_entered_workforce_bin) %>%
+  mutate(total = n()) %>%
+  group_by(cluster, year_entered_workforce_bin) %>%
+  mutate(percent = n()/total) %>% distinct(cluster, year_entered_workforce_bin, percent) %>%
+  group_by(year_entered_workforce_bin) %>% mutate(sum = sum(percent))
+
+year_entered_workforce_bin$cluster <- as.factor(year_entered_workforce_bin$cluster)
+#irr_bin$highest_degree <- factor(irr_bin$highest_degree, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd"))
+#degree <- degree %>% filter(!is.na(highest_degree))
+
+year_entered_workforce_bin <- as.data.frame(year_entered_workforce_bin)
+
+seqdplot(vet.seq, group = clusterpam_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start",
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5", "dark gray"))
+
+ggplot(year_entered_workforce_bin, aes(cluster, year_entered_workforce_bin, fill= percent)) + 
+  geom_tile()+
+  scale_fill_gradient(low="white", high="blue")+
+  theme_classic()+
+  labs(title = "Clustering X Degree --before normalization")
+
 ```
 
