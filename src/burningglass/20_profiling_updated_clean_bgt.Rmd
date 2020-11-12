@@ -315,83 +315,84 @@ pamstats.opt3 <- dplyr::bind_rows(pamstats)
 
 ```{r highest-job-zone}
 bg_job <- bg_job %>% filter(id %in% bg_covariates$id)
+highest_jobs <- bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id")
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(veteran) %>% mutate(total = n()) %>% group_by(highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_zone, veteran, percent) %>% arrange(highest_zone) %>%
+highest_jobs %>% group_by(veteran) %>% mutate(total = n()) %>% group_by(highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_zone, veteran, percent) %>% arrange(highest_zone) %>%
   ggplot(aes(x = factor(veteran), fill = factor(highest_zone), y = percent)) +
   geom_col(position = "dodge") +
   scale_fill_viridis(discrete = TRUE) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(highest_degree, veteran) %>% mutate(total = n()) %>% group_by(highest_degree, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_degree, highest_zone, veteran, percent) %>% arrange(highest_degree, -highest_zone) %>% filter(!(is.na(highest_degree))) %>%
+highest_jobs %>% group_by(highest_degree, veteran) %>% mutate(total = n()) %>% group_by(highest_degree, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_degree, highest_zone, veteran, percent) %>% arrange(highest_degree, -highest_zone) %>% filter(!(is.na(highest_degree))) %>%
   ggplot(aes(x = factor(highest_degree, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd")), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   facet_wrap(~veteran) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(forprofit, veteran) %>% mutate(total = n()) %>% group_by(forprofit, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(forprofit, highest_zone, veteran, percent) %>% arrange(forprofit, -highest_zone) %>% filter(!(is.na(forprofit))) %>%
+highest_jobs %>% group_by(forprofit, veteran) %>% mutate(total = n()) %>% group_by(forprofit, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(forprofit, highest_zone, veteran, percent) %>% arrange(forprofit, -highest_zone) %>% filter(!(is.na(forprofit))) %>%
   ggplot(aes(x = factor(forprofit), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   facet_wrap(~veteran) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(irr_bin, veteran) %>% mutate(total = n()) %>% group_by(irr_bin, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(irr_bin, highest_zone, veteran, percent) %>% arrange(irr_bin, -highest_zone) %>% filter(!(is.na(irr_bin))) %>%
+highest_jobs %>% group_by(irr_bin, veteran) %>% mutate(total = n()) %>% group_by(irr_bin, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(irr_bin, highest_zone, veteran, percent) %>% arrange(irr_bin, -highest_zone) %>% filter(!(is.na(irr_bin))) %>%
   ggplot(aes(x = factor(irr_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   facet_wrap(~veteran) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(hbcu, veteran) %>% mutate(total = n()) %>% group_by(hbcu, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(hbcu, highest_zone, veteran, percent) %>% arrange(hbcu, -highest_zone) %>% filter(!(is.na(hbcu))) %>%
+highest_jobs %>% group_by(hbcu, veteran) %>% mutate(total = n()) %>% group_by(hbcu, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(hbcu, highest_zone, veteran, percent) %>% arrange(hbcu, -highest_zone) %>% filter(!(is.na(hbcu))) %>%
   ggplot(aes(x = factor(hbcu), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   facet_wrap(~veteran) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(tribal, veteran) %>% mutate(total = n()) %>% group_by(tribal, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(tribal, highest_zone, veteran, percent) %>% arrange(tribal, -highest_zone) %>% filter(!(is.na(tribal))) %>%
+highest_jobs %>% group_by(tribal, veteran) %>% mutate(total = n()) %>% group_by(tribal, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(tribal, highest_zone, veteran, percent) %>% arrange(tribal, -highest_zone) %>% filter(!(is.na(tribal))) %>%
   ggplot(aes(x = factor(tribal), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   facet_wrap(~veteran) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% group_by(year_entered_workforce_bin, veteran) %>% mutate(total = n()) %>% group_by(year_entered_workforce_bin, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(year_entered_workforce_bin, highest_zone, veteran, percent) %>% arrange(year_entered_workforce_bin, -highest_zone) %>% filter(!(is.na(year_entered_workforce_bin))) %>%
+highest_jobs %>% group_by(year_entered_workforce_bin, veteran) %>% mutate(total = n()) %>% group_by(year_entered_workforce_bin, highest_zone, veteran) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(year_entered_workforce_bin, highest_zone, veteran, percent) %>% arrange(year_entered_workforce_bin, -highest_zone) %>% filter(!(is.na(year_entered_workforce_bin))) %>%
   ggplot(aes(x = factor(year_entered_workforce_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   facet_wrap(~veteran) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(years_in_military_bin) %>% mutate(total = n()) %>% group_by(years_in_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(years_in_military_bin, highest_zone, percent) %>% arrange(years_in_military_bin, -highest_zone) %>% filter(!(is.na(years_in_military_bin))) %>%
+highest_jobs %>% filter(veteran == "veteran") %>% group_by(years_in_military_bin) %>% mutate(total = n()) %>% group_by(years_in_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(years_in_military_bin, highest_zone, percent) %>% arrange(years_in_military_bin, -highest_zone) %>% filter(!(is.na(years_in_military_bin))) %>%
   ggplot(aes(x = factor(years_in_military_bin, levels = c("1 - 2", "3 - 4", "5 - 10", "11 - 20", "21 - 30", "31+")), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(year_military_enlist_bin) %>% mutate(total = n()) %>% group_by(year_military_enlist_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(year_military_enlist_bin, highest_zone, percent) %>% arrange(year_military_enlist_bin, -highest_zone) %>% filter(!(is.na(year_military_enlist_bin))) %>%
+highest_jobs %>% filter(veteran == "veteran") %>% group_by(year_military_enlist_bin) %>% mutate(total = n()) %>% group_by(year_military_enlist_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(year_military_enlist_bin, highest_zone, percent) %>% arrange(year_military_enlist_bin, -highest_zone) %>% filter(!(is.na(year_military_enlist_bin))) %>%
   ggplot(aes(x = factor(year_military_enlist_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(career_before_military_bin) %>% mutate(total = n()) %>% group_by(career_before_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(career_before_military_bin, highest_zone, percent) %>% arrange(career_before_military_bin, -highest_zone) %>% filter(!(is.na(career_before_military_bin))) %>%
+highest_jobs %>% filter(veteran == "veteran") %>% group_by(career_before_military_bin) %>% mutate(total = n()) %>% group_by(career_before_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(career_before_military_bin, highest_zone, percent) %>% arrange(career_before_military_bin, -highest_zone) %>% filter(!(is.na(career_before_military_bin))) %>%
   ggplot(aes(x = factor(career_before_military_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>% group_by(career_before_military_bin) %>% mutate(total = n()) %>% group_by(career_before_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(career_before_military_bin, highest_zone, percent) %>% arrange(career_before_military_bin, -highest_zone) %>% filter(!(is.na(career_before_military_bin))) %>%
+highest_jobs %>% filter(veteran == "veteran") %>% group_by(career_before_military_bin) %>% mutate(total = n()) %>% group_by(career_before_military_bin, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(career_before_military_bin, highest_zone, percent) %>% arrange(career_before_military_bin, -highest_zone) %>% filter(!(is.na(career_before_military_bin))) %>%
   ggplot(aes(x = factor(career_before_military_bin), fill = factor(highest_zone), y = percent)) +
   geom_col() +
   scale_fill_viridis(discrete = TRUE) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 # Looking at all skills
-highest_jobs <- bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% left_join(all_skills, by = "id") %>% filter(veteran == "veteran") %>% rename("information" = "Information Technology", "supply" = "Supply Chain and Logistics", "sales" = "Sales", "business" = "Business", "manufacturing" = "Manufacturing and Production", "environment" = "Environment", "design" = "Design", "administration" = "Administration", "customer" = "Customer and Client Support", "analysis" = "Analysis", "finance" = "Finance", "personal" = "Personal Care and Services", "legal" = "Legal", "education" = "Education and Training", "health" = "Health Care", "science" = "Science and Research", "human" = "Human Resources", "marketing" = "Marketing and Public Relations", "energy" = "Energy and Utilities", "economics" = "Economics, Policy, and Social Studies", "media" = "Media and Writing", "engineering" = "Engineering", "maintenance" = "Maintenance, Repair, and Installation", "agriculture" = "Agriculture, Horticulture, and the Outdoors", "architecture" = "Architecture and Construction", "industry" = "Industry Knowledge", "security" = "Public Safety and National Security", "religion" = "Religion")
+highest_jobs_all_skills <- highest_jobs %>% left_join(all_skills, by = "id") %>% rename("information" = "Information Technology", "supply" = "Supply Chain and Logistics", "sales" = "Sales", "business" = "Business", "manufacturing" = "Manufacturing and Production", "environment" = "Environment", "design" = "Design", "administration" = "Administration", "customer" = "Customer and Client Support", "analysis" = "Analysis", "finance" = "Finance", "personal" = "Personal Care and Services", "legal" = "Legal", "education" = "Education and Training", "health" = "Health Care", "science" = "Science and Research", "human" = "Human Resources", "marketing" = "Marketing and Public Relations", "energy" = "Energy and Utilities", "economics" = "Economics, Policy, and Social Studies", "media" = "Media and Writing", "engineering" = "Engineering", "maintenance" = "Maintenance, Repair, and Installation", "agriculture" = "Agriculture, Horticulture, and the Outdoors", "architecture" = "Architecture and Construction", "industry" = "Industry Knowledge", "security" = "Public Safety and National Security", "religion" = "Religion")
 skill_stats <- function(skill, name = "skill") {
-  skills <- highest_jobs %>% group_by({{ skill }}) %>% mutate(total = n()) %>% group_by({{ skill }}, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct({{ skill }}, highest_zone, percent) %>% arrange({{ skill }}, -highest_zone) %>% filter(!(is.na({{ skill }}))) %>% mutate(skill = name) %>% rename(if_skill = {{ skill }})
+  skills <- highest_jobs_all_skills %>% group_by({{ skill }}) %>% mutate(total = n()) %>% group_by({{ skill }}, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct({{ skill }}, highest_zone, percent) %>% arrange({{ skill }}, -highest_zone) %>% filter(!(is.na({{ skill }}))) %>% mutate(skill = name) %>% rename(if_skill = {{ skill }})
   return(skills)
 }
 information <- skill_stats(information, "information")
@@ -426,16 +427,15 @@ religion <- skill_stats(religion, "religion")
 all_skills_highest_jobs <- bind_rows(information, supply, business, manufacturing, environment, design, administration, customer, analysis, finance, personal, legal, education, health, science, human, marketing, energy, economics, media, engineering, maintenance, agriculture, architecture, industry, security, religion)
 
 all_skills_highest_jobs %>% filter(if_skill == 1) %>%
-  ggplot(aes(x = factor(skill), fill = factor(skill), y = percent)) +
+  ggplot(aes(x = factor(skill), fill = factor(highest_zone), y = percent)) +
   geom_col() +
-  #scale_fill_viridis(discrete = TRUE) +
-  facet_grid(rows = vars(highest_zone)) +
+  scale_fill_viridis(discrete = TRUE) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 # Looking at top skills
-highest_jobs <- bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% left_join(top_skills, by = "id") %>% filter(veteran == "veteran") %>% rename("information" = "Information Technology", "supply" = "Supply Chain and Logistics", "sales" = "Sales", "business" = "Business", "manufacturing" = "Manufacturing and Production", "environment" = "Environment", "design" = "Design", "administration" = "Administration", "customer" = "Customer and Client Support", "analysis" = "Analysis", "finance" = "Finance", "personal" = "Personal Care and Services", "legal" = "Legal", "education" = "Education and Training", "health" = "Health Care", "science" = "Science and Research", "human" = "Human Resources", "marketing" = "Marketing and Public Relations", "energy" = "Energy and Utilities", "economics" = "Economics, Policy, and Social Studies", "media" = "Media and Writing", "engineering" = "Engineering", "maintenance" = "Maintenance, Repair, and Installation", "agriculture" = "Agriculture, Horticulture, and the Outdoors", "architecture" = "Architecture and Construction", "industry" = "Industry Knowledge", "security" = "Public Safety and National Security", "religion" = "Religion")
+highest_jobs_top_skills <- highest_jobs %>% left_join(top_skills, by = "id") %>% rename("information" = "Information Technology", "supply" = "Supply Chain and Logistics", "sales" = "Sales", "business" = "Business", "manufacturing" = "Manufacturing and Production", "environment" = "Environment", "design" = "Design", "administration" = "Administration", "customer" = "Customer and Client Support", "analysis" = "Analysis", "finance" = "Finance", "personal" = "Personal Care and Services", "legal" = "Legal", "education" = "Education and Training", "health" = "Health Care", "science" = "Science and Research", "human" = "Human Resources", "marketing" = "Marketing and Public Relations", "energy" = "Energy and Utilities", "economics" = "Economics, Policy, and Social Studies", "media" = "Media and Writing", "engineering" = "Engineering", "maintenance" = "Maintenance, Repair, and Installation", "agriculture" = "Agriculture, Horticulture, and the Outdoors", "architecture" = "Architecture and Construction", "industry" = "Industry Knowledge", "security" = "Public Safety and National Security", "religion" = "Religion")
 skill_stats <- function(skill, name = "skill") {
-  skills <- highest_jobs %>% group_by({{ skill }}) %>% mutate(total = n()) %>% group_by({{ skill }}, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct({{ skill }}, highest_zone, percent) %>% arrange({{ skill }}, -highest_zone) %>% filter(!(is.na({{ skill }}))) %>% mutate(skill = name) %>% rename(if_skill = {{ skill }})
+  skills <- highest_jobs_top_skills %>% group_by({{ skill }}) %>% mutate(total = n()) %>% group_by({{ skill }}, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct({{ skill }}, highest_zone, percent) %>% arrange({{ skill }}, -highest_zone) %>% filter(!(is.na({{ skill }}))) %>% mutate(skill = name) %>% rename(if_skill = {{ skill }})
   return(skills)
 }
 information <- skill_stats(information, "information")
@@ -470,16 +470,15 @@ religion <- skill_stats(religion, "religion")
 all_skills_highest_jobs <- bind_rows(information, supply, business, manufacturing, environment, design, administration, customer, analysis, finance, personal, legal, education, health, science, human, marketing, energy, economics, media, engineering, maintenance, agriculture, architecture, industry, security, religion)
 
 all_skills_highest_jobs %>% filter(if_skill == 1) %>%
-  ggplot(aes(x = factor(skill), fill = factor(skill), y = percent)) +
+  ggplot(aes(x = factor(skill), fill = factor(highest_zone), y = percent)) +
   geom_col() +
-  #scale_fill_viridis(discrete = TRUE) +
-  facet_grid(rows = vars(highest_zone)) +
+  scale_fill_viridis(discrete = TRUE) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 # Looking at all degree majors
-highest_jobs <- bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% left_join(all_majors, by = "id") %>% filter(veteran == "veteran") %>% rename("health_professions" = "51", "social_sciences" = "45", "business" = "52", "computer" = "11", "public_administration" = "44", "visual_arts" = "50", "engineering_tech" = "15", "biology" = "26", "humanities" = "24", "communication" = "09", "engineering" = "14", "philosophy_religion" = "38", "psychology" = "42", "homeland_security" = "43", "physics" = "40", "family_consumer" = "19", "theology_religion" = "39", "culinary_entertainment" = "12", "language_linguistics" = "16", "mathematics" = "27", "education" = "13", "recreation_kinesiology" = "31", "english" = "23", "cultural_gender" = "05", "law" = "22", "agriculture_veterinary" = "01", "leisure_recreation" = "36", "construction" = "46", "library" = "25", "natural_resource" = "03", "architecture" = "04", "interdisciplinary" = "30", "communication_tech" = "10", "transportation_materials" = "49", "health_residency" = "60", "military_science" = "28", "mechanic_repair" = "47", "science_tech" = "41", "military_tech" = "29")
+highest_jobs_all_majors <- highest_jobs %>% left_join(all_majors, by = "id") %>% rename("health_professions" = "51", "social_sciences" = "45", "business" = "52", "computer" = "11", "public_administration" = "44", "visual_arts" = "50", "engineering_tech" = "15", "biology" = "26", "humanities" = "24", "communication" = "09", "engineering" = "14", "philosophy_religion" = "38", "psychology" = "42", "homeland_security" = "43", "physics" = "40", "family_consumer" = "19", "theology_religion" = "39", "culinary_entertainment" = "12", "language_linguistics" = "16", "mathematics" = "27", "education" = "13", "recreation_kinesiology" = "31", "english" = "23", "cultural_gender" = "05", "law" = "22", "agriculture_veterinary" = "01", "leisure_recreation" = "36", "construction" = "46", "library" = "25", "natural_resource" = "03", "architecture" = "04", "interdisciplinary" = "30", "communication_tech" = "10", "transportation_materials" = "49", "health_residency" = "60", "military_science" = "28", "mechanic_repair" = "47", "science_tech" = "41", "military_tech" = "29")
 skill_stats <- function(skill, name = "skill") {
-  skills <- highest_jobs %>% group_by({{ skill }}) %>% mutate(total = n()) %>% group_by({{ skill }}, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct({{ skill }}, highest_zone, percent) %>% arrange({{ skill }}, -highest_zone) %>% filter(!(is.na({{ skill }}))) %>% mutate(skill = name) %>% rename(if_skill = {{ skill }})
+  skills <- highest_jobs_all_majors %>% group_by({{ skill }}) %>% mutate(total = n()) %>% group_by({{ skill }}, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct({{ skill }}, highest_zone, percent) %>% arrange({{ skill }}, -highest_zone) %>% filter(!(is.na({{ skill }}))) %>% mutate(skill = name) %>% rename(if_skill = {{ skill }})
   return(skills)
 }
   health_professions <- skill_stats(health_professions, "health_professions")
@@ -528,16 +527,15 @@ skill_stats <- function(skill, name = "skill") {
   physics, family_consumer, theology_religion, culinary_entertainment, language_linguistics, mathematics, education, recreation_kinesiology, english, cultural_gender, law, agriculture_veterinary, leisure_recreation, construction, library, natural_resource, architecture, interdisciplinary, communication_tech, transportation_materials, health_residency, military_science, mechanic_repair, science_tech, military_tech)
   
   top_majors_highest_jobs %>% filter(if_skill == 1) %>%
-    ggplot(aes(x = factor(skill), fill = factor(skill), y = percent)) +
+    ggplot(aes(x = factor(skill), fill = factor(highest_zone), y = percent)) +
     geom_col() +
-    #scale_fill_viridis(discrete = TRUE) +
-    facet_grid(rows = vars(highest_zone)) +
+    scale_fill_viridis(discrete = TRUE) +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 # Looking at highest degree majors
-highest_jobs <- bg_job %>% mutate(job_zone = ifelse(onet_job_zone == 55 | onet_job_zone == 6, 0, onet_job_zone)) %>% group_by(id) %>% mutate(highest_zone = max(job_zone)) %>% distinct(id, highest_zone) %>% left_join(bg_covariates, by = "id") %>% left_join(top_majors, by = "id") %>% filter(veteran == "veteran") %>% rename("health_professions" = "51", "social_sciences" = "45", "business" = "52", "computer" = "11", "public_administration" = "44", "visual_arts" = "50", "engineering_tech" = "15", "biology" = "26", "humanities" = "24", "communication" = "09", "engineering" = "14", "philosophy_religion" = "38", "psychology" = "42", "homeland_security" = "43", "physics" = "40", "family_consumer" = "19", "theology_religion" = "39", "culinary_entertainment" = "12", "language_linguistics" = "16", "mathematics" = "27", "education" = "13", "recreation_kinesiology" = "31", "english" = "23", "cultural_gender" = "05", "law" = "22", "agriculture_veterinary" = "01", "leisure_recreation" = "36", "construction" = "46", "library" = "25", "natural_resource" = "03", "architecture" = "04", "interdisciplinary" = "30", "communication_tech" = "10", "transportation_materials" = "49", "health_residency" = "60", "military_science" = "28", "mechanic_repair" = "47", "science_tech" = "41", "military_tech" = "29")
+highest_jobs_top_majors <- highest_jobs %>% left_join(top_majors, by = "id") %>% rename("health_professions" = "51", "social_sciences" = "45", "business" = "52", "computer" = "11", "public_administration" = "44", "visual_arts" = "50", "engineering_tech" = "15", "biology" = "26", "humanities" = "24", "communication" = "09", "engineering" = "14", "philosophy_religion" = "38", "psychology" = "42", "homeland_security" = "43", "physics" = "40", "family_consumer" = "19", "theology_religion" = "39", "culinary_entertainment" = "12", "language_linguistics" = "16", "mathematics" = "27", "education" = "13", "recreation_kinesiology" = "31", "english" = "23", "cultural_gender" = "05", "law" = "22", "agriculture_veterinary" = "01", "leisure_recreation" = "36", "construction" = "46", "library" = "25", "natural_resource" = "03", "architecture" = "04", "interdisciplinary" = "30", "communication_tech" = "10", "transportation_materials" = "49", "health_residency" = "60", "military_science" = "28", "mechanic_repair" = "47", "science_tech" = "41", "military_tech" = "29")
 skill_stats <- function(skill, name = "skill") {
-  skills <- highest_jobs %>% group_by({{ skill }}) %>% mutate(total = n()) %>% group_by({{ skill }}, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct({{ skill }}, highest_zone, percent) %>% arrange({{ skill }}, -highest_zone) %>% filter(!(is.na({{ skill }}))) %>% mutate(skill = name) %>% rename(if_skill = {{ skill }})
+  skills <- highest_jobs_top_majors %>% group_by({{ skill }}) %>% mutate(total = n()) %>% group_by({{ skill }}, highest_zone) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct({{ skill }}, highest_zone, total, percent) %>% arrange({{ skill }}, -highest_zone) %>% filter(!(is.na({{ skill }}))) %>% mutate(skill = name) %>% rename(if_skill = {{ skill }})
   return(skills)
 }
 health_professions <- skill_stats(health_professions, "health_professions")
@@ -584,13 +582,18 @@ top_majors_highest_jobs <- bind_rows(health_professions, social_sciences, busine
 computer, public_administration, visual_arts, engineering_tech, biology, humanities, 
 communication, engineering, philosophy_religion, psychology, homeland_security, 
 physics, family_consumer, theology_religion, culinary_entertainment, language_linguistics, mathematics, education, recreation_kinesiology, english, cultural_gender, law, agriculture_veterinary, leisure_recreation, construction, library, natural_resource, architecture, interdisciplinary, communication_tech, transportation_materials, health_residency, military_science, mechanic_repair, science_tech, military_tech)
+#mutate(skill = fct_reorder2(skill, -highest_zone, rank)) #%>%
 
-top_majors_highest_jobs %>% filter(if_skill == 1) %>%
-  ggplot(aes(x = factor(skill), fill = factor(skill), y = percent)) +
+labels <- top_majors_highest_jobs %>% filter(if_skill == 1) %>% group_by(highest_zone) %>% mutate(rank = rank(percent, ties.method = "first")) %>% arrange(-highest_zone, -rank) %>% group_by(skill) %>% mutate(order = ifelse(highest_zone == 5, rank, 0), order = max(order)) %>% ungroup() %>% select(skill, total, order) %>% distinct()
+
+top_majors_highest_jobs %>% filter(if_skill == 1) %>% group_by(highest_zone) %>% mutate(rank = rank(percent, ties.method = "first")) %>% arrange(-highest_zone, -rank) %>% group_by(skill) %>% mutate(order = ifelse(highest_zone == 5, rank, 0), order = max(order)) %>%
+  ggplot(aes(x = fct_reorder(skill, order), fill = factor(highest_zone), y = percent)) +
   geom_col() +
-  #scale_fill_viridis(discrete = TRUE) +
-  facet_grid(rows = vars(highest_zone)) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), legend.position = "none")
+  scale_fill_viridis(discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  coord_flip() +
+  geom_text(data = labels, aes(label = paste0("N = ", total), y = 5, fill = NA),
+            hjust = 0.5)
 ```
 
 ```{r making-transition-dataset}
@@ -601,62 +604,121 @@ top_majors_highest_jobs %>% filter(if_skill == 1) %>%
 #groups <- rbind(groups1, groups) %>% distinct()
 #seqdplot(vet.seq, cpal = c(uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], uva_color_palette[5], "#CBBEB5", "dark gray"), with.legend = FALSE, group = groups$gender)
 
-vet.seq <- create_seq_vet_fixed("vet.seq", 10, left_unemp = TRUE)
+#vet.seq <- create_seq_vet_fixed("vet.seq", 10, left_unemp = TRUE)
 
-seqecreate(data = vet.seq, tevent = promotion)
+#seqecreate(data = vet.seq, tevent = promotion)
 
-promotion <- data.frame(row.names = c(1, 2, 3, 4, 5, 6, "Military transition unemployment", "Civilian unemployment"),
-                        "1" = c(0, 0, 0, 0, 0, 0, 1, 1),
-                        "2" = c(1, 0, 0, 0, 0, 0, 1, 1),
-                        "3" = c(1, 1, 0, 0, 0, 0, 1, 1),
-                        "4" = c(1, 1, 1, 0, 0, 0, 1, 1),
-                        "5" = c(1, 1, 1, 1, 0, 0, 1, 1),
-                        "6" = c(0, 0, 0, 0, 0, 0, 0, 0),
-                        "Military transition unemployment" = c(0, 0, 0, 0, 0, 0, 0, 0),
-                        "Civilian unemployment" = c(0, 0, 0, 0, 0, 0, 0, 0))
-colnames(promotion) <- c(1, 2, 3, 4, 5, 6, "Military transition unemployment", "Civilian unemployment")
+#promotion <- data.frame(row.names = c(1, 2, 3, 4, 5, 6, "Military transition unemployment", "Civilian unemployment"),
+#                        "1" = c(0, 0, 0, 0, 0, 0, 1, 1),
+#                        "2" = c(1, 0, 0, 0, 0, 0, 1, 1),
+#                        "3" = c(1, 1, 0, 0, 0, 0, 1, 1),
+#                        "4" = c(1, 1, 1, 0, 0, 0, 1, 1),
+#                        "5" = c(1, 1, 1, 1, 0, 0, 1, 1),
+#                        "6" = c(0, 0, 0, 0, 0, 0, 0, 0),
+#                        "Military transition unemployment" = c(0, 0, 0, 0, 0, 0, 0, #0),
+#                        "Civilian unemployment" = c(0, 0, 0, 0, 0, 0, 0, 0))
+#colnames(promotion) <- c(1, 2, 3, 4, 5, 6, "Military transition unemployment", "Civilian unemployment")
 
-demotion <- data.frame(row.names = c(1, 2, 3, 4, 5, 6, "Military transition unemployment", "Civilian unemployment"),
-                        "1" = c(0, 0, 0, 0, 0, 0, 1, 1),
-                        "2" = c(1, 0, 0, 0, 0, 0, 1, 1),
-                        "3" = c(1, 1, 0, 0, 0, 0, 1, 1),
-                        "4" = c(1, 1, 1, 0, 0, 0, 1, 1),
-                        "5" = c(1, 1, 1, 1, 0, 0, 1, 1),
-                        "6" = c(0, 0, 0, 0, 0, 0, 0, 0),
-                        "Military transition unemployment" = c(0, 0, 0, 0, 0, 0, 0, 0),
-                        "Civilian unemployment" = c(0, 0, 0, 0, 0, 0, 0, 0))
-colnames(promotion) <- c(1, 2, 3, 4, 5, 6, "Military transition unemployment", "Civilian unemployment")
+#demotion <- data.frame(row.names = c(1, 2, 3, 4, 5, 6, "Military transition unemployment", "Civilian unemployment"),
+#                        "1" = c(0, 0, 0, 0, 0, 0, 1, 1),
+#                        "2" = c(1, 0, 0, 0, 0, 0, 1, 1),
+#                        "3" = c(1, 1, 0, 0, 0, 0, 1, 1),
+#                        "4" = c(1, 1, 1, 0, 0, 0, 1, 1),
+#                        "5" = c(1, 1, 1, 1, 0, 0, 1, 1),
+#                        "6" = c(0, 0, 0, 0, 0, 0, 0, 0),
+#                        "Military transition unemployment" = c(0, 0, 0, 0, 0, 0, 0, #0),
+#                        "Civilian unemployment" = c(0, 0, 0, 0, 0, 0, 0, 0))
+#colnames(promotion) <- c(1, 2, 3, 4, 5, 6, "Military transition unemployment", "Civilian unemployment")
 
 # Crystal's code
-transition <- seqetm(vet.seq, method = "transition")
-transition
-dim(transition)
-transition[1, 1:8] <- c("Begin", "Promotion", "Promotion", "Promotion", "Promotion", "NA", "Demotion", "Demotion")
-transition[2, 1:8] <- c("Demotion", "Begin", "Promotion", "Promotion", "Promotion", "NA", "Demotion", "Demotion")
-transition[3, 1:8] <- c("Demotion", "Demotion", "Begin", "Promotion", "Promotion", "NA", "Demotion", "Demotion")
-transition[4, 1:8] <- c("Demotion", "Demotion", "Demotion", "Begin", "Promotion", "NA", "Demotion", "Demotion")
-transition[5, 1:8] <- c("Demotion", "Demotion", "Demotion", "Demotion", "Begin", "NA", "Demotion", "Demotion")
-transition[6, 1:8] <- c("NA", "NA", "NA", "NA", "NA", "Begin", "Demotion", "Demotion")
-transition[7, 1:8] <- c("Promotion", "Promotion", "Promotion", "Promotion", "Promotion", "Promotion", "Begin", "NA")
-transition[8, 1:8] <- c("Promotion", "Promotion", "Promotion", "Promotion", "Promotion", "Promotion", "NA", "Begin")
+#transition <- seqetm(vet.seq, method = "transition")
+#transition
+#dim(transition)
+#transition[1, 1:8] <- c("Begin", "Promotion", "Promotion", "Promotion", "Promotion", #"NA", "Demotion", "Demotion")
+#transition[2, 1:8] <- c("Demotion", "Begin", "Promotion", "Promotion", "Promotion", #"NA", "Demotion", "Demotion")
+#transition[3, 1:8] <- c("Demotion", "Demotion", "Begin", "Promotion", "Promotion", #"NA", "Demotion", "Demotion")
+#transition[4, 1:8] <- c("Demotion", "Demotion", "Demotion", "Begin", "Promotion", #"NA", "Demotion", "Demotion")
+#transition[5, 1:8] <- c("Demotion", "Demotion", "Demotion", "Demotion", "Begin", "NA", "Demotion", "Demotion")
+#transition[6, 1:8] <- c("NA", "NA", "NA", "NA", "NA", "Begin", "Demotion", "Demotion")
+#transition[7, 1:8] <- c("Promotion", "Promotion", "Promotion", "Promotion", #"Promotion", "Promotion", "Begin", "NA")
+#transition[8, 1:8] <- c("Promotion", "Promotion", "Promotion", "Promotion", "Promotion", "Promotion", "NA", "Begin")
 
-transition
+#transition
 
-events <- c("Promotion", "Demotion", "Begin", "NA")
-dm <- matrix(TRUE, 4,4, dimnames=list(events, events))
-dm[1, ] <- c(FALSE, TRUE, TRUE, TRUE)
-dm[2, ] <- c(TRUE, FALSE, TRUE, TRUE)
-dm[3, ] <- c(TRUE, TRUE, FALSE, TRUE)
-dm[4, ] <- c(TRUE, TRUE, TRUE, FALSE)
+#events <- c("Promotion", "Demotion", "Begin", "NA")
+#dm <- matrix(TRUE, 4,4, dimnames=list(events, events))
+#dm[1, ] <- c(FALSE, TRUE, TRUE, TRUE)
+#dm[2, ] <- c(TRUE, FALSE, TRUE, TRUE)
+#dm[3, ] <- c(TRUE, TRUE, FALSE, TRUE)
+#dm[4, ] <- c(TRUE, TRUE, TRUE, FALSE)
 ## Using the matrix, we forget "marriage" and "child" events when "divorce" occurs.
 ## We also forget "divorce" after "marriage" occurs.
-print(dm)
-stm <- seqe2stm(events, dropMatrix=dm)
+#print(dm)
+#stm <- seqe2stm(events, dropMatrix=dm)
 
-vet.tse <- seqformat(vet.seq, from = "STS", to = "TSE", tevent = transition)
-vet.seq.tse <- seqecreate(id = vet.tse$id, timestamp = vet.tse$time, event = vet.tse$event)
-class(vet.seq.tse)
-testing <- TSE_to_STS(vet.tse, id = 1, timestamp = 2, event = 3, stm = stm, tmin=1, tmax=10, firstState="None")
+#vet.tse <- seqformat(vet.seq, from = "STS", to = "TSE", tevent = transition)
+#vet.seq.tse <- seqecreate(id = vet.tse$id, timestamp = vet.tse$time, event = vet.tse$event)
+#class(vet.seq.tse)
+#testing <- TSE_to_STS(vet.tse, id = 1, timestamp = 2, event = 3, stm = stm, tmin=1, tmax=10, firstState="None")
+
+# FINAL DATASET
+vet_ids <- bg_covariates %>% filter(veteran == "veteran") %>% pull(id)
+  message("Subsetting for only veterans")
+  
+  bg_job <- bg_job %>% left_join(bg_covariates, by = "id") %>%
+    filter(start_year >= year_military_exit) %>%
+    filter(onet_job_zone != 55) %>%
+    mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
+    filter(BAD == FALSE) %>%
+    mutate(label = case_when(onet_job_zone == 1 ~ "Zone 1",
+                             onet_job_zone == 2 ~ "Zone 2",
+                             onet_job_zone == 3 ~ "Zone 3", 
+                             onet_job_zone == 4 ~ "Zone 4",
+                             onet_job_zone == 5 ~ "Zone 5",
+                             onet_job_zone == 6 ~ "Education"))
+  message("Subsetting for career sequence after military exit")
+    
+  bg_job <- bg_job %>% filter(id %in% vet_ids) %>%
+    group_by(id) %>%
+    mutate(years_in_job_market = max(end_year) - year_military_exit) %>%
+    filter(years_in_job_market >= 10)
+  message(paste0("Filtering out veterans with less than ", 10, " years of complete career")) 
+  
+    bg_job <- bg_job %>%
+      rowwise() %>% do(data.frame(id=.$id, onet_job_zone = .$onet_job_zone,
+                                  year_military_exit = .$year_military_exit,
+                                  label = .$label,
+                                  year=seq(.$start_year,.$end_year))) %>%
+      group_by(id) %>%
+      arrange(desc(onet_job_zone))%>%
+      group_by(id) %>% mutate(start_year = year, end_year = year) %>%
+      distinct(id, start_year, end_year, .keep_all = TRUE)
+    message("Keeping only the highest job zone for years with overlapping career or education history")
+    
+    
+  bg_job <- bg_job %>%
+    mutate(start_year = as.integer(start_year - year_military_exit + 1)) %>% 
+    mutate(end_year = as.integer(end_year - year_military_exit + 1)) %>%
+    select(id, label, start_year, end_year)
+  message(paste0("Transform from calendar year to aligned years"))
+  
+  sts <- as.matrix(bg_job)
+  sts <- as.data.frame(sts)
+  sts$start_year <- as.integer(sts$start_year)
+  sts$end_year <- as.integer(sts$end_year)
+  
+  sts <- seqformat(sts, from = "SPELL", to = "STS",
+                       id = "id",  begin = "start_year", end = "end_year", 
+                       status = "label", process = FALSE, overwrite = TRUE,
+                   with.missing = FALSE)
+  
+  sts_vet <- seqdef(sts, left="DEL", gaps="DEL", right="DEL")
+
+  sts_vet <- sts_vet[,1:10]
+  names(sts_vet) <- paste0(1:ncol(sts_vet)) 
+  dataset <- sts_vet %>% filter_all(all_vars(!(. %in% "%")))
+  
+  write.csv(dataset, "~/git/DSPG2020/career/src/burningglass/sample_veteran_states.csv")
 ```
 
 ```{r clustering, fig.height=10, fig.width=15}
