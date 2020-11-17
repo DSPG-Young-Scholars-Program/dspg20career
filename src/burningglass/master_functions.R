@@ -17,21 +17,35 @@
 create_seq_vet_fixed <- function(name, complete_career, left_unemp = FALSE) {
   # Import all resume data
   vet_ids <- bg_covariates %>% filter(veteran == "veteran") %>% pull(id)
+  message("Subsetting for only veterans")
   
   bg_job <- bg_job %>% left_join(bg_covariates, by = "id") %>%
-    filter(start_year > year_military_exit) %>%
+    filter(start_year >= year_military_exit) %>%
+    filter(onet_job_zone != 55) %>%
     mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
     filter(BAD == FALSE)
   message("Subsetting for career sequence after military exit")
     
   bg_job <- bg_job %>% filter(id %in% vet_ids) %>%
     group_by(id) %>%
-    mutate(years_in_job_market = max(end_year) - min(start_year)) %>%
+    mutate(years_in_job_market = max(end_year) - year_military_exit) %>%
     filter(years_in_job_market >= complete_career)
+  message(paste0("Filtering out veterans with less than ", complete_career, " years of complete career"))
   
+    bg_job <- bg_job %>%
+      rowwise() %>% do(data.frame(id=.$id, onet_job_zone = .$onet_job_zone,
+                                  year_military_exit = .$year_military_exit,
+                                  year=seq(.$start_year,.$end_year))) %>%
+      group_by(id) %>%
+      arrange(desc(onet_job_zone))%>%
+      group_by(id) %>% mutate(start_year = year, end_year = year) %>%
+      distinct(id, start_year, end_year, .keep_all = TRUE)
+    message("Keeping only the highest job zone for years with overlapping career or education history")
+    
+    
   bg_job <- bg_job %>%
     mutate(start_year = as.integer(start_year - year_military_exit + 1)) %>% 
-    mutate(end_year = as.integer(end_year - year_military_exit + 1)) %>% filter(start_year >= 0, end_year >= 0) %>% 
+    mutate(end_year = as.integer(end_year - year_military_exit + 1)) %>%
     select(id, onet_job_zone, start_year, end_year)
   message(paste0("Transform from calendar year to aligned years"))
   
@@ -40,7 +54,7 @@ create_seq_vet_fixed <- function(name, complete_career, left_unemp = FALSE) {
   
   sts <- seqformat(sts, from = "SPELL", to = "STS",
                        id = "id",  begin = "start_year", end = "end_year", 
-                       status = "onet_job_zone", process = FALSE, overwrite = FALSE)
+                       status = "onet_job_zone", process = FALSE, overwrite = TRUE)
   
   # Left unemployment?
   if (left_unemp == TRUE){
@@ -52,7 +66,7 @@ create_seq_vet_fixed <- function(name, complete_career, left_unemp = FALSE) {
     message("Ignoring left unemployment as a sequence state")
   }
   
-  sts_vet <- sts_vet[,1:10]
+  sts_vet <- sts_vet[,1:complete_career]
   names(sts_vet) <- paste0(1:ncol(sts_vet))  
   
   assign(name, sts_vet, envir = .GlobalEnv) 
@@ -70,7 +84,8 @@ create_seq_vet_cohort <- function(name, cohort_begin = 1951, cohort_end = 2018, 
   
   if (after_military == TRUE){
     bg_job <- bg_job %>% left_join(bg_covariates, by = "id") %>%
-      filter(start_year >= year_military_exit)
+      filter(start_year >= year_military_exit) %>%
+      filter(onet_job_zone != 55) 
     message("Subsetting for career sequence after military exit")
   }
   
@@ -78,6 +93,16 @@ create_seq_vet_cohort <- function(name, cohort_begin = 1951, cohort_end = 2018, 
     bg_job <- bg_job %>% left_join(bg_covariates, by = "id")
     message("Including military experience in career sequence")
   }
+  
+  bg_job <- bg_job %>%
+    rowwise() %>% do(data.frame(id=.$id, onet_job_zone = .$onet_job_zone,
+                                year_military_exit = .$year_military_exit,
+                                year=seq(.$start_year,.$end_year))) %>%
+    group_by(id) %>%
+    arrange(desc(onet_job_zone))%>%
+    group_by(id) %>% mutate(start_year = year, end_year = year) %>%
+    distinct(id, start_year, end_year, .keep_all = TRUE)
+  message("Keeping only the highest job zone for years with overlapping career or education history")
   
   bg_job <- bg_job %>%
     mutate(start_year = as.integer(start_year - year_military_exit + 1)) %>% 
@@ -108,31 +133,111 @@ create_seq_vet_cohort <- function(name, cohort_begin = 1951, cohort_end = 2018, 
   
 }
 
-create_seq_all_fixed <- function(name, complete_career) {
-  
+create_seq_all_fixed <- function(name, complete_career, left_unemp = FALSE) {
   # Import all resume data
+  vet_ids <- bg_covariates %>% filter(veteran == "veteran") %>% pull(id)
+  
+  bg_job_nonvet <- bg_job %>% filter(!(id %in% vet_ids)) %>%
+    left_join(bg_covariates, by = "id") %>%
+    mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
+    filter(BAD == FALSE) %>% group_by(id) %>%
+    mutate(years_in_job_market = max(end_year) - aligned_start) %>%
+    filter(years_in_job_market >= complete_career) %>% mutate(starting = aligned_start)
+  bg_job_vet <- bg_job %>% filter(id %in% vet_ids) %>% 
+    left_join(bg_covariates, by = "id") %>%
+    filter(start_year >= year_military_exit) %>%
+    filter(onet_job_zone != 55) %>%
+    mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
+    filter(BAD == FALSE) %>%
+    group_by(id) %>%
+    mutate(years_in_job_market = max(end_year) - year_military_exit) %>%
+    filter(years_in_job_market >= complete_career) %>% 
+    mutate(starting = year_military_exit)
+  bg_job <- rbind(bg_job_nonvet, bg_job_vet)
+  message("Subsetting for career sequence after military exit")
+  message(paste0("Filtering out those with less than ", complete_career, " years of complete career"))
   
   bg_job <- bg_job %>%
+    rowwise() %>% do(data.frame(id=.$id, onet_job_zone = .$onet_job_zone,
+                                starting = .$starting,
+                                year=seq(.$start_year,.$end_year))) %>%
     group_by(id) %>%
-    mutate(years_in_job_market = max(end_year) - min(start_year)) %>%
-    filter(years_in_job_market >= complete_career)
+    arrange(desc(onet_job_zone))%>%
+    group_by(id) %>% mutate(start_year = year, end_year = year) %>%
+    distinct(id, start_year, end_year, .keep_all = TRUE)
+  message("Keeping only the highest job zone for years with overlapping career or education history")
+  
+  bg_job <- bg_job %>%
+    mutate(start_year = as.integer(start_year - starting + 1)) %>% 
+    mutate(end_year = as.integer(end_year - starting + 1)) %>% filter(start_year > 0, end_year > 0) %>%
+    select(id, onet_job_zone, start_year, end_year)
+  message(paste0("Transform from calendar year to aligned years"))
   
   sts <- as.matrix(bg_job)
   sts <- as.data.frame(sts)
   
   sts <- seqformat(sts, from = "SPELL", to = "STS",
                    id = "id",  begin = "start_year", end = "end_year", 
-                   status = "onet_job_zone", process = FALSE)
+                   status = "onet_job_zone", process = FALSE, overwrite = TRUE)
   
-  sts_vet <- seqdef(sts, left="DEL", gaps="Civilian unemployment", right="DEL")
+  # Left unemployment?
+  if (left_unemp == TRUE){
+    sts_all <- seqdef(sts, left="Military transition unemployment", gaps="Civilian unemployment", right="DEL")
+    message("Defining left unemployment as a sequence state")
+  }
+  else if (missing(left_unemp) | left_unemp == FALSE){
+    sts_all <- seqdef(sts, left="DEL", gaps="Civilian unemployment", right="DEL")
+    message("Ignoring left unemployment as a sequence state")
+  }
+  
+  sts_all <- sts_all[,1:complete_career]
+  names(sts_all) <- paste0(1:ncol(sts_all))  
+  
+  assign(name, sts_all, envir = .GlobalEnv) 
 }
 
-create_seq_all_cohort <- function(name, cohort_begin, cohort_end) {
-  
+create_seq_all_cohort <- function(name, cohort_begin = 1951, cohort_end = 2018, after_military = TRUE, left_unemp = FALSE) {
+  vet_ids <- bg_covariates %>% filter(veteran == "veteran") %>% pull(id)
   # Cohort filtering
   bg_job <- bg_job %>%
-    filter(start_year >= cohort_end & start_year <= cohort_begin)
-  message(paste0("Filtering for those whole entered the civilian workforce between", cohort_begin, "and", cohort_end))
+    filter(start_year >= cohort_begin & start_year <= cohort_end)
+  message(paste0("Filtering for those whole entered the civilian workforce between ", cohort_begin, " and ", cohort_end))
+  
+  if (after_military == TRUE){
+    bg_job_nonvet <- bg_job %>% filter(!(id %in% vet_ids)) %>%
+      left_join(bg_covariates, by = "id") %>%
+      mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
+      filter(BAD == FALSE)
+    bg_job_vet <- bg_job %>% filter(id %in% vet_ids) %>% 
+      left_join(bg_covariates, by = "id") %>%
+      filter(start_year >= year_military_exit) %>%
+      filter(onet_job_zone != 55) %>%
+      mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
+      filter(BAD == FALSE)
+    bg_job <- rbind(bg_job_nonvet, bg_job_vet)
+    message("Subsetting for career sequence after military exit")
+  }
+  else if (after_military == FALSE | missing(after_military)){
+    bg_job <- bg_job %>%
+      left_join(bg_covariates, by = "id")
+    message("Including military experience in career sequence")
+  }
+  
+  bg_job <- bg_job %>%
+    rowwise() %>% do(data.frame(id=.$id, onet_job_zone = .$onet_job_zone,
+                                aligned_start = .$aligned_start,
+                                year=seq(.$start_year,.$end_year))) %>%
+    group_by(id) %>%
+    arrange(desc(onet_job_zone))%>%
+    group_by(id) %>% mutate(start_year = year, end_year = year) %>%
+    distinct(id, start_year, end_year, .keep_all = TRUE)
+  message("Keeping only the highest job zone for years with overlapping career or education history")
+  
+  bg_job <- bg_job %>%
+    mutate(start_year = as.integer(start_year - aligned_start + 1)) %>% 
+    mutate(end_year = as.integer(end_year - aligned_start + 1)) %>% filter(start_year > 0, end_year > 0) %>% 
+    select(id, onet_job_zone, start_year, end_year)
+  message(paste0("Transform from calendar year to aligned years"))
   
   sts <- as.matrix(bg_job)
   sts <- as.data.frame(sts)
@@ -141,7 +246,11 @@ create_seq_all_cohort <- function(name, cohort_begin, cohort_end) {
                    id = "id",  begin = "start_year", end = "end_year", 
                    status = "onet_job_zone", process = FALSE)
   
-  sts <- seqdef(sts_vet, left="DEL", gaps="Civilian unemployment", right="DEL")
+  sts <- seqdef(sts, left="DEL", gaps="Civilian unemployment", right="DEL")
+  
+  names(sts) <- paste0(1:ncol(sts))  
+  
+  assign(name, sts, envir = .GlobalEnv) 
   
 }
 

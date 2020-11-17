@@ -104,7 +104,7 @@ The following cluster quality metrics are used in this analysis:
       - <= 0.25 : No structure.
   - Hubert's C (HC) [0, 1]: Gap between the partition obtained and the best partition theoretically possible with this number of groups and these distances. A small value indicated a good partition of the data.
   - Point Biseral Correlation (PBC) [-1, 1]: Measure of the capacity of the clustering to reproduce the sequences.
-  - Pseudo R2 (R2) [0, 1]: Share of the discrepancy explained by the clustering coltion (only to comapre partitions with identical number of groups).
+  - Pseudo R2 (R2) [0, 1]: Share of the discrepancy explained by the clustering soultion (only to compare partitions with identical number of groups).
 
 [Weighted Cluster Library Manual](https://cran.r-project.org/web/packages/WeightedCluster/vignettes/WeightedCluster.pdf)
 

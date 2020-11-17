@@ -24,7 +24,7 @@ get_db_conn <-
 
 ## BEGIN FUNCTION --------------------------------------------
 get_bgt_data_for_state <- function(states = c("VA", "DC", "MD")) {
-states <- c("DC", "MD", "VA")
+  
     onet <- fread("~/git/DSPG2020/career/src/burningglass/onet_avg_zone.csv")
   forprofit <- fread("~/git/DSPG2020/career/src/burningglass/ipeds_forprofit.csv") %>% pull(UnitID)
   hbcu <- fread("~/git/DSPG2020/career/src/burningglass/ipeds_hbcu.csv") %>% pull(UnitID)
@@ -44,8 +44,11 @@ pers <- DBI::dbGetQuery(con, "SELECT * FROM bgt_res.pers")
 ## PULL IDS OF PERS IN ZIPCODES, PULL FROM OTHER TABLES BASED ON IDS
 ids <- pers %>% filter(zipcode %in% zips) %>% pull(id)
 
-job <- DBI::dbGetQuery(con, paste("SELECT * FROM bgt_res.job WHERE id IN (", paste(ids, collapse = ", "), ") AND onet LIKE '55-%'"))
-ids <- job %>% filter(!is.na(onet) &  !is.na(startdate) & !is.na(enddate)) %>% select(id) %>% distinct() %>% pull(id)
+#job <- DBI::dbGetQuery(con, paste("SELECT * FROM bgt_res.job WHERE id IN (", paste(ids, collapse = ", "), ") AND onet LIKE '55-%'"))
+#vet_ids <- job %>% filter(!is.na(onet) &  !is.na(startdate) & !is.na(enddate)) %>% select(id) %>% distinct() %>% pull(id)
+#nonvet_ids <- pers %>% filter(zipcode %in% zips) %>% filter(!(id %in% vet_ids)) %>% sample(100000, replace = FALSE) %>% pull(id)
+#ids <- c(vet_ids, nonvet_ids)
+job <- DBI::dbGetQuery(con, paste("SELECT * FROM bgt_res.job WHERE id IN (", paste(ids, collapse = ", "), ")")) %>% filter(!is.na(onet) &  !is.na(startdate) & !is.na(enddate))
 
 ed <- DBI::dbGetQuery(con, paste("SELECT * FROM bgt_res.ed WHERE id IN (", paste(ids, collapse = ", "), ")"))
 ed <-ed[,1:12]
@@ -145,11 +148,11 @@ veteran_job <- job %>% filter(id %in% military_ids) %>% mutate(
     duration = end_year - start_year + 1) %>% 
   filter(is_onet55 == TRUE) %>% 
     group_by(id) %>% mutate(
-      years_in_military = sum(duration),
       year_military_enlist = min(start_year),
       year_military_exit = max(end_year),
       officer = ifelse(any(is_officer) == TRUE, "officer", "not officer"),
-      end_onet55 = ifelse(end_year == year_military_exit, onet, NA)) %>% 
+      end_onet55 = ifelse(end_year == year_military_exit, onet, NA),
+      years_in_military = year_military_exit - year_military_enlist + 1) %>% 
   drop_na(end_onet55) %>%
   select(id, years_in_military, year_military_enlist, year_military_exit, officer, end_onet55)
   
