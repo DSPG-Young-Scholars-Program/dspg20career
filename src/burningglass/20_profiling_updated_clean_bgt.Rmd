@@ -792,7 +792,12 @@ vet_ids <- bg_covariates %>% filter(veteran == "veteran") %>% pull(id)
   
 ids <- rownames(dataset) %>% trimws()
 
-dataset_covariates <-bg_covariates %>% filter(id %in% ids) %>% filter(!duplicated(id))
+dataset_covariates <- bg_covariates %>% filter(id %in% ids) %>% filter(!duplicated(id)) %>% mutate(irr_bin = ntile(irr, 5))
+
+dataset_covariates %>% select(irr_bin) %>% group_by(irr_bin) %>% count()
+
+bg_job %>% filter(id == 8597140)
+
 dataset_all_majors <- all_majors %>% filter(id %in% ids) %>% filter(!duplicated(id)) %>%
   rename("health_professions" = "51", "social_sciences" = "45", "business" = "52", "computer" = "11", "public_administration" = "44", "visual_arts" = "50", "engineering_tech" = "15", "biology" = "26", "humanities" = "24", "communication" = "09", "engineering" = "14", "philosophy_religion" = "38", "psychology" = "42", "homeland_security" = "43", "physics" = "40", "family_consumer" = "19", "theology_religion" = "39", "culinary_entertainment" = "12", "language_linguistics" = "16", "mathematics" = "27", "education" = "13", "recreation_kinesiology" = "31", "english" = "23", "cultural_gender" = "05", "law" = "22", "agriculture_veterinary" = "01", "leisure_recreation" = "36", "construction" = "46", "library" = "25", "natural_resource" = "03", "architecture" = "04", "interdisciplinary" = "30", "communication_tech" = "10", "transportation_materials" = "49", "health_residency" = "60", "military_science" = "28", "mechanic_repair" = "47", "science_tech" = "41", "military_tech" = "29")
 dataset_top_majors <- top_majors %>% filter(id %in% ids) %>% filter(!duplicated(id)) %>% select(-"NA") %>%
