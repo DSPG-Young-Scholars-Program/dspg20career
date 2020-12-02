@@ -133,7 +133,7 @@ create_seq_vet_cohort <- function(name, cohort_begin = 1951, cohort_end = 2018, 
   
 }
 
-create_seq_all_fixed <- function(name, complete_career, left_unemp = FALSE) {
+create_seq_all_fixed <- function(name, complete_career, left_unemp = FALSE, years_experience) {
   # Import all resume data
   vet_ids <- bg_covariates %>% filter(veteran == "veteran") %>% pull(id)
   
@@ -141,8 +141,8 @@ create_seq_all_fixed <- function(name, complete_career, left_unemp = FALSE) {
     left_join(bg_covariates, by = "id") %>%
     mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
     filter(BAD == FALSE) %>% group_by(id) %>%
-    mutate(years_in_job_market = max(end_year) - aligned_start) %>%
-    filter(years_in_job_market >= complete_career) %>% mutate(starting = aligned_start)
+    mutate(years_in_job_market = max(end_year) - aligned_start) %>% 
+    filter(years_in_job_market >= complete_career + years_experience) %>% mutate(starting = aligned_start + years_experience)
   bg_job_vet <- bg_job %>% filter(id %in% vet_ids) %>% 
     left_join(bg_covariates, by = "id") %>%
     filter(start_year >= year_military_exit) %>%

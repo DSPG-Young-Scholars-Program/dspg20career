@@ -67,8 +67,7 @@ archive_covariates <- fread("~/git/DSPG2020/career/data/02_bg_vet_demographic.cs
 archive_job <- fread("~/git/DSPG2020/career/data/03_bg_all_job.csv") %>% select(id, onet_job_zone, start_year, end_year)
 
 year_entered_civilian_workforce <- bg_job %>% left_join(bg_covariates, by = "id") %>%
-  mutate(duration = end_year - start_year + 1) %>% group_by(id) %>%
-  mutate(aligned_start = min(start_year)) %>% ungroup() %>% filter(onet_job_zone != 55) %>%
+  mutate(duration = end_year - start_year + 1) %>% ungroup() %>% filter(onet_job_zone != 55) %>%
   mutate(out = ifelse(veteran == "veteran" & start_year < year_military_exit, 1, 0)) %>%
   group_by(id, out) %>%
   mutate(year_entered_civilian_workforce = min(start_year)) %>% group_by(id) %>%
@@ -81,12 +80,38 @@ year_entered_civilian_workforce <- bg_job %>% left_join(bg_covariates, by = "id"
 
 bg_covariates <- bg_covariates %>% select(-aligned_start, -year_entered_civilian_workforce) %>% left_join(year_entered_civilian_workforce, by = "id") %>% distinct()
 
-library(splitstackshape)
-sample <- bg_covariates %>% filter(veteran == "not veteran")
-stratified <- stratified(sample, c("highest_degree", "gender", "zipcode", "year_entered_workforce_bin"), 0.015)
-           
-sample %>% mutate(total = n()) %>% group_by(highest_degree) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_degree, percent) %>% arrange(-percent)
-stratified %>% mutate(total = n()) %>% group_by(highest_degree) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_degree, percent) %>% arrange(-percent)
+#military_duration <- bg_job %>% left_join(bg_covariates, by = "id") %>% filter(veteran == "veteran") %>%
+#  mutate(duration = end_year - start_year + 1) %>% filter(onet_job_zone == 55) %>%
+#  distinct(id, start_year, end_year, duration) %>% group_by(id) %>%
+#        mutate(military_duration = sum(duration))
+
+#career_before_military <- bg_job %>% 
+ # left_join(veteran_job, by = "id") %>% distinct() %>%
+#  mutate(
+#    is_onet55 = if_else(str_detect(onet, "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"), T, F),
+#    veteran = ifelse(id %in% military_ids, "veteran", "not veteran"),
+#         duration = end_year - start_year + 1) %>% filter(veteran == "veteran") %>%
+#  mutate(out = ifelse((is_onet55 == TRUE | start_year > year_military_enlist), 1, 0)) %>%
+#  group_by(id, out) %>%
+#  mutate(career_before_military = year_military_enlist - min(start_year)) %>% group_by(id) %>% mutate(career_before_military = max(career_before_military)) %>%
+#  select(id, career_before_military)
+
+#vet_ids <- bg_covariates %>% filter(veteran == "veteran") %>% pull(id)
+#    per_year <- bg_job %>% filter(id %in% vet_ids) %>% 
+#      mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
+#      filter(BAD == FALSE) %>%
+#      rowwise() %>% do(data.frame(id=.$id, onet_job_zone = .$onet_job_zone,
+#                                  year=seq(.$start_year,.$end_year))) %>%
+#      group_by(id) %>%
+#      arrange(desc(onet_job_zone))%>%
+#      group_by(id) %>% mutate(start_year = year, end_year = year) %>%
+#      distinct(id, start_year, end_year, .keep_all = TRUE)
+#    military_duration <- per_year %>% mutate(duration = start_year - end_year + 1) %>% group_by(id, onet_job_zone) %>% mutate(military_duration = sum(duration)) %>% filter(onet_job_zone == 55) %>% distinct(id, military_duration)
+    
+    
+#top_skills %>% rename("information" = "Information Technology", "supply" = "Supply Chain and Logistics", "sales" = "Sales", "business" = "Business", "manufacturing" = "Manufacturing and Production", "environment" = "Environment", "design" = "Design", "administration" = "Administration", "customer" = "Customer and Client Support", "analysis" = "Analysis", "finance" = "Finance", "personal" = "Personal Care and Services", "legal" = "Legal", "education" = "Education and Training", "health" = "Health Care", "science" = "Science and Research", "human" = "Human Resources", "marketing" = "Marketing and Public Relations", "energy" = "Energy and Utilities", "economics" = "Economics, Policy, and Social Studies", "media" = "Media and Writing", "engineering" = "Engineering", "maintenance" = "Maintenance, Repair, and Installation", "agriculture" = "Agriculture, Horticulture, and the Outdoors", "architecture" = "Architecture and Construction", "industry" = "Industry Knowledge", "security" = "Public Safety and National Security", "religion" = "Religion") %>% pivot_longer(cols = `information`:`religion`) %>% filter(value == 1) %>% distinct(id, name)
+
+#top_majors %>% rename("health_professions" = "51", "social_sciences" = "45", "business" = "52", "computer" = "11", "public_administration" = "44", "visual_arts" = "50", "engineering_tech" = "15", "biology" = "26", "humanities" = "24", "communication" = "09", "engineering" = "14", "philosophy_religion" = "38", "psychology" = "42", "homeland_security" = "43", "physics" = "40", "family_consumer" = "19", "theology_religion" = "39", "culinary_entertainment" = "12", "language_linguistics" = "16", "mathematics" = "27", "education" = "13", "recreation_kinesiology" = "31", "english" = "23", "cultural_gender" = "05", "law" = "22", "agriculture_veterinary" = "01", "leisure_recreation" = "36", "construction" = "46", "library" = "25", "natural_resource" = "03", "architecture" = "04", "interdisciplinary" = "30", "communication_tech" = "10", "transportation_materials" = "49", "health_residency" = "60", "military_science" = "28", "mechanic_repair" = "47", "science_tech" = "41", "military_tech" = "29") %>% pivot_longer(cols = `health_professions`:`military_tech`) %>% filter(value == 1) %>% distinct(id, name)
 ```
 
 ```{r fixing-duplicates}
@@ -127,9 +152,9 @@ career_before_military >= 31 ~ "31+"),
 military_transition_unemployment_bin = case_when(
 military_transition_unemployment == 0 ~ "0",
 military_transition_unemployment >= 1 & military_transition_unemployment < 5 ~ "1 - 4",
-military_transition_unemployment >= 5 & military_transition_unemployment < 10 ~ "5 - 10",
-military_transition_unemployment >= 11 & military_transition_unemployment < 20 ~ "11 - 20",
-military_transition_unemployment >= 21 & military_transition_unemployment < 30 ~ "21 - 30",
+military_transition_unemployment >= 5 & military_transition_unemployment <= 10 ~ "5 - 10",
+military_transition_unemployment >= 11 & military_transition_unemployment <= 20 ~ "11 - 20",
+military_transition_unemployment >= 21 & military_transition_unemployment <= 30 ~ "21 - 30",
 military_transition_unemployment >= 31 ~ "31+"))
 duplicates <- bg_covariates$id[duplicated(bg_covariates$id)]
 # Dealing with duplicates
@@ -150,6 +175,21 @@ all_other == "all_other" & end_onet55 == "55-3019.00" ~ 3)) %>% group_by(id) %>%
 mutate(end_onet55_true = ifelse(end_onet55_score == max(end_onet55_score), end_onet55, NA)) %>% drop_na(end_onet55_true) %>% mutate(duplicated = ifelse(duplicated(id) == TRUE, TRUE, FALSE)) %>% filter(duplicated == TRUE) %>% select(-all_other, -end_onet55_score, -end_onet55_true, -duplicated)
 bg_covariates <- rbind(bg_covariates_nodup, fixed_55, fixed_gender) %>% distinct()
 ```
+
+```{r sampling}
+library(splitstackshape)
+sample <- bg_covariates %>% filter(veteran == "not veteran")
+stratified <- stratified(sample, c("gender", "highest_degree", "zipcode"), 0.02)
+?splitstackshape::stratified
+
+table(stratified$zipcode, stratified$highest_degree)
+
+           
+sample %>% mutate(total = n()) %>% group_by(highest_degree) %>% mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_degree, percent) %>% arrange(-percent)
+stratified %>% mutate(total = n()) %>% group_by(highest_degree) %>% count() #mutate(percent = round(n()/total * 100, 2)) %>% distinct(highest_degree, percent) %>% arrange(-percent)
+
+```
+
 
 
 ```{r profiling-covariates}
@@ -789,247 +829,69 @@ vet_ids <- bg_covariates %>% filter(veteran == "veteran") %>% pull(id)
   dataset <- sts_vet %>% filter_all(all_vars(!(. %in% "%")))
   
 #  write.csv(dataset, "~/git/DSPG2020/career/src/burningglass/sample_veteran_states.csv")
-  
-ids <- rownames(dataset) %>% trimws()
+all_ids <- rownames(dataset) %>% trimws()
 
-dataset_covariates <- bg_covariates %>% filter(id %in% ids) %>% filter(!duplicated(id)) %>% mutate(irr_bin = ntile(irr, 5))
+bg_covariates <- bg_covariates %>% filter(id %in% all_ids) %>% filter(!duplicated(id)) %>% mutate(irr_bin = ntile(irr, 5))
+bg_covariates <- bg_covariates %>% left_join(highest_degree_from_forprofit, by = "id")
+bg_covariates <- bg_covariates %>% left_join(highest_degree_from_hbcu, by = "id")
 
-dataset_covariates %>% select(irr_bin) %>% group_by(irr_bin) %>% count()
+bg_covariates <- bg_covariates %>% select(id, "veteran_status" = veteran, gender, zipcode, irr, irr_bin, highest_degree, highest_degree_from_forprofit, highest_degree_from_hbcu, "officer_status" = officer, end_onet55, "year_entered_workforce" = aligned_start, year_entered_workforce_bin, "years_career_before_military" = career_before_military, "years_career_before_military_bin" = career_before_military_bin, year_military_enlist, year_military_enlist_bin, year_military_exit, years_in_military, years_in_military_bin, military_transition_unemployment, military_transition_unemployment_bin, year_entered_civilian_workforce)
+#table(bg_covariates$forprofit, bg_covariates$hbcu)
 
-bg_job %>% filter(id == 8597140)
+#bg_covariates %>% filter(id %in% ids) %>% mutate(institution_type =
+#                                                   case_when(
+#                                                     forprofit = "forprofit" ~ forprofit,
+#                                                     hbcu = "hbcu" ~ hbcu,
+#                                                     tribal = "tribal" ~ tribal,
+#                                                     
+#                                                   ))
 
-dataset_all_majors <- all_majors %>% filter(id %in% ids) %>% filter(!duplicated(id)) %>%
+#dataset_covariates <- bg_covariates %>% filter(id %in% ids) %>% filter(!duplicated(id)) 
+
+#dataset_covariates %>% select(irr_bin) %>% group_by(irr_bin) %>% count()
+
+#bg_job %>% filter(id == 8597140)
+
+dataset_all_majors <- all_majors %>% filter(id %in% all_ids) %>% filter(!duplicated(id)) %>%
   rename("health_professions" = "51", "social_sciences" = "45", "business" = "52", "computer" = "11", "public_administration" = "44", "visual_arts" = "50", "engineering_tech" = "15", "biology" = "26", "humanities" = "24", "communication" = "09", "engineering" = "14", "philosophy_religion" = "38", "psychology" = "42", "homeland_security" = "43", "physics" = "40", "family_consumer" = "19", "theology_religion" = "39", "culinary_entertainment" = "12", "language_linguistics" = "16", "mathematics" = "27", "education" = "13", "recreation_kinesiology" = "31", "english" = "23", "cultural_gender" = "05", "law" = "22", "agriculture_veterinary" = "01", "leisure_recreation" = "36", "construction" = "46", "library" = "25", "natural_resource" = "03", "architecture" = "04", "interdisciplinary" = "30", "communication_tech" = "10", "transportation_materials" = "49", "health_residency" = "60", "military_science" = "28", "mechanic_repair" = "47", "science_tech" = "41", "military_tech" = "29")
-dataset_top_majors <- top_majors %>% filter(id %in% ids) %>% filter(!duplicated(id)) %>% select(-"NA") %>%
-  rename("health_professions" = "51", "social_sciences" = "45", "business" = "52", "computer" = "11", "public_administration" = "44", "visual_arts" = "50", "engineering_tech" = "15", "biology" = "26", "humanities" = "24", "communication" = "09", "engineering" = "14", "philosophy_religion" = "38", "psychology" = "42", "homeland_security" = "43", "physics" = "40", "family_consumer" = "19", "theology_religion" = "39", "culinary_entertainment" = "12", "language_linguistics" = "16", "mathematics" = "27", "education" = "13", "recreation_kinesiology" = "31", "english" = "23", "cultural_gender" = "05", "law" = "22", "agriculture_veterinary" = "01", "leisure_recreation" = "36", "construction" = "46", "library" = "25", "natural_resource" = "03", "architecture" = "04", "interdisciplinary" = "30", "communication_tech" = "10", "transportation_materials" = "49", "health_residency" = "60", "military_science" = "28", "mechanic_repair" = "47", "science_tech" = "41", "military_tech" = "29")
-dataset_all_skills <- all_skills %>% filter(id %in% ids) %>% filter(!duplicated(id)) %>%
+dataset_top_majors <- top_majors %>% filter(id %in% all_ids) %>% filter(!duplicated(id)) %>% select(-"NA") %>%
+  rename("health_professions" = "51", "social_sciences" = "45", "business" = "52", "computer" = "11", "public_administration" = "44", "visual_arts" = "50", "engineering_tech" = "15", "biology" = "26", "humanities" = "24", "communication" = "09", "engineering" = "14", "philosophy_religion" = "38", "psychology" = "42", "homeland_security" = "43", "physics" = "40", "family_consumer" = "19", "theology_religion" = "39", "culinary_entertainment" = "12", "language_linguistics" = "16", "mathematics" = "27", "education" = "13", "recreation_kinesiology" = "31", "english" = "23", "cultural_gender" = "05", "law" = "22", "agriculture_veterinary" = "01", "leisure_recreation" = "36", "construction" = "46", "library" = "25", "natural_resource" = "03", "architecture" = "04", "interdisciplinary" = "30", "communication_tech" = "10", "transportation_materials" = "49", "health_residency" = "60", "military_science" = "28", "mechanic_repair" = "47", "science_tech" = "41", "military_tech" = "29") %>% pivot_longer(cols = `health_professions`:`military_tech`) %>% filter(value == 1) %>% distinct(id, "top_major" = name)
+dataset_all_skills <- all_skills %>% filter(id %in% all_ids) %>% filter(!duplicated(id)) %>%
   rename("information" = "Information Technology", "supply" = "Supply Chain and Logistics", "sales" = "Sales", "business" = "Business", "manufacturing" = "Manufacturing and Production", "environment" = "Environment", "design" = "Design", "administration" = "Administration", "customer" = "Customer and Client Support", "analysis" = "Analysis", "finance" = "Finance", "personal" = "Personal Care and Services", "legal" = "Legal", "education" = "Education and Training", "health" = "Health Care", "science" = "Science and Research", "human" = "Human Resources", "marketing" = "Marketing and Public Relations", "energy" = "Energy and Utilities", "economics" = "Economics, Policy, and Social Studies", "media" = "Media and Writing", "engineering" = "Engineering", "maintenance" = "Maintenance, Repair, and Installation", "agriculture" = "Agriculture, Horticulture, and the Outdoors", "architecture" = "Architecture and Construction", "industry" = "Industry Knowledge", "security" = "Public Safety and National Security", "religion" = "Religion")
-dataset_top_skills <- top_skills %>% filter(id %in% ids) %>% filter(!duplicated(id)) %>%
-  rename("information" = "Information Technology", "supply" = "Supply Chain and Logistics", "sales" = "Sales", "business" = "Business", "manufacturing" = "Manufacturing and Production", "environment" = "Environment", "design" = "Design", "administration" = "Administration", "customer" = "Customer and Client Support", "analysis" = "Analysis", "finance" = "Finance", "personal" = "Personal Care and Services", "legal" = "Legal", "education" = "Education and Training", "health" = "Health Care", "science" = "Science and Research", "human" = "Human Resources", "marketing" = "Marketing and Public Relations", "energy" = "Energy and Utilities", "economics" = "Economics, Policy, and Social Studies", "media" = "Media and Writing", "engineering" = "Engineering", "maintenance" = "Maintenance, Repair, and Installation", "agriculture" = "Agriculture, Horticulture, and the Outdoors", "architecture" = "Architecture and Construction", "industry" = "Industry Knowledge", "security" = "Public Safety and National Security", "religion" = "Religion")
+dataset_top_skills <- top_skills %>% filter(id %in% all_ids) %>% filter(!duplicated(id)) %>%
+  rename("information" = "Information Technology", "supply" = "Supply Chain and Logistics", "sales" = "Sales", "business" = "Business", "manufacturing" = "Manufacturing and Production", "environment" = "Environment", "design" = "Design", "administration" = "Administration", "customer" = "Customer and Client Support", "analysis" = "Analysis", "finance" = "Finance", "personal" = "Personal Care and Services", "legal" = "Legal", "education" = "Education and Training", "health" = "Health Care", "science" = "Science and Research", "human" = "Human Resources", "marketing" = "Marketing and Public Relations", "energy" = "Energy and Utilities", "economics" = "Economics, Policy, and Social Studies", "media" = "Media and Writing", "engineering" = "Engineering", "maintenance" = "Maintenance, Repair, and Installation", "agriculture" = "Agriculture, Horticulture, and the Outdoors", "architecture" = "Architecture and Construction", "industry" = "Industry Knowledge", "security" = "Public Safety and National Security", "religion" = "Religion") %>% pivot_longer(cols = `information`:`religion`) %>% filter(value == 1) %>% distinct(id, "top_skill" = name)
+all_ids <- as.integer(all_ids)
 
-write.csv(dataset_covariates, "~/git/DSPG2020/career/src/burningglass/dataset_covariates.csv")
-write.csv(dataset_all_skills, "~/git/DSPG2020/career/src/burningglass/dataset_all_skills.csv")
-write.csv(dataset_top_skills, "~/git/DSPG2020/career/src/burningglass/dataset_top_skills.csv")
-write.csv(dataset_all_majors, "~/git/DSPG2020/career/src/burningglass/dataset_all_majors.csv")
-write.csv(dataset_top_majors, "~/git/DSPG2020/career/src/burningglass/dataset_top_majors.csv")
+ids <- dataset_all_majors$id
+missing_all_majors_ids <- as.data.frame(all_ids) %>% rename(id = all_ids) %>% filter(!(id %in% ids))
+dataset_all_majors <- dataset_all_majors %>% rbind(missing_all_majors_ids, fill = TRUE)
 
+ids <- dataset_top_majors$id
+missing_top_majors_ids <- as.data.frame(all_ids) %>% rename(id = all_ids) %>% filter(!(id %in% ids)) %>% mutate(top_major = NA)
+dataset_top_majors <- dataset_top_majors %>% rbind(missing_top_majors_ids)
+
+ids <- dataset_all_skills$id
+missing_all_skills_ids <- as.data.frame(all_ids) %>% rename(id = all_ids) %>% filter(!(id %in% ids))
+dataset_all_skills <- dataset_all_skills %>% rbind(missing_all_skills_ids, fill = TRUE)
+
+ids <- dataset_top_skills$id
+missing_top_skills_ids <- as.data.frame(all_ids) %>% rename(id = all_ids) %>% filter(!(id %in% ids)) %>% mutate(top_skill = NA)
+dataset_top_skills <- dataset_top_skills %>% rbind(missing_top_skills_ids)
+
+#ids$id <- as.integer(ids$id)
+
+#dataset_covariates <- bg_covariates
+#all_majors %>% filter(id %in% ids_vec) %>% rbind(missing_all_majors_ids, fill = TRUE)
+#all_skills %>% filter(id %in% ids)
+
+#write.csv(dataset, "~/git/DSPG2020/career/data/dataset_states.csv")
+#write.csv(bg_covariates, "~/git/DSPG2020/career/data/modeling_dataset_covariates.csv")
+#dataset_all_skills <- dataset_all_skills %>% select(-`NA`)
+#write.csv(dataset_all_skills, "~/git/DSPG2020/career/data/dataset_all_skills.csv")
+#write.csv(dataset_top_skills, "~/git/DSPG2020/career/data/dataset_top_skills.csv")
+#dataset_all_majors <- dataset_all_majors %>% select(-variable)
+#write.csv(dataset_all_majors, "~/git/DSPG2020/career/data/dataset_all_majors.csv")
+#write.csv(dataset_top_majors, "~/git/DSPG2020/career/data/dataset_top_majors.csv")
 ```
 
-```{r clustering, fig.height=10, fig.width=15}
-vet.seq <- create_seq_vet_fixed("vet.seq", 10, left_unemp = TRUE)
-
-transition_matrix <- seqtrate(vet.seq, weighted=FALSE, count=TRUE)
-round(transition_matrix,2)
-diag(transition_matrix) = 0
-round(transition_matrix,2)
-rowsum <- apply(transition_matrix, 1, sum)
-for(i in 1:nrow(transition_matrix)) {
-  for (j in 1:ncol(transition_matrix)){
-    transition_matrix[i,j] = transition_matrix[i,j]/rowsum[i]
-  }
-}
-for(j in 1:ncol(transition_matrix)){
-      transition_matrix[7,j] = transition_matrix[7,j] = 0
-}
-transition_matrix <- round(transition_matrix,2)
-cost_matrix <- 2-transition_matrix
-round(cost_matrix,2)
-diag(cost_matrix) = 0
-cost_matrix <- round(cost_matrix,2)
-
-# OPTION 1 : OUR OM SPELL, LOW EXPANSION COST AND LOW WEIGHT
-sequencing.opt1 <- seqdist(vet.seq, method = "OMspell", indel = "auto", sm = cost_matrix, with.missing = TRUE, otto = 0, expcost = 0)
-
-# OPTION 2 : OUR OM
-sequencing.opt2 <- seqdist(vet.seq, method = "OMstran", indel = "auto", sm = cost_matrix, with.missing = TRUE, otto = 0.5)
-
-# OPTION 3 : OUR OM, LOW WEIGHT ON ORIGIN
-sequencing.opt3 <- seqdist(vet.seq, method = "OMstran", indel = 1, sm = cost_matrix, with.missing = TRUE, otto = 0.01)
-
-# CLUSTERING
-numbers <- (2:20)
-pamstats <- NULL
-#rownames(pamstats) <- numbers
-pamstats <- NULL
-for (number in numbers) {
-  clusterpam <- wcKMedoids(sequencing.opt1, k = number)
-  assign(paste0("sequencing.pam.opt1.", number), clusterpam, envir = .GlobalEnv)
-  pamstats[[number]] <- clusterpam$stats
-}
-pamstats.opt1 <- dplyr::bind_rows(pamstats)
-pamstats <- NULL
-for (number in numbers) {
-  clusterpam <- wcKMedoids(sequencing.opt2, k = number)
-  assign(paste0("sequencing.pam.opt2.", number), clusterpam, envir = .GlobalEnv)
-  pamstats[[number]] <- clusterpam$stats
-}
-pamstats.opt2 <- dplyr::bind_rows(pamstats)
-for (number in numbers) {
-  clusterpam <- wcKMedoids(sequencing.opt3, k = number)
-  assign(paste0("sequencing.pam.opt3.", number), clusterpam, envir = .GlobalEnv)
-  pamstats[[number]] <- clusterpam$stats
-}
-pamstats.opt3 <- dplyr::bind_rows(pamstats)
-
-# QUALITY METRICS
-rownames(pamstats.opt1) <- numbers
-PAM.ASW.Opt1 <- as.matrix(pamstats.opt1$ASW)
-colnames(PAM.ASW.Opt1) <- c("ASW opt1")
-PAM.ASW.Opt2 <- as.matrix(pamstats.opt2$ASW)
-colnames(PAM.ASW.Opt2) <- c("ASW opt2")
-PAM.ASW.Opt3 <- as.matrix(pamstats.opt3$ASW)
-colnames(PAM.ASW.Opt3) <- c("ASW opt3")
-PAM.ASW <- bind_cols(PAM.ASW.Opt1, PAM.ASW.Opt2, PAM.ASW.Opt3)
-PAM.ASW <- PAM.ASW %>% rownames_to_column() %>% melt() %>% mutate(group = "pam")
-PAM.ASW$rowname <- as.numeric(PAM.ASW$rowname)
-
-rownames(pamstats.opt1) <- numbers
-PAM.HC.Opt1 <- as.matrix(pamstats.opt1$HC)
-colnames(PAM.HC.Opt1) <- c("HC opt1")
-PAM.HC.Opt2 <- as.matrix(pamstats.opt2$HC)
-colnames(PAM.HC.Opt2) <- c("HC opt2")
-PAM.HC.Opt3 <- as.matrix(pamstats.opt3$HC)
-colnames(PAM.HC.Opt3) <- c("HC opt3")
-PAM.HC <- bind_cols(PAM.HC.Opt1, PAM.HC.Opt2, PAM.HC.Opt3)
-PAM.HC <- PAM.HC %>% rownames_to_column() %>% melt() %>% mutate(group = "pam")
-PAM.HC$rowname <- as.numeric(PAM.HC$rowname)
-
-rownames(pamstats.opt1) <- numbers
-PAM.PBC.Opt1 <- as.matrix(pamstats.opt1$PBC)
-colnames(PAM.PBC.Opt1) <- c("PBC opt1")
-PAM.PBC.Opt2 <- as.matrix(pamstats.opt2$PBC)
-colnames(PAM.PBC.Opt2) <- c("PBC opt2")
-PAM.PBC.Opt3 <- as.matrix(pamstats.opt3$PBC)
-colnames(PAM.PBC.Opt3) <- c("PBC opt3")
-PAM.PBC <- bind_cols(PAM.PBC.Opt1, PAM.PBC.Opt2, PAM.PBC.Opt3)
-PAM.PBC <- PAM.PBC %>% rownames_to_column() %>% melt() %>% mutate(group = "pam")
-PAM.PBC$rowname <- as.numeric(PAM.PBC$rowname)
-
-rownames(pamstats.opt1) <- numbers
-PAM.R2.Opt1 <- as.matrix(pamstats.opt1$R2)
-colnames(PAM.R2.Opt1) <- c("R2 opt1")
-PAM.R2.Opt2 <- as.matrix(pamstats.opt2$R2)
-colnames(PAM.R2.Opt2) <- c("R2 opt2")
-PAM.R2.Opt3 <- as.matrix(pamstats.opt3$R2)
-colnames(PAM.R2.Opt3) <- c("R2 opt3")
-PAM.R2 <- bind_cols(PAM.R2.Opt1, PAM.R2.Opt2, PAM.R2.Opt3)
-PAM.R2 <- PAM.R2 %>% rownames_to_column() %>% melt() %>% mutate(group = "pam")
-PAM.R2$rowname <- as.numeric(PAM.R2$rowname)
-
-PAM.ASW %>% mutate(clusters = rowname + 1) %>%
-ggplot(aes(x = variable, y = clusters, fill = value)) +
-  #facet_grid(. ~ group, scales = "free") +
-  geom_tile() +
-  scale_fill_continuous(name = "ASW value", type = "viridis") +
-  labs(title = "Sequencing - ASW (optimal 1)", caption = "Average silhouette width (ASW) is the coherence of assignments, high coherence indicates high between-group distances and strong
-within-group homogeneity \n Dissimiarlity options:\n Option 1: Optimal matching of spell sequences, low expansion cost, low weight, using our custom cost matrix \n Option 2: Optimal matching of transition sequences using our custom cost matrix \n Option 3: Optimal matching of transition sequences, low weight, using our custom cost matrix") +
-  scale_x_discrete(name = "dissimilarity option", labels = c("1", "2", "3")) +
-  ylab("number of clusters") +
-  ylim(1,21) +
-  theme_bw()
-
-PAM.HC %>% mutate(clusters = rowname + 1) %>%
-ggplot(aes(x = variable, y = clusters, fill = value)) +
-  #facet_grid(. ~ group, scales = "free") +
-  geom_tile() +
-  scale_fill_continuous(name = "ASW value", type = "viridis") +
-  labs(title = "Sequencing - ASW (optimal 1)", caption = "Average silhouette width (ASW) is the coherence of assignments, high coherence indicates high between-group distances and strong
-within-group homogeneity \n Dissimiarlity options:\n Option 1: Optimal matching of spell sequences, low expansion cost, low weight, using our custom cost matrix \n Option 2: Optimal matching of transition sequences using our custom cost matrix \n Option 3: Optimal matching of transition sequences, low weight, using our custom cost matrix") +
-  scale_x_discrete(name = "dissimilarity option", labels = c("1", "2", "3")) +
-  ylab("number of clusters") +
-  ylim(1,21) +
-  theme_bw()
-
-PAM.PBC %>% mutate(clusters = rowname + 1) %>%
-ggplot(aes(x = variable, y = clusters, fill = value)) +
-  #facet_grid(. ~ group, scales = "free") +
-  geom_tile() +
-  scale_fill_continuous(name = "ASW value", type = "viridis") +
-  labs(title = "Sequencing - ASW (optimal 1)", caption = "Average silhouette width (ASW) is the coherence of assignments, high coherence indicates high between-group distances and strong
-within-group homogeneity \n Dissimiarlity options:\n Option 1: Optimal matching of spell sequences, low expansion cost, low weight, using our custom cost matrix \n Option 2: Optimal matching of transition sequences using our custom cost matrix \n Option 3: Optimal matching of transition sequences, low weight, using our custom cost matrix") +
-  scale_x_discrete(name = "dissimilarity option", labels = c("1", "2", "3")) +
-  ylab("number of clusters") +
-  ylim(1,21) +
-  theme_bw()
-
-PAM.R2 %>% mutate(clusters = rowname + 1) %>%
-ggplot(aes(x = variable, y = clusters, fill = value)) +
-  #facet_grid(. ~ group, scales = "free") +
-  geom_tile() +
-  scale_fill_continuous(name = "ASW value", type = "viridis") +
-  labs(title = "Sequencing - ASW (optimal 1)", caption = "Average silhouette width (ASW) is the coherence of assignments, high coherence indicates high between-group distances and strong
-within-group homogeneity \n Dissimiarlity options:\n Option 1: Optimal matching of spell sequences, low expansion cost, low weight, using our custom cost matrix \n Option 2: Optimal matching of transition sequences using our custom cost matrix \n Option 3: Optimal matching of transition sequences, low weight, using our custom cost matrix") +
-  scale_x_discrete(name = "dissimilarity option", labels = c("1", "2", "3")) +
-  ylab("number of clusters") +
-  ylim(1,21) +
-  theme_bw()
-
-clusterpam <- wcKMedoids(sequencing.opt2, k = 20)
-clusterpam$stats
-
-clusterpam_20 <- clusterpam$clustering
-clusterpam_20_fac <- factor(clusterpam_20)#, #labels = paste("Type", 1:20))
-
-seqdplot(vet.seq, group = clusterpam_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start",
-         cpal = c(uva_color_palette[1], uva_color_palette[2],
-                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
-                  uva_color_palette[5], "#CBBEB5", "dark gray"))
-seqlegend(vet.seq, cpal = c(uva_color_palette[1], uva_color_palette[2],
-                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
-                  uva_color_palette[5], "#CBBEB5", "dark gray"))
-
-vet <- rownames(vet.seq)
-
-vet_df <- as.data.frame(cbind(vet, clusterpam_20))
-colnames(vet_df) <- c("id", "cluster")
-bg_covariates$id <- as.character(bg_covariates$id)
-
-vet_df <- left_join(vet_df, bg_covariates, by = "id")
-
-degree <- vet_df %>%
-  filter(!is.na(highest_degree)) %>%
-  group_by(highest_degree) %>%
-  mutate(total = n()) %>%
-  group_by(cluster, highest_degree) %>%
-  mutate(percent = n()/total) %>% distinct(highest_degree, cluster, percent) %>%
-  group_by(highest_degree) %>% mutate(sum = sum(percent))
-
-degree$cluster <- as.factor(degree$cluster)
-degree$highest_degree <- factor(degree$highest_degree, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd"))
-degree <- degree %>% filter(!is.na(highest_degree))
-
-degree <- as.data.frame(degree)
-
-ggplot(degree, aes(cluster, highest_degree, fill= percent)) + 
-  geom_tile()+
-  scale_fill_gradient(low="white", high="blue")+
-  theme_classic()+
-  labs(title = "Clustering X Degree --before normalization")
-
-year_entered_workforce_bin <- vet_df %>%
-  filter(!is.na(year_entered_workforce_bin)) %>%
-  group_by(year_entered_workforce_bin) %>%
-  mutate(total = n()) %>%
-  group_by(cluster, year_entered_workforce_bin) %>%
-  mutate(percent = n()/total) %>% distinct(cluster, year_entered_workforce_bin, percent) %>%
-  group_by(year_entered_workforce_bin) %>% mutate(sum = sum(percent))
-
-year_entered_workforce_bin$cluster <- as.factor(year_entered_workforce_bin$cluster)
-#irr_bin$highest_degree <- factor(irr_bin$highest_degree, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd"))
-#degree <- degree %>% filter(!is.na(highest_degree))
-
-year_entered_workforce_bin <- as.data.frame(year_entered_workforce_bin)
-
-seqdplot(vet.seq, group = clusterpam_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start",
-         cpal = c(uva_color_palette[1], uva_color_palette[2],
-                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
-                  uva_color_palette[5], "#CBBEB5", "dark gray"))
-
-ggplot(year_entered_workforce_bin, aes(cluster, year_entered_workforce_bin, fill= percent)) + 
-  geom_tile()+
-  scale_fill_gradient(low="white", high="blue")+
-  theme_classic()+
-  labs(title = "Clustering X Degree --before normalization")
-
-```
 
