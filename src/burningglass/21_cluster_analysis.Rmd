@@ -113,15 +113,15 @@ aligned_start < 1966 ~ "Silent and Greatest"
 career_before_military_bin = case_when(
 career_before_military == 0 ~ "0",
 career_before_military >= 1 & career_before_military < 5 ~ "1 - 4",
-career_before_military >= 5 & career_before_military < 10 ~ "5 - 10",
-career_before_military >= 11 & career_before_military < 20 ~ "11 - 20",
-career_before_military >= 21 & career_before_military < 30 ~ "21 - 30",
+career_before_military >= 5 & career_before_military < 11 ~ "5 - 10",
+career_before_military >= 11 & career_before_military < 21 ~ "11 - 20",
+career_before_military >= 21 & career_before_military < 31 ~ "21 - 30",
 career_before_military >= 31 ~ "31+"),
 military_transition_unemployment_bin = case_when(
 military_transition_unemployment == 0 ~ "0",
 military_transition_unemployment >= 1 & military_transition_unemployment < 5 ~ "1 - 4",
-military_transition_unemployment >= 5 & military_transition_unemployment < 10 ~ "5 - 10",
-military_transition_unemployment >= 11 & military_transition_unemployment < 20 ~ "11 - 20",
+military_transition_unemployment >= 5 & military_transition_unemployment < 11 ~ "5 - 10",
+military_transition_unemployment >= 11 & military_transition_unemployment < 21 ~ "11 - 20",
 military_transition_unemployment >= 21 & military_transition_unemployment < 30 ~ "21 - 30",
 military_transition_unemployment >= 31 ~ "31+"))
 duplicates <- bg_covariates$id[duplicated(bg_covariates$id)]
@@ -730,7 +730,10 @@ clusterpam <- wcKMedoids(sequencing, k = cluster_number)
 #clusterpam <- clusterpam$clustering
 #clusterpam <- factor(clusterpam)
 
-assign(name, clusterpam, envir = .GlobalEnv)
+cluster <- list(sequencing, clusterpam)
+names(cluster) <- c("diss", "cluster")
+
+assign(name, cluster, envir = .GlobalEnv)
 }
 
 cluster_membership_visualization <- function(variable) {
@@ -764,9 +767,9 @@ seq.20cluster_20 <- cluster("cluster_10", seq.20, sequence_option = "option 2", 
 seq.30cluster_10 <- cluster("cluster_10", seq.30, sequence_option = "option 2", 10)
 
 # Visualizing 10 years 20 cluster solution --------------------------------------------------
-seq.10cluster_20$stats
+seq.10cluster_20$cluster$stats
 
-cluster_20 <- seq.10cluster_20$clustering
+cluster_20 <- seq.10cluster_20$cluster$clustering
 cluster_20_fac <- factor(cluster_20)
 all <- rownames(seq.10)
 all_df <- as.data.frame(cbind(all, cluster_20))
@@ -824,7 +827,11 @@ veteran <- as.data.frame(veteran)
 seqdplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start",
          cpal = c(uva_color_palette[1], uva_color_palette[2],
                   uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
-                  uva_color_palette[5], "#CBBEB5", "dark gray"))
+                  uva_color_palette[5], "#CBBEB5"))
+seqrplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start", diss = seq.10cluster_20$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
 ggplot(veteran, aes(cluster_label, veteran, fill= difference)) + 
   geom_tile()+
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, limits = c(-10, 10))+
@@ -841,9 +848,9 @@ cluster_membership_visualization(highest_degree_from_hbcu)
 cluster_membership_visualization(year_entered_workforce_bin)
 
 # Visualizing 20 years 20 cluster solution --------------------------------------------------
-seq.20cluster_20$stats
+seq.20cluster_20$cluster$stats
 
-cluster_20 <- seq.20cluster_20$clustering
+cluster_20 <- seq.20cluster_20$cluster$clustering
 cluster_20_fac <- factor(cluster_20)
 all <- rownames(seq.10)
 all_df <- as.data.frame(cbind(all, cluster_20))
@@ -902,6 +909,10 @@ seqdplot(seq.20, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 
          cpal = c(uva_color_palette[1], uva_color_palette[2],
                   uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
                   uva_color_palette[5], "#CBBEB5", "dark gray"))
+seqrplot(seq.20, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start", diss = seq.20cluster_20$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
 ggplot(veteran, aes(cluster_label, veteran, fill= difference)) + 
   geom_tile()+
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, limits = c(-10, 10))+
@@ -917,10 +928,10 @@ cluster_membership_visualization(highest_degree_from_forprofit)
 cluster_membership_visualization(highest_degree_from_hbcu)
 cluster_membership_visualization(year_entered_workforce_bin)
 
-# Visualizing 20 years 10 cluster solution --------------------------------------------------
-seq.30cluster_10$stats
+# Visualizing 30 years 10 cluster solution --------------------------------------------------
+seq.30cluster_10$cluster$stats
 
-cluster_20 <- seq.30cluster_10$clustering
+cluster_20 <- seq.30cluster_10$cluster$clustering
 cluster_20_fac <- factor(cluster_20)
 all <- rownames(seq.10)
 all_df <- as.data.frame(cbind(all, cluster_20))
@@ -968,7 +979,11 @@ veteran <- as.data.frame(veteran)
 seqdplot(seq.30, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start",
          cpal = c(uva_color_palette[1], uva_color_palette[2],
                   uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
-                  uva_color_palette[5], "#CBBEB5", "dark gray"))
+                  uva_color_palette[5], "#CBBEB5"))
+seqrplot(seq.30, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start", diss = seq.30cluster_10$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
 ggplot(veteran, aes(cluster_label, veteran, fill= difference)) + 
   geom_tile()+
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, limits = c(-10, 10))+
@@ -996,9 +1011,9 @@ seq.20cluster_20 <- cluster("cluster_10", seq.20, sequence_option = "option 2", 
 seq.30cluster_8 <- cluster("cluster_10", seq.30, sequence_option = "option 2", 8)
 
 # Visualizing 10 years 20 cluster solution --------------------------------------------------
-seq.10cluster_20$stats
+seq.10cluster_20$cluster$stats
 
-cluster_20 <- seq.10cluster_20$clustering
+cluster_20 <- seq.10cluster_20$cluster$clustering
 cluster_20_fac <- factor(cluster_20)
 all <- rownames(seq.10)
 all_df <- as.data.frame(cbind(all, cluster_20))
@@ -1057,6 +1072,10 @@ seqdplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 
          cpal = c(uva_color_palette[1], uva_color_palette[2],
                   uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
                   uva_color_palette[5], "#CBBEB5", "dark gray"))
+seqrplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start", diss = seq.10cluster_20$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
 ggplot(veteran, aes(cluster_label, veteran, fill= difference)) + 
   geom_tile()+
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, limits = c(-10, 10))+
@@ -1073,9 +1092,9 @@ cluster_membership_visualization(highest_degree_from_hbcu)
 cluster_membership_visualization(year_entered_workforce_bin)
 
 # Visualizing 20 years 20 cluster solution --------------------------------------------------
-seq.20cluster_20$stats
+seq.20cluster_20$cluster$stats
 
-cluster_20 <- seq.20cluster_20$clustering
+cluster_20 <- seq.20cluster_20$cluster$clustering
 cluster_20_fac <- factor(cluster_20)
 all <- rownames(seq.10)
 all_df <- as.data.frame(cbind(all, cluster_20))
@@ -1134,6 +1153,10 @@ seqdplot(seq.20, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 
          cpal = c(uva_color_palette[1], uva_color_palette[2],
                   uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
                   uva_color_palette[5], "#CBBEB5", "dark gray"))
+seqrplot(seq.20, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start", diss = seq.20cluster_20$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
 ggplot(veteran, aes(cluster_label, veteran, fill= difference)) + 
   geom_tile()+
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, limits = c(-10, 10))+
@@ -1148,6 +1171,121 @@ cluster_membership_visualization(irr_bin)
 cluster_membership_visualization(highest_degree_from_forprofit)
 cluster_membership_visualization(highest_degree_from_hbcu)
 cluster_membership_visualization(year_entered_workforce_bin)
+# APPROXIMATE AGE ---------------------------------------------------------------
+# Cohort clustering whole career ------------------------------------------------
+seq.10 <- create_seq_all_cohort("seq.10", 2000, 2005, after_military = FALSE, left_unemp = FALSE)
+seq.10cluster_20 <- cluster("cluster_10", seq.10, sequence_option = "option 1", 20)
+
+cluster_20 <- seq.10cluster_20$cluster$clustering
+cluster_20_fac <- factor(cluster_20)
+all <- rownames(seq.10)
+all_df <- as.data.frame(cbind(all, cluster_20))
+colnames(all_df) <- c("id", "cluster")
+covariates <- bg_covariates
+covariates$id <- as.character(covariates$id)
+
+all_df <- left_join(all_df, covariates, by = "id") %>% mutate(cluster_group = case_when(
+  cluster %in% c(2791, 6868, 6884, 6885, 6888) ~ "education",
+cluster %in% c(8748, 14400, 14430, 16736) ~ "promotion",
+cluster %in% c(8741, 14409, 14414) ~ "demotion",
+cluster %in% c(14053) ~ "unemployment",
+cluster %in% c(2830, 2831, 6883, 8743, 14435, 16744, 18571) ~ "no change"
+),
+cluster_label = case_when(
+  cluster == 2791 ~ "education to military",
+  cluster == 2830 ~ "military",
+  cluster == 2831 ~ "military to zone 4",
+  cluster == 6868 ~ "education to zone 4",
+  cluster == 6883 ~ "zone 4 to education to military/zone 2",
+  cluster == 6884 ~ "education to zone 3",
+  cluster == 6885 ~ "education to zone 2",
+  cluster == 6888 ~ "education to zone 5",
+  cluster == 8741 ~ "zone 5 to zone 4",
+  cluster == 8743 ~ "zone 5",
+  cluster == 8748 ~ "zone 4 to zone 5",
+  cluster == 14053 ~ "unemployment to zone 4",
+  cluster == 14400 ~ "zone 2 to zone 4",
+  cluster == 14409 ~ "zone 4 to zone 3",
+  cluster == 14414 ~ "zone 4 to zone 2",
+  cluster == 14430 ~ "zone 3 to zone 4",
+  cluster == 14435 ~ "zone 4",
+  cluster == 16736 ~ "zone 2 to zone 3",
+  cluster == 16744 ~ "zone 3",
+  cluster == 18571 ~ "zone 2"
+), cluster_long = paste0(cluster_group, " - ", cluster_label))
+all_df <- all_df %>% left_join(highest_degree_from_forprofit, by = "id")
+all_df <- all_df %>% left_join(highest_degree_from_hbcu, by = "id")
+all_df <- all_df %>% mutate(irr_bin = ntile(irr, 5))
+
+
+seq.10 <- seq.10[,1:20]
+seqdplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start", axes = c(1,20), 
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "red", "#CBBEB5"))
+seqrplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start", diss = seq.10cluster_20$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
+
+cluster_membership_visualization(veteran)
+
+# Filtering for five years of experience and careers of 10 years ----------------------------------
+seq.10 <- create_seq_all_fixed_experience("seq.10", 10, left_unemp = FALSE, 5)
+seq.10cluster_20 <- cluster("cluster_10", seq.10, sequence_option = "option 1", 20)
+
+cluster_20 <- seq.10cluster_20$cluster$clustering
+cluster_20_fac <- factor(cluster_20)
+all <- rownames(seq.10)
+all_df <- as.data.frame(cbind(all, cluster_20))
+colnames(all_df) <- c("id", "cluster")
+covariates <- bg_covariates
+covariates$id <- as.character(covariates$id)
+
+all_df <- left_join(all_df, covariates, by = "id") %>% mutate(cluster_group = case_when(
+  cluster %in% c(3140, 3148, 3191, 3212) ~ "education",
+cluster %in% c(5016, 8681, 8684, 9682) ~ "promotion",
+cluster %in% c(5053, 8641) ~ "demotion",
+cluster %in% c(8523, 8670, 9664, 10161) ~ "unemployment",
+cluster %in% c(5074, 5078, 8310, 8675, 9682, 10156) ~ "no change"
+),
+cluster_label = case_when(
+  cluster == 3140 ~ "education to zone 4",
+  cluster == 3148 ~ "education to unemployment",
+  cluster == 3191 ~ "zone 4 to education to zone 4",
+  cluster == 3212 ~ "education to zone 5",
+  cluster == 5016 ~ "zone 4 to zone 5",
+  cluster == 5053 ~ "zone 5 to zone 4",
+  cluster == 5074 ~ "zone 5",
+  cluster == 5078 ~ "zone 4 to zone 5 to zone 4",
+  cluster == 8310 ~ "zone 4",
+  cluster == 8523 ~ "zone 4 to unemployment to zone 4",
+  cluster == 8641 ~ "zone 4 to zone 3",
+  cluster == 8670 ~ "zone 4 to unemployment",
+  cluster == 8675 ~ "zone 4 to zone 3 to zone 4",
+  cluster == 8681 ~ "zone 2 to zone 4",
+  cluster == 8684 ~ "zone 3 to zone 4",
+  cluster == 9664 ~ "zone 3 to unemployment to zone 3",
+  cluster == 9682 ~ "zone 2 to zone 3",
+  cluster == 9698 ~ "zone 3",
+  cluster == 10156 ~ "zone 2",
+  cluster == 10161 ~ "zone 2 to unemployment to zone 2",
+), cluster_long = paste0(cluster_group, " - ", cluster_label))
+all_df <- all_df %>% left_join(highest_degree_from_forprofit, by = "id")
+all_df <- all_df %>% left_join(highest_degree_from_hbcu, by = "id")
+all_df <- all_df %>% mutate(irr_bin = ntile(irr, 5))
+
+seqdplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start", axes = c(1,20), 
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
+seqrplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start", diss = seq.10cluster_20$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
+
+cluster_membership_visualization(veteran)
+
 ```
 
 ```{r}
@@ -1337,7 +1475,8 @@ ggplot(veteran, aes(cluster, veteran, fill= difference)) +
 ```
 
 ```{r veteran-clusters, fig.height=10, fig.width=15}
-# Creating sequence objects fo 10, 20, and 30 years after exiting the military and for nonveterans after 10 years in the workforce
+# VETERANS -----------------------------------------------------------------------------
+# Creating sequence objects for 10, 20, and 30 years after exiting the military for veterans 
 seq.10 <- create_seq_vet_fixed("seq.10", 10, left_unemp = FALSE)
 seq.20 <- create_seq_vet_fixed("seq.20", 20, left_unemp = FALSE)
 seq.30 <- create_seq_vet_fixed("seq.30", 30, left_unemp = FALSE)
@@ -1347,10 +1486,10 @@ seq.10cluster_20 <- cluster("cluster_10", seq.10, sequence_option = "option 1", 
 seq.20cluster_20 <- cluster("cluster_10", seq.20, sequence_option = "option 2", 20)
 seq.30cluster_7 <- cluster("cluster_10", seq.30, sequence_option = "option 2", 7)
 
-# Visualizing 10 years 20 cluster solution
-seq.10cluster_20$stats
+# Visualizing 10 years 20 cluster solution ----------------------
+seq.10cluster_20$cluster$stats
 
-cluster_20 <- seq.10cluster_20$clustering
+cluster_20 <- seq.10cluster_20$cluster$clustering
 cluster_20_fac <- factor(cluster_20)
 all <- rownames(seq.10)
 all_df <- as.data.frame(cbind(all, cluster_20))
@@ -1359,33 +1498,33 @@ covariates <- bg_covariates
 covariates$id <- as.character(covariates$id)
 
 all_df <- left_join(all_df, covariates, by = "id") %>% mutate(cluster_group = case_when(
-  cluster %in% c(27, 476, 1389, 1491, 1505) ~ "education",
-cluster %in% c(2874, 4578, 4656, 4963) ~ "promotion",
-cluster %in% c(2886, 4647) ~ "demotion",
-cluster %in% c(4588, 4613, 4628) ~ "unemployment",
-cluster %in% c(2880, 2889, 4388, 4653, 4976, 5111) ~ "no change"
+  cluster %in% c(781, 1360, 1435, 1511) ~ "education",
+cluster %in% c(2607, 4345, 4416, 4690) ~ "promotion",
+cluster %in% c(2769, 4409) ~ "demotion",
+cluster %in% c(2727, 4303, 4390, 4684) ~ "unemployment",
+cluster %in% c(2763, 2772, 4169, 4427, 4705, 4830) ~ "no change"
 ),
 cluster_label = case_when(
-  cluster == 27 ~ "zone 5 to education to zone 5",
-  cluster == 476 ~ "zone 3 to education",
-  cluster == 1389 ~ "zone 4 to education to zone 4",
-  cluster == 1491 ~ "zone 4 to education",
-  cluster == 1505 ~ "education to zone 4",
-  cluster == 2874 ~ "zone 4 to zone 5",
-  cluster == 2880 ~ "zone 5",
-  cluster == 2886 ~ "zone 5 to zone 4",
-  cluster == 2889 ~ "zone 4 to zone 5 zone 4",
-  cluster == 4388 ~ "zone 4 to zone 3 to zone 4",
-  cluster == 4578 ~ "zone 3 to zone 4",
-  cluster == 4588 ~ "zone 3 to unemployment to zone 4",
-  cluster == 4613 ~ "zone 4 to unemployment to zone 4",
-  cluster == 4628 ~ "zone 4 to unemployment",
-  cluster == 4647 ~ "zone 4 to zone 3",
-  cluster == 4653 ~ "zone 4",
-  cluster == 4656 ~ "zone 2 to zone 4",
-  cluster == 4963 ~ "zone 2 to zone 3",
-  cluster == 4976 ~ "zone 3",
-  cluster == 5111 ~ "zone 2"
+  cluster == 781 ~ "zone 5 to education to zone 5",
+  cluster == 1360 ~ "zone 4 to education to zone 4",
+  cluster == 1435 ~ "education to zone 4",
+  cluster == 1511 ~ "zone 4 to education",
+  cluster == 2607 ~ "zone 4 to zone 5",
+  cluster == 2727 ~ "zone 4 to unemployment to zone 5",
+  cluster == 2763 ~ "zone 5",
+  cluster == 2769 ~ "zone 5 to zone 4",
+  cluster == 2772 ~ "zone 4 to zone 5 zone 4",
+  cluster == 4169 ~ "zone 4 to zone 3 to zone 4",
+  cluster == 4303 ~ "zone 4 to unemployment to zone 4",
+  cluster == 4345 ~ "zone 3 to zone 4",
+  cluster == 4390 ~ "zone 4 to unemployment",
+  cluster == 4409 ~ "zone 4 to zone 3",
+  cluster == 4416 ~ "zone 2 to zone 4",
+  cluster == 4427 ~ "zone 4",
+  cluster == 4684 ~ "zone 3 to unemployment",
+  cluster == 4690 ~ "zone 2 to zone 3",
+  cluster == 4705 ~ "zone 3",
+  cluster == 4830 ~ "zone 2"
 ), cluster_long = paste0(cluster_group, " - ", cluster_label))
 all_df <- all_df %>% left_join(highest_degree_from_forprofit, by = "id")
 all_df <- all_df %>% left_join(highest_degree_from_hbcu, by = "id")
@@ -1395,7 +1534,12 @@ all_df <- all_df %>% mutate(irr_bin = ntile(irr, 5))
 seqdplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start",
          cpal = c(uva_color_palette[1], uva_color_palette[2],
                   uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
-                  uva_color_palette[5], "#CBBEB5", "dark gray"))
+                  uva_color_palette[5], "#CBBEB5"))
+
+seqrplot(seq.10, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, with.legend = F, sortv = "from.start", diss = seq.10cluster_20$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
 
 all_df <- all_df %>% mutate(end_onet55_label = case_when(
   end_onet55 == "55-3011.00" ~ "Air Crew Members",
@@ -1420,7 +1564,10 @@ all_df <- all_df %>% mutate(end_onet55_label = case_when(
 ), years_in_military_bin = factor(years_in_military_bin, levels = c("1 - 2", "3 - 4", "5 - 10", "11 - 20", "21 - 30", "31+")), 
           year_military_enlist_bin = factor(year_military_enlist_bin, levels = c("Vietnam era (1964 to 1974)", "1975 to 1989", "1990 to 2000 (including Persian Gulf War)", "2001 or later")),
           career_before_military_bin = factor(career_before_military_bin, levels = c("0", "1 - 4", "5 - 10", "11 - 20", "21 - 30", "31+")),
-          year_entered_workforce_bin = factor(year_entered_workforce_bin, levels = c("Silent and Greatest", "Baby Boom", "Generation X", "Millennial")))
+          year_entered_workforce_bin = factor(year_entered_workforce_bin, levels = c("Silent and Greatest", "Baby Boom", "Generation X", "Millennial")),
+highest_degree = factor(highest_degree, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd")), 
+highest_degree_from_forprofit = factor(highest_degree_from_forprofit, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd")),
+highest_degree_from_hbcu = factor(highest_degree_from_hbcu, levels = c("highschool", "GED/diploma", "associates", "bachelors", "masters", "phd")))
 
 cluster_membership_visualization(highest_degree)
 cluster_membership_visualization(gender)
@@ -1435,10 +1582,10 @@ cluster_membership_visualization(years_in_military_bin)
 cluster_membership_visualization(year_military_enlist_bin)
 cluster_membership_visualization(career_before_military_bin)
 
-# Visualizing 20 years 20 cluster solution
-seq.20cluster_20$stats
+# Visualizing 20 years 20 cluster solution --------------------------------------------------
+seq.20cluster_20$ckuster$stats
 
-cluster_20 <- seq.20cluster_20$clustering
+cluster_20 <- seq.20cluster_20$cluster$clustering
 cluster_20_fac <- factor(cluster_20)
 all <- rownames(seq.10)
 all_df <- as.data.frame(cbind(all, cluster_20))
@@ -1447,33 +1594,33 @@ covariates <- bg_covariates
 covariates$id <- as.character(covariates$id)
 
 all_df <- left_join(all_df, covariates, by = "id") %>% mutate(cluster_group = case_when(
-  cluster %in% c(127, 177, 358, 604) ~ "education",
-cluster %in% c(1023, 1340) ~ "promotion",
-cluster %in% c(966) ~ "demotion",
-cluster %in% c(76, 1211, 1656) ~ "unemployment",
-cluster %in% c(636, 666, 1232, 1418, 1547, 1860, 1926, 1936, 1944, 1984) ~ "no change"
+  cluster %in% c(91, 163, 343, 452) ~ "education",
+cluster %in% c(628, 1020, 1071, 1348, 1643) ~ "promotion",
+cluster %in% c(576, 1363, 1428, 1690, 1720) ~ "demotion",
+cluster %in% c(668, 1078, 1566) ~ "unemployment",
+cluster %in% c(1018, 1027, 1627) ~ "no change"
 ),
 cluster_label = case_when(
-  cluster == 76 ~ "unemployment",
-  cluster == 127 ~ "zone 4 to education to zone 4",
-  cluster == 177 ~ "education to zone 4",
-  cluster == 358 ~ "education to zone 5",
-  cluster == 604 ~ "education",
-  cluster == 636 ~ "zone 5",
-  cluster == 666 ~ "zone 5",
-  cluster == 966 ~ "zone 5 to zone 4",
-  cluster == 1023 ~ "zone 4 to zone 5",
-  cluster == 1211 ~ "zone 4 to unemployment",
-  cluster == 1232 ~ "zone 4",
-  cluster == 1340 ~ "zone 3 to zone 4",
-  cluster == 1418 ~ "zone 4",
-  cluster == 1547 ~ "zone 3",
-  cluster == 1656 ~ "zone 4 to unemployment to zone 4",
-  cluster == 1860 ~ "zone 4",
-  cluster == 1926 ~ "zone 3",
-  cluster == 1936 ~ "zone 3",
-  cluster == 1944 ~ "zone 2",
-  cluster == 1984 ~ "zone 2"
+  cluster == 91 ~ "education to unemployment",
+  cluster == 163 ~ "zone 4 to education to zone 4",
+  cluster == 343 ~ "education to zone 5",
+  cluster == 452 ~ "education to zone 4",
+  cluster == 576 ~ "zone 5 to zone 4",
+  cluster == 628 ~ "zone 4 to zone 5 (early career)",
+  cluster == 668 ~ "zone 4/5 to unemployment to zone 5",
+  cluster == 1018 ~ "zone 4 to zone 5 to zone 4",
+  cluster == 1020 ~ "zone 4 to zone 5 (late career)",
+  cluster == 1027 ~ "zone 5",
+  cluster == 1071 ~ "zone 3 to zone 4 (early career)",
+  cluster == 1078 ~ "zone 4 to unemployment",
+  cluster == 1348 ~ "zone 3 to zone 4 (mid career)",
+  cluster == 1363 ~ "zone 4 to zone 3 (mid career)",
+  cluster == 1428 ~ "zone 4 to zone 2 (mid career)",
+  cluster == 1566 ~ "zone 4 to unemployment to zone 4",
+  cluster == 1627 ~ "zone 4",
+  cluster == 1643 ~ "zone 2 to zone 3",
+  cluster == 1690 ~ "zone 4 to zone 3 (early career)",
+  cluster == 1720 ~ "zone 4 to zone 2 (early career)"
 ), cluster_long = paste0(cluster_group, " - ", cluster_label))
 all_df <- all_df %>% left_join(highest_degree_from_forprofit, by = "id")
 all_df <- all_df %>% left_join(highest_degree_from_hbcu, by = "id")
@@ -1483,7 +1630,12 @@ all_df <- all_df %>% mutate(irr_bin = ntile(irr, 5))
 seqdplot(seq.20, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, withlegend = F, sortv = "from.start",
          cpal = c(uva_color_palette[1], uva_color_palette[2],
                   uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
-                  uva_color_palette[5], "#CBBEB5", "dark gray"))
+                  uva_color_palette[5], "#CBBEB5"))
+
+seqrplot(seq.20, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, with.legend = F, sortv = "from.start", diss = seq.20cluster_20$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
 
 all_df <- all_df %>% mutate(end_onet55_label = case_when(
   end_onet55 == "55-3011.00" ~ "Air Crew Members",
@@ -1523,10 +1675,10 @@ cluster_membership_visualization(years_in_military_bin)
 cluster_membership_visualization(year_military_enlist_bin)
 cluster_membership_visualization(career_before_military_bin)
 
-# Visualizing 30 years 10 cluster solution
-seq.30cluster_7$stats
+# Visualizing 30 years 10 cluster solution -------------------------------------------------
+seq.30cluster_7$cluster$stats
 
-cluster_20 <- seq.30cluster_7$clustering
+cluster_20 <- seq.30cluster_7$cluster$clustering
 cluster_20_fac <- factor(cluster_20)
 all <- rownames(seq.10)
 all_df <- as.data.frame(cbind(all, cluster_20))
@@ -1535,9 +1687,9 @@ covariates <- bg_covariates
 covariates$id <- as.character(covariates$id)
 
 all_df <- left_join(all_df, covariates, by = "id") %>% mutate(cluster_group = case_when(
-  cluster %in% c(232) ~ "zone 5",
-cluster %in% c(282) ~ "zone 4",
-cluster %in% c(302) ~ "education and zone 4",
+  cluster %in% c(232) ~ "education",
+cluster %in% c(282) ~ "unemployment",
+cluster %in% c(302) ~ "no change",
 cluster %in% c(335) ~ "unemployment",
 cluster %in% c(356) ~ "zone 4",
 cluster %in% c(356) ~ "zone 3",
@@ -1562,6 +1714,11 @@ seqdplot(seq.30, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 
                   uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
                   uva_color_palette[5], "#CBBEB5", "dark gray"))
 
+seqrplot(seq.30, group = cluster_20_fac, border = NA, use.layout = TRUE, cols = 5, with.legend = F, sortv = "from.start", diss = seq.30cluster_7$diss,
+         cpal = c(uva_color_palette[1], uva_color_palette[2],
+                  uva_color_palette[4], uva_color_palette[6], uva_color_palette[9],
+                  uva_color_palette[5], "#CBBEB5"))
+
 all_df <- all_df %>% mutate(end_onet55_label = case_when(
   end_onet55 == "55-3011.00" ~ "Air Crew Members",
   end_onet55 == "55-1011.00" ~ "Air Crew Officers",
@@ -1599,9 +1756,6 @@ cluster_membership_visualization(end_onet55_label)
 cluster_membership_visualization(years_in_military_bin)
 cluster_membership_visualization(year_military_enlist_bin)
 cluster_membership_visualization(career_before_military_bin)
-
-
-
 
 ```
 

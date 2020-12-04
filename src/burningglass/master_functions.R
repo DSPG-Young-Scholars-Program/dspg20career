@@ -67,7 +67,8 @@ create_seq_vet_fixed <- function(name, complete_career, left_unemp = FALSE) {
   }
   
   sts_vet <- sts_vet[,1:complete_career]
-  names(sts_vet) <- paste0(1:ncol(sts_vet))  
+  names(sts_vet) <- paste0(1:ncol(sts_vet))
+  sts_vet <- sts_vet %>% filter_all(all_vars(!str_detect(., pattern = "%")))
   
   assign(name, sts_vet, envir = .GlobalEnv) 
 }
@@ -191,7 +192,8 @@ create_seq_all_fixed <- function(name, complete_career, left_unemp = FALSE, year
   }
   
   sts_all <- sts_all[,1:complete_career]
-  names(sts_all) <- paste0(1:ncol(sts_all))  
+  names(sts_all) <- paste0(1:ncol(sts_all))
+  sts_all <- sts_all %>% filter_all(all_vars(!str_detect(., pattern = "%")))
   
   assign(name, sts_all, envir = .GlobalEnv) 
 }
@@ -252,6 +254,70 @@ create_seq_all_cohort <- function(name, cohort_begin = 1951, cohort_end = 2018, 
   
   assign(name, sts, envir = .GlobalEnv) 
   
+}
+
+create_seq_all_fixed_experience <- function(name, complete_career, left_unemp = FALSE, years_experience) {
+  # Import all resume data
+  vet_ids <- bg_covariates %>% filter(veteran == "veteran") %>% pull(id)
+  
+  bg_job_nonvet <- bg_job %>% filter(!(id %in% vet_ids)) %>%
+    left_join(bg_covariates, by = "id") %>%
+    mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
+    filter(BAD == FALSE) %>% group_by(id) %>%
+    mutate(years_in_job_market = max(end_year) - aligned_start) %>% 
+    filter(years_in_job_market >= complete_career + years_experience) %>% mutate(starting = aligned_start + years_experience)
+  bg_job_vet <- bg_job %>% filter(id %in% vet_ids) %>% 
+    left_join(bg_covariates, by = "id") %>%
+    filter(start_year >= year_military_exit) %>%
+    filter(onet_job_zone != 55) %>%
+    mutate(BAD = ifelse(start_year > end_year, TRUE, FALSE)) %>% 
+    filter(BAD == FALSE) %>%
+    group_by(id) %>% mutate(experience = career_before_military + years_in_military) %>% filter(experience <= years_experience) %>% mutate(diff = experience - years_experience) %>%
+    mutate(years_in_job_market = max(end_year) - year_military_exit) %>%
+    filter(years_in_job_market >= complete_career) %>% 
+    mutate(starting = year_military_exit + diff)
+  bg_job <- rbind(bg_job_nonvet, bg_job_vet)
+  message("Subsetting for career sequence after military exit")
+  message(paste0("Filtering out those with less than ", complete_career, " years of complete career"))
+  
+  bg_job <- bg_job %>%
+    rowwise() %>% do(data.frame(id=.$id, onet_job_zone = .$onet_job_zone,
+                                starting = .$starting,
+                                year=seq(.$start_year,.$end_year))) %>%
+    group_by(id) %>%
+    arrange(desc(onet_job_zone))%>%
+    group_by(id) %>% mutate(start_year = year, end_year = year) %>%
+    distinct(id, start_year, end_year, .keep_all = TRUE)
+  message("Keeping only the highest job zone for years with overlapping career or education history")
+  
+  bg_job <- bg_job %>%
+    mutate(start_year = as.integer(start_year - starting + 1)) %>% 
+    mutate(end_year = as.integer(end_year - starting + 1)) %>% filter(start_year > 0, end_year > 0) %>%
+    select(id, onet_job_zone, start_year, end_year)
+  message(paste0("Transform from calendar year to aligned years"))
+  
+  sts <- as.matrix(bg_job)
+  sts <- as.data.frame(sts)
+  
+  sts <- seqformat(sts, from = "SPELL", to = "STS",
+                   id = "id",  begin = "start_year", end = "end_year", 
+                   status = "onet_job_zone", process = FALSE, overwrite = TRUE)
+  
+  # Left unemployment?
+  if (left_unemp == TRUE){
+    sts_all <- seqdef(sts, left="Military transition unemployment", gaps="Civilian unemployment", right="DEL")
+    message("Defining left unemployment as a sequence state")
+  }
+  else if (missing(left_unemp) | left_unemp == FALSE){
+    sts_all <- seqdef(sts, left="DEL", gaps="Civilian unemployment", right="DEL")
+    message("Ignoring left unemployment as a sequence state")
+  }
+  
+  sts_all <- sts_all[,1:complete_career]
+  names(sts_all) <- paste0(1:ncol(sts_all))
+  sts_all <- sts_all %>% filter_all(all_vars(!str_detect(., pattern = "%")))
+  
+  assign(name, sts_all, envir = .GlobalEnv) 
 }
 
 #create_sequence_object <- function(name, is_veteran = "veteran", left_unemp = TRUE, cohort_begin, cohort_end, complete_career) {
