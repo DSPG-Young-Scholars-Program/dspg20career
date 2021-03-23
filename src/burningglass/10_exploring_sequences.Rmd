@@ -342,13 +342,12 @@ p <- ggplot() +
   xlim(0,10) +
   scale_fill_manual(values = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#DCDCDC", "#C0C0C0", "#696969"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Military transition unemployed", "Civilian unemployed", "Retired")) +
   xlab("Year of career") +
-  labs(title = "First ten years after military exit",
-       fill = "Job state") +
+  labs(fill = "Job state") +
+  ylab("Number of careers in year of career") +
   theme_classic() +
   theme(legend.position = "bottom",
         axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank())
+        axis.text.y=element_blank())
 
 
 dten <- p +

@@ -15,7 +15,7 @@ for (pkg in c("tidyverse",  "data.table", "R.utils", "maditr", "stringr", "strin
 }
 
 #double check your working directory
-source("~/git/dspg20career/src/burningglass/03_clean_bgt.R", echo = T, prompt.echo = "", spaced = F)
+source("~/git/DSPG2020/career/src/burningglass/03_clean_bgt.R", echo = T, prompt.echo = "", spaced = F)
 bg_clean_ls <- clean_bg(job = job, ed = ed, pers = pers, onet = onet)
 
 bg_all_demographic <- bg_clean_ls$bg_all_demographic
@@ -27,7 +27,7 @@ bg_vet_job <- bg_clean_ls$bg_vet_job
 
 # ACS
 ```{r}
-acs_vet_ed <- read_csv("~/ari3_data/acs_vet_ed.csv")
+acs_vet_ed <- read_csv("~/git/DSPG2020/career/src/acs/vet_ed.csv")
 
 
 colnames(acs_vet_ed) <- c("education", "count", "perc", "veteran")
@@ -47,7 +47,7 @@ acs_vet_ed
 #BRFSS
 less than high school, high school, some college, bachelor and more
 ```{r}
-brfss2018 <- read_csv("~/git/dspg20career/src/brfss/brfss2018.csv")%>%
+brfss2018 <- read_csv("~/git/DSPG2020/career/src/brfss/brfss2018.csv")%>%
   select(-X1)
 
 table(brfss2018$education)
@@ -102,7 +102,7 @@ vet_edu
 #Plot all
 less than high school, high school, some college/associate, bachelor and more
 
-```{r}
+```{r, fig.width = 15}
 library(ggthemes)
 
 uva_color_palette <- 

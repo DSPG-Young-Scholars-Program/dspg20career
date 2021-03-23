@@ -373,7 +373,7 @@ sts_vet_ten <- seqformat(sts_vet_ten, from = "SPELL", to = "STS",
             id = "id",  begin = "start_year", end = "end_year", 
             status = "onet_job_zone", process = FALSE, overwrite = FALSE)
 
-vet.seq <- seqdef(sts_vet_ten, left="DEL", gaps="Civilian unemployment", right="DEL", cpal = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#19aabd", "#CBBEB5"))
+vet.seq <- seqdef(sts_vet_ten, left="DEL", gaps="Civilian unemployment", right="DEL", cpal = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], "#19aabd"))#, "#CBBEB5"))
 
 names(vet.seq) <- paste0(1:ncol(vet.seq))
 sts_vet <- vet.seq[, 1:10]
@@ -410,11 +410,13 @@ ggplot() +
   geom_area(data = states, aes(x = as.numeric(variable), y = value, fill = state, position = "fill")) +
   xlim(1,10) +
   scale_fill_manual(values = c("#CBBEB5", uva_color_palette[1], uva_color_palette[2],uva_color_palette[4],  uva_color_palette[6], uva_color_palette[9], uva_color_palette[5], "#CBBEB5"), labels = c("Missing zone", "Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Education", "Civilian unemployed")) +
-  xlab("Year of career") +
+  xlab("Year of Career") +
+  ylab("Share of States") +
+  scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +
   labs(title = " Veterans: First ten years after entering job market \n (including education, excluding retirement and military transition unemployment)",
        fill = "Job state") +
   theme_classic() +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom", text = element_text(size = 30)) +
   guides(fill = guide_legend(ncol = 3))
 
 years_in_military$military_group <- as.factor(years_in_military$military_group)

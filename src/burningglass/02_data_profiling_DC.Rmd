@@ -2,11 +2,11 @@
 title: "Data Profiling DC"
 output: html_document
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -289,5 +289,19 @@ skill %>%
   ggplot() +
   geom_bar(aes(x = isspecialized, y = n), stat = 'identity') +
   geom_text(aes(x = isspecialized, y = n, label = n), vjust = -0.5)
+```
+
+```{r}
+uva_vet_jobs %>% filter(id == 5930181) %>% select(-rowname, -id.1)
+
+ed %>% rownames_to_column() %>% filter(id == 5930181) %>% select(-rowname, -id.1)
+
+skill %>% rownames_to_column() %>% filter(id == 5930181) %>% select(-rowname, -id.1)
+
+cert %>% rownames_to_column() %>% filter(id == 5930181) %>% select(-rowname, -id.1)
+
+pers %>% rownames_to_column() %>% filter(id == 5930181) %>% select(-rowname, -id.1)
+
+sample.data <- job %>% rownames_to_column() %>% filter(id == 5930181)
 ```
 
