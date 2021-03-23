@@ -4,6 +4,7 @@ description: "Applying tournament theory to post-military veteran career sequenc
 output: html_document
 ---
 
+
 #### **Tournament Theory**
 
 Rosenbaum's (1979) tournament model (described in more detail in the Methodology section) argues that career mobility can be represented as rounds of a tournament, where each round has winners and losers and the results of each round affect subsequent career opportunities. We use 10-year career sequences of veterans beginning after their last military job to test hypotheses about career mobility.
@@ -31,13 +32,15 @@ c("#232D4B", #space cadet
   "#E6A01D", #marigold
   "#E57200" #princeton orange
 )
+
 ```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, include=FALSE}
 source("~/git/dspg20career/src/burningglass/clean_post_military_job.R", echo = T, prompt.echo = "", spaced = F)
 
-bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")
+# bg_vet_job <-read_csv("~/git/dspg20career/data/04_bg_vet_job.csv")
+bg_vet_job <-read_csv("../../tmpdata/04_bg_vet_job.csv")
 bg_vet_job_seq <- clean_post_military(bg_vet_job)
 
 bg_vet_job_seq <- as.matrix(bg_vet_job_seq)

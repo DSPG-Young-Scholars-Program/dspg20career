@@ -10,7 +10,8 @@ library(tidyverse)
 library(DT)
 library(readxl)
 
-DT <- read_excel("~/git/DSPG2020/career/src/burningglass/states_table.xlsx")
+# DT <- read_excel("~/git/DSPG2020/career/src/burningglass/states_table.xlsx")
+DT <- read_excel("../../src/burningglass/states_table.xlsx")
 ```
 
 ### Exploring veteran's whole career sequences
@@ -25,7 +26,7 @@ Among the sequences in the whole careers sequence object, there was a large dist
 
 <center>
 <figure>
-<img src="/findings/results-section-two_files/length_nd.png" width="500"/>
+<img src="/dspg20career/findings/results-section-two_files/length_nd.png" width="500"/>
 <figcaption> Figure 1. Distribution of career sequence lengths for veterans. </figcaption>
 </figure>
 </center>
@@ -34,7 +35,7 @@ Next, we visualized the whole career sequences by looking at the mean time spent
 
 <center>
 <figure>
-<img src="/findings/results-section-two_files/mtall_nd.png" width="600"/>
+<img src="/dspg20career/findings/results-section-two_files/mtall_nd.png" width="600"/>
 <figcaption> Figure 2. Mean time spent in each state by veterans over their whole careers. Note: for veterans whole careers the three unemployment states are aggregated. </figcaption>
 </figure>
 </center>
@@ -45,7 +46,7 @@ Overall, the results of the sequence length and mean time analysis track with ou
 
 <center>
 <figure>
-<img src="/findings/results-section-two_files/dall_nd.png" width="600"/>
+<img src="/dspg20career/findings/results-section-two_files/dall_nd.png" width="600"/>
 <figcaption> Figure 3. Distribution of sequence states over the years of veteran's careers. Note: for veterans whole careers the three unemployment states are aggregated. </figcaption>
 </figure>
 </center>
@@ -58,7 +59,7 @@ To begin answering our research questions about veterans careers, we needed to s
 
 <center>
 <figure>
-<img src="/findings/results-section-two_files/mtten_update_nd.png" width="500"/>
+<img src="/dspg20career/findings/results-section-two_files/mtten_update_nd.png" width="500"/>
 <figcaption> Figure 4. Mean time spent in each state by veterans for the first ten years after their last military job.  </figcaption>
 </figure>
 </center>
@@ -67,7 +68,7 @@ As shown in Figure 4, similar to the whole career sequence, Zone 4 is on average
 
 <center>
 <figure>
-<img src="/findings/results-section-two_files/dten_grays_update_nd.png" width="600"/>
+<img src="/dspg20career/findings/results-section-two_files/dten_grays_update_nd.png" width="600"/>
 <figcaption> Figure 5. Distribution of sequence states over the first ten years after veteran's last military job. </figcaption>
 </figure>
 </center>
