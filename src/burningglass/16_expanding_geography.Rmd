@@ -348,7 +348,7 @@ ggplot(aes(fill = count, color = rural)) +
 
 ```
 
-```{r rural-using-purdue}
+```{r rural-using-purdue, fig.height=8}
 # method: split zip code data by county, merge county-level rurality scores, take the average score for a zip code
 
 zips_by_county <- uszips %>% separate_rows(county_weights, sep = "[,]") %>% mutate(FIPS2010 = str_extract(county_weights, "[0-9][0-9][0-9][0-9][0-9]")) %>% mutate(fips_weight = str_extract(county_weights, "(?<=:).*[^}]"))
@@ -363,27 +363,27 @@ irr <- readxl::read_xlsx("~/git/DSPG2020/career/src/burningglass/IRR_2000_2010.x
 rural_zips_irr <- left_join(zips_by_county, irr, by = c("FIPS2010")) %>% group_by(zip) %>% mutate(irr = weighted.mean(IRR2010, fips_weight, na.rm = TRUE)) %>% distinct(zip, irr)
 rural_zips_irr$zip <- as.character(rural_zips_irr$zip)
 
+#veterans <- pers %>% #filter(id %in% ids) %>%
+#  mutate(zip = str_extract(zipcode, "^[0-9][0-9][0-9][0-9][0-9]")) %>%
+#  left_join(rural_zips_irr, by = c("zipcode" = "zip")) %>%
+#  group_by(zipcode) %>% mutate(count = n()) %>% distinct(zipcode, count, irr)
 
-veterans <- pers %>% filter(id %in% ids) %>%
-  mutate(zip = str_extract(zipcode, "^[0-9][0-9][0-9][0-9][0-9]")) %>%
-  left_join(rural_zips_irr, by = c("zipcode" = "zip")) %>%
-  group_by(zipcode) %>% mutate(count = n()) %>% distinct(zipcode, count, irr)
-
-data_irr <- left_join(fw_zips, veterans, by = c("GEOID10" = "zipcode"))
+#data_irr <- left_join(fw_zips, veterans, by = c("GEOID10" = "zipcode"))
 uszips$zip <- as.character(uszips$zip)
 data_irr <- left_join(data_irr, uszips, by = c("GEOID10" = "zip"))
 
-data_irr %>% filter(state_id == "VA") %>%
-ggplot(aes(fill = count, color = irr)) +
+data_irr %>% filter(state_id.x %in% c("VA", "DC", "MD")) %>%
+ggplot(aes(fill = irr)) +
   geom_sf(lwd = 0.2) +
-  scale_fill_viridis() +
-  scale_color_gradient(low = "white", high = "orange") +
-  theme(panel.background = element_rect(fill = "darkgray",
-                                colour = "darkgray"),
+  scale_fill_viridis(name = "IRR", breaks = c(0.6, 0.1), labels = c("0.6", "0.1")) +
+  #scale_color_gradient(low = "white", high = "orange") +
+  theme(#panel.background = element_rect(fill = "darkgray",
+        #                        colour = "darkgray"),
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        legend.background = element_rect(fill="darkgray", 
-                                  size=0.5, linetype="solid")) +
-  labs(title = "Virginia rural using irr")
+        text = element_text(size = 18))+
+        #legend.background = element_rect(fill="darkgray", 
+        #                         size=0.5, linetype="solid")) +
+  labs(title = "Index of Relative Rurality for Virginia, Maryland, and \n DC Zipcodes", xlab = "Longitude", ylab = "Latitude")
 ```
 
 ```{r rural-using-not-msa}

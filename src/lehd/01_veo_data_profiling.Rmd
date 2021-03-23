@@ -165,9 +165,7 @@ military <- "55-[0-9][0-9][0-9][0-9].[0-9][0-9]"
 military_ids <- job %>% filter(str_detect(job$onet, military)) %>% distinct(id)
 
 # Create df of resumes for military ids, get counts in each sector
-res_mil <- job %>% filter(id %in% military_ids$id)
-
-%>% group_by(sector) %>% summarise(n = n()) %>% drop_na()
+res_mil <- job %>% filter(id %in% military_ids$id) %>% group_by(sector) %>% summarise(n = n()) %>% drop_na()
 
 # Join industry labels by NAICS codes
 res_mil_labels <- res_mil %>% left_join(select(veo_ind_long, label_industry, industry), by = c("sector" = "industry"))
